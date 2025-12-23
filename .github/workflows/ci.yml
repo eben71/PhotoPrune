@@ -69,6 +69,29 @@ jobs:
           uv venv .venv
           uv pip install -r requirements-dev.lock
 
+      - name: Debug network + tool proxy config
+        run: |
+          set -x
+          echo "=== ENV proxy vars ==="
+          env | egrep -i 'proxy|requests_ca_bundle|ssl_cert_file|pip_|uv_' || true
+
+          echo "=== DNS + connectivity (including files host used by PyPI) ==="
+          curl -I https://pypi.org/simple/ -m 10
+          curl -I https://files.pythonhosted.org/ -m 10
+          curl -I https://registry.npmjs.org/ -m 10
+
+          echo "=== npm/pnpm proxy config (can be set even when env is empty) ==="
+          npm config get proxy || true
+          npm config get https-proxy || true
+          pnpm config get proxy || true
+          pnpm config get https-proxy || true
+
+          echo "=== pip config (can include proxy/index) ==="
+          python -m pip config list -v || true
+
+          echo "=== uv env (if any) ==="
+          uv --version || true
+
       - name: Lint (web + shared)
         run: pnpm lint
 
