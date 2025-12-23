@@ -29,18 +29,6 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
-      - name: Debug network/proxy env
-        run: |
-          echo "HTTP_PROXY=$HTTP_PROXY"
-          echo "HTTPS_PROXY=$HTTPS_PROXY"
-          echo "NO_PROXY=$NO_PROXY"
-          echo "REQUESTS_CA_BUNDLE=$REQUESTS_CA_BUNDLE"
-          echo "SSL_CERT_FILE=$SSL_CERT_FILE"
-          python -V
-          node -v || true
-          curl -I https://pypi.org/simple/ || true
-          curl -I https://registry.npmjs.org/ || true
-
       - name: Clear proxy env (personal internet)
         run: |
           unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY all_proxy NO_PROXY no_proxy
@@ -68,29 +56,6 @@ jobs:
         run: |
           uv venv .venv
           uv pip install -r requirements-dev.lock
-
-      - name: Debug network + tool proxy config
-        run: |
-          set -x
-          echo "=== ENV proxy vars ==="
-          env | egrep -i 'proxy|requests_ca_bundle|ssl_cert_file|pip_|uv_' || true
-
-          echo "=== DNS + connectivity (including files host used by PyPI) ==="
-          curl -I https://pypi.org/simple/ -m 10
-          curl -I https://files.pythonhosted.org/ -m 10
-          curl -I https://registry.npmjs.org/ -m 10
-
-          echo "=== npm/pnpm proxy config (can be set even when env is empty) ==="
-          npm config get proxy || true
-          npm config get https-proxy || true
-          pnpm config get proxy || true
-          pnpm config get https-proxy || true
-
-          echo "=== pip config (can include proxy/index) ==="
-          python -m pip config list -v || true
-
-          echo "=== uv env (if any) ==="
-          uv --version || true
 
       - name: Lint (web + shared)
         run: pnpm lint
