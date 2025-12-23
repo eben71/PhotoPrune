@@ -29,6 +29,30 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
+      - name: Debug network/proxy env
+        run: |
+          echo "HTTP_PROXY=$HTTP_PROXY"
+          echo "HTTPS_PROXY=$HTTPS_PROXY"
+          echo "NO_PROXY=$NO_PROXY"
+          echo "REQUESTS_CA_BUNDLE=$REQUESTS_CA_BUNDLE"
+          echo "SSL_CERT_FILE=$SSL_CERT_FILE"
+          python -V
+          node -v || true
+          curl -I https://pypi.org/simple/ || true
+          curl -I https://registry.npmjs.org/ || true
+
+      - name: Debug network/proxy env
+        run: |
+          echo "HTTP_PROXY=$HTTP_PROXY"
+          echo "HTTPS_PROXY=$HTTPS_PROXY"
+          echo "NO_PROXY=$NO_PROXY"
+          echo "REQUESTS_CA_BUNDLE=$REQUESTS_CA_BUNDLE"
+          echo "SSL_CERT_FILE=$SSL_CERT_FILE"
+          python -V
+          node -v || true
+          curl -I https://pypi.org/simple/ || true
+          curl -I https://registry.npmjs.org/ || true
+
       - name: Install Node dependencies
         run: pnpm install
 
