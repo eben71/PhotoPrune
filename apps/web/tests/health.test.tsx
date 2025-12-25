@@ -16,6 +16,8 @@ describe('HealthPage', () => {
 
     render(<HealthPage />);
 
-    await waitFor(() => expect(screen.getByTestId('health-status')).toHaveTextContent('ok'));
+    await waitFor(() =>
+      expect(screen.getByTestId('health-status')).toHaveTextContent('ok')
+    );
   });
 });
