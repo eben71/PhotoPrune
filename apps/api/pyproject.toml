@@ -26,6 +26,9 @@ line-length = 100
 lint.select = ["E", "F", "I", "B", "W", "UP"]
 lint.ignore = []
 
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
 [tool.black]
 line-length = 100
 target-version = ["py311"]
