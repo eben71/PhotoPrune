@@ -11,7 +11,7 @@ describe('HealthPage', () => {
   it('shows health status from API', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ status: 'ok' })
+      json: () => Promise.resolve({ status: 'ok' })
     } as Response);
 
     render(<HealthPage />);

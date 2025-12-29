@@ -1,7 +1,16 @@
 SHELL := /bin/bash
 
 PNPM := pnpm
-UV := uv
+# Resolve uv from PATH, falling back to common install locations
+UV ?= $(shell \
+	if command -v uv >/dev/null 2>&1; then command -v uv; \
+	elif [ -x "$(HOME)/.local/bin/uv" ]; then printf '%s' "$(HOME)/.local/bin/uv"; \
+	elif [ -x "/opt/homebrew/bin/uv" ]; then printf '%s' "/opt/homebrew/bin/uv"; \
+	fi)
+
+ifeq ($(UV),)
+$(error uv is required. Install via "brew install uv" or "curl -LsSf https://astral.sh/uv/install.sh | sh", ensure it is on PATH, or set UV=/full/path/to/uv)
+endif
 
 .PHONY: setup dev lint format format-check typecheck test build hooks
 

@@ -17,7 +17,7 @@ export default function HealthPage() {
         if (!res.ok) {
           throw new Error('Health check failed');
         }
-        const data = await res.json();
+        const data: unknown = await res.json();
         const parsed = HealthStatusSchema.parse(data);
         setStatus(parsed.status ?? 'unknown');
       } catch (error) {
@@ -26,7 +26,7 @@ export default function HealthPage() {
       }
     }
 
-    fetchHealth();
+    void fetchHealth();
   }, []);
 
   return (
