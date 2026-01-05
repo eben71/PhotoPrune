@@ -42,9 +42,9 @@
   - ✅ Type check (if applicable)
   - ✅ Build frontend
   - ✅ Build backend
-- [ ] Branch protection enabled:
-  - [ ] Required checks must pass before merge
-  - [ ] No direct pushes to main
+- ✅ Branch protection enabled:
+  - ✅ Required checks must pass before merge
+  - ✅ No direct pushes to main
 
 ### Guardrails (Prevent Roadmap Drift)
 - ✅ MVP scope explicitly written in README
