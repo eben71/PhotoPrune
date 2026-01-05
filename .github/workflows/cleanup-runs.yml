@@ -16,17 +16,19 @@ jobs:
       - name: Checkout (to get current branches)
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # fetch all branches
+          fetch-depth: 0
 
       - name: Ensure GitHub CLI
         run: gh --version || (sudo apt-get update && sudo apt-get install -y gh)
 
       - name: Get active branches
-        id: branches
         run: |
-          git branch -r | sed 's/origin\///' | grep -v HEAD > active_branches.txt
+          git branch -r \
+            | sed 's/origin\///' \
+            | grep -v HEAD \
+            > active_branches.txt
           echo "Active branches: $(wc -l < active_branches.txt)"
-          cat active_branches.txt
+          head -5 active_branches.txt  # Show first 5 for verification
 
       - name: Collect runs from DELETED branches
         run: |
@@ -34,8 +36,8 @@ jobs:
             --repo "$REPO" \
             --limit 1000 \
             --json databaseId,headBranch,status \
-          | jq -r --slurpfile branches active_branches.txt '
-              ($branches[0] | split("\n") | map(select(length > 0))) as $active
+          | jq -r --rawfile branches active_branches.txt '
+              ($branches | split("\n") | map(select(length > 0))) as $active
             | map(select(
                 .status == "completed" 
                 and .headBranch != null 
@@ -45,6 +47,7 @@ jobs:
           > deleted_branch_runs.txt
           
           echo "Runs from deleted branches: $(wc -l < deleted_branch_runs.txt)"
+          head -3 deleted_branch_runs.txt || true  # Show sample
 
       - name: Collect old runs (keep N newest per workflow/branch)
         run: |
