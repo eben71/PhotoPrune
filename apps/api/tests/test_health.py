@@ -12,6 +12,12 @@ def test_healthz():
     assert response.json() == {"status": "ok"}
 
 
+def test_health():
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok", "phase": "feasibility"}
+
+
 def test_settings_loads_from_env(monkeypatch):
     monkeypatch.setenv("DATABASE_URL", "postgresql://example:example@localhost:5432/example")
     monkeypatch.setenv("REDIS_URL", "redis://localhost:6380/0")
