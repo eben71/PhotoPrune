@@ -1,6 +1,8 @@
 pre-commit:
   parallel: true
   commands:
+    block-sensitive-paths:
+      run: scripts/block-sensitive-paths.sh
     web-lint:
       run: pnpm --filter web lint
     web-format:

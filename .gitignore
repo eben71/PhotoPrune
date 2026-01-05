@@ -19,6 +19,7 @@ __pycache__
 .env.development
 .env.production
 .env.test
+experiments/phase1/.tokens/
 
 # IDE
 .vscode
