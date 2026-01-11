@@ -461,27 +461,7 @@ async function runPicker() {
     }
 
     if (run.similarity_probe && !run.similarity_probe.skipped) {
-      try {
-        console.log("[phase1b] report: generating static HTML");
-        await runPhase1bReport({
-          runId,
-          paths,
-          similarityThreshold: run.similarity_probe.near_match_threshold ?? 70,
-        });
-        const reportPath = path.join(
-          __dirname,
-          "..",
-          "reports",
-          runId,
-          "report",
-          "index.html",
-        );
-        run.artifacts.phase1b_report = reportPath;
-        console.log(`[phase1b] report: wrote ${reportPath}`);
-      } catch (error) {
-        run.report_error = error.message;
-        console.error(`[phase1b] report generation failed: ${error.message}`);
-      }
+      run.report_requested = true;
     }
 
     console.log("Run complete.");
@@ -512,6 +492,31 @@ async function runPicker() {
     }
     run.completed_at = new Date().toISOString();
     await writeRunJson(paths.runJsonPath, run);
+
+    if (run.report_requested) {
+      try {
+        console.log("[phase1b] report: generating static HTML");
+        await runPhase1bReport({
+          runId,
+          paths,
+          similarityThreshold: run.similarity_probe?.near_match_threshold ?? 70,
+        });
+        const reportPath = path.join(
+          __dirname,
+          "..",
+          "reports",
+          runId,
+          "report",
+          "index.html",
+        );
+        run.artifacts.phase1b_report = reportPath;
+        console.log(`[phase1b] report: wrote ${reportPath}`);
+      } catch (error) {
+        run.report_error = error.message;
+        console.error(`[phase1b] report generation failed: ${error.message}`);
+      }
+      await writeRunJson(paths.runJsonPath, run);
+    }
   }
 
   process.exit(exitCode);
