@@ -18,6 +18,7 @@ function buildRunPaths(runId) {
     runJsonPath: path.join(runsDir, `${runId}-run.json`),
     itemsPath: path.join(runsDir, `${runId}-items.ndjson`),
     urlRecheckPath: path.join(runsDir, `${runId}-url-recheck.json`),
+    similarityPath: path.join(runsDir, `${runId}-similarity.ndjson`),
   };
 }
 
@@ -48,6 +49,7 @@ function createRunRecord({ tier, maxItemCount, sampleSize, runId }) {
       completed_at: null,
       duration_seconds: null,
     },
+    picked_item_shape: null,
     metadata_completeness: null,
     url_probe: null,
     user_friction_notes: "",

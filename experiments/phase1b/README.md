@@ -22,6 +22,9 @@ should be safe to delete after feasibility is decided.
 
 ## Run the picker probe
 
+> **Note:** If you change OAuth scopes, delete cached tokens in `experiments/phase1b/.tokens/`
+> and re-consent so the new scopes take effect.
+
 ```bash
 set -a; source .env; set +a; node experiments/phase1b/src/picker.js --tier test --token-id default
 set -a; source .env; set +a; node experiments/phase1b/src/picker.js --tier small --token-id default
@@ -43,4 +46,18 @@ node experiments/phase1b/src/url-recheck.js --run-file experiments/phase1b/runs/
 ## Notes
 
 - Run artifacts are written to `experiments/phase1b/runs/` and are **gitignored**.
+- If the NDJSON self-check fails, the run aborts with an error. This indicates the
+  items writer produced invalid output.
+- Metadata fields may be nested under `mediaFile` in the Picker API response.
+- URL probe notes: Picker `baseUrl` requests must include an `Authorization` header
+  and the correct suffix (`=d` for images, `=dv` for video). If either is missing,
+  403s are expected.
+- Similarity probe (TEST/SMALL tiers only) computes a lightweight perceptual hash
+  for each image and reports pairwise “% similarity” as a heuristic score. This is
+  **not** a proof of exact duplicates; exact matches still require SHA-256 over
+  downloaded bytes.
+- After a successful similarity probe, the picker run auto-generates a static HTML
+  report under `experiments/phase1b/reports/<runId>/report/index.html`.
+- The report generator will download thumbnails when `PHASE1B_REPORT_ACCESS_TOKEN` is
+  available. Use `--noDownloadImages` to skip caching.
 - This code is intentionally minimal and should not be promoted to production.

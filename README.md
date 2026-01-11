@@ -74,3 +74,49 @@ Prereqs: Node.js 20+, pnpm (via Corepack), Python 3.12+, and `uv`.
 - No secrets are committed. Use `.env.example` as a template and provide values locally.
 - CI enforces linting, formatting, type checking, tests, coverage (>=80%), doc guard, and audits.
 - The checked-in `pnpm-lock.yaml` is a placeholder due to offline bootstrapping; regenerate with `pnpm install` when network access is available and commit the result.
+
+## Reports (Phase 1b)
+
+Generate a static HTML report from Phase 1b artifacts (developer-facing only). This is also
+automatically generated after a successful Phase 1b similarity probe.
+
+```bash
+pnpm report:phase1b -- \
+  --run /mnt/data/2026-01-11T13-24-14-332Z-test-run.json \
+  --items /mnt/data/2026-01-11T13-24-14-332Z-test-items.ndjson \
+  --similarity /mnt/data/2026-01-11T13-24-14-332Z-test-similarity.ndjson \
+  --out experiments/phase1b/reports \
+  --threshold 70 \
+  --topPairs 100
+```
+
+By default the report generator downloads thumbnails when `PHASE1B_REPORT_ACCESS_TOKEN`
+is available. To explicitly cache images for offline viewing:
+
+```bash
+PHASE1B_REPORT_ACCESS_TOKEN=... pnpm report:phase1b -- \
+  --run /mnt/data/2026-01-11T13-24-14-332Z-test-run.json \
+  --items /mnt/data/2026-01-11T13-24-14-332Z-test-items.ndjson \
+  --similarity /mnt/data/2026-01-11T13-24-14-332Z-test-similarity.ndjson \
+  --out experiments/phase1b/reports \
+  --topPairs 100
+```
+
+To skip caching and use remote `baseUrl` images only:
+
+```bash
+pnpm report:phase1b -- \
+  --run /mnt/data/2026-01-11T13-24-14-332Z-test-run.json \
+  --items /mnt/data/2026-01-11T13-24-14-332Z-test-items.ndjson \
+  --similarity /mnt/data/2026-01-11T13-24-14-332Z-test-similarity.ndjson \
+  --out experiments/phase1b/reports \
+  --noDownloadImages
+```
+
+Open the report at:
+
+```bash
+open experiments/phase1b/reports/2026-01-11T13-24-14-332Z-test/report/index.html
+```
+
+Note: images use remote `baseUrl` links and may require a valid auth session in the browser.

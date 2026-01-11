@@ -12,11 +12,16 @@
     "test": "turbo test",
     "build": "turbo build",
     "check:docs": "node scripts/check-docs.js",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "report:phase1b": "node tools/phase1b-report/cli.js"
   },
   "devDependencies": {
     "lefthook": "^2.0.13",
     "turbo": "^2.7.2",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "jpeg-js": "^0.4.4",
+    "pngjs": "^7.0.0"
   }
 }
