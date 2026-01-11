@@ -18,5 +18,9 @@
     "lefthook": "^2.0.13",
     "turbo": "^2.7.2",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "jpeg-js": "^0.4.4",
+    "pngjs": "^7.0.0"
   }
 }

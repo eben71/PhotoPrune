@@ -52,4 +52,8 @@ node experiments/phase1b/src/url-recheck.js --run-file experiments/phase1b/runs/
 - URL probe notes: Picker `baseUrl` requests must include an `Authorization` header
   and the correct suffix (`=d` for images, `=dv` for video). If either is missing,
   403s are expected.
+- Similarity probe (TEST/SMALL tiers only) computes a lightweight perceptual hash
+  for each image and reports pairwise “% similarity” as a heuristic score. This is
+  **not** a proof of exact duplicates; exact matches still require SHA-256 over
+  downloaded bytes.
 - This code is intentionally minimal and should not be promoted to production.

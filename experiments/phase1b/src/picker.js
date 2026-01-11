@@ -13,6 +13,7 @@ const {
   recordItemMetadata,
 } = require("./metadata");
 const { probeUrls, sampleWithReservoir } = require("./url-probe");
+const { runSimilarityProbe } = require("./similarity");
 const {
   buildRunId,
   buildRunPaths,
@@ -205,6 +206,8 @@ async function listAllMediaItems({
   run,
   metadataStats,
   sampleSize,
+  similarityCapture,
+  similarityLimit,
 }) {
   let pageToken = null;
   const seenTokens = new Set();
@@ -233,6 +236,17 @@ async function listAllMediaItems({
       run.listing.selected_count_total += 1;
       recordItemMetadata(metadataStats, item);
       const itemId = getFirstValue(item, [["id"], ["mediaFile", "id"]]);
+      if (similarityCapture && !similarityCapture.skipped_reason) {
+        if (similarityCapture.items.length < similarityLimit) {
+          similarityCapture.items.push({
+            id: itemId,
+            baseUrl: getFirstValue(item, [["mediaFile", "baseUrl"], ["baseUrl"]]),
+            mimeType: getFirstValue(item, [["mediaFile", "mimeType"], ["mimeType"]]),
+          });
+        } else {
+          similarityCapture.skipped_reason = "selected_count_exceeds_limit";
+        }
+      }
       sampleWithReservoir(sampleItems, {
         id: itemId,
         baseUrl: getFirstValue(item, [["mediaFile", "baseUrl"], ["baseUrl"]]),
@@ -285,9 +299,14 @@ async function runPicker() {
   run.artifacts = {
     run_json: paths.runJsonPath,
     items_ndjson: paths.itemsPath,
+    similarity_ndjson: null,
   };
 
   const metadataStats = createMetadataStats();
+  const similarityCapture = {
+    items: [],
+    skipped_reason: null,
+  };
   let itemsStream = null;
   let exitCode = 0;
 
@@ -329,6 +348,8 @@ async function runPicker() {
     run.listing.started_at = new Date().toISOString();
     const listStart = Date.now();
 
+    const similarityLimit = 200;
+    const enableSimilarity = tierConfig.maxItemCount <= similarityLimit;
     const sampleItems = await listAllMediaItems({
       accessToken,
       sessionId: session.id,
@@ -337,6 +358,8 @@ async function runPicker() {
       run,
       metadataStats,
       sampleSize: args.sampleSize,
+      similarityCapture: enableSimilarity ? similarityCapture : null,
+      similarityLimit,
     });
     run.listing.completed_at = new Date().toISOString();
     run.listing.duration_seconds = Number(
@@ -354,6 +377,33 @@ async function runPicker() {
       sample_items: redactedSample,
       ...(await probeUrls(validSample, { accessToken })),
     };
+
+    if (!enableSimilarity) {
+      run.similarity_probe = {
+        skipped: true,
+        reason: "tier_limit_exceeds_threshold",
+        max_items: similarityLimit,
+      };
+    } else if (similarityCapture.skipped_reason) {
+      run.similarity_probe = {
+        skipped: true,
+        reason: similarityCapture.skipped_reason,
+        max_items: similarityLimit,
+      };
+    } else if (similarityCapture.items.length < 2) {
+      run.similarity_probe = {
+        skipped: true,
+        reason: "insufficient_items",
+        max_items: similarityLimit,
+      };
+    } else {
+      run.similarity_probe = await runSimilarityProbe({
+        items: similarityCapture.items,
+        accessToken,
+        outputPath: paths.similarityPath,
+      });
+      run.artifacts.similarity_ndjson = paths.similarityPath;
+    }
 
     console.log("Run complete.");
     console.log(`Run JSON: ${paths.runJsonPath}`);

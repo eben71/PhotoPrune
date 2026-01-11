@@ -18,6 +18,7 @@ function buildRunPaths(runId) {
     runJsonPath: path.join(runsDir, `${runId}-run.json`),
     itemsPath: path.join(runsDir, `${runId}-items.ndjson`),
     urlRecheckPath: path.join(runsDir, `${runId}-url-recheck.json`),
+    similarityPath: path.join(runsDir, `${runId}-similarity.ndjson`),
   };
 }
 
