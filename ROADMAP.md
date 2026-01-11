@@ -115,6 +115,13 @@
 - Update [DECISIONS.md](DECISIONS.md) and [RISK_REGISTER.md](RISK_REGISTER.md) with findings
 - Produce a short Phase 1b report (see `experiments/phase1b/` runs + notes)
 
+### Similarity Pipeline (Tiered Decision)
+1) Candidate narrowing via metadata (mimeType, dimensions, createTime, filename heuristic; GPS only as negative filter when both present)
+2) Near-duplicate scoring via content features (pHash/dHash and/or embeddings) → 0–100 similarity score
+3) Optional exact duplicate confirmation by downloading bytes and hashing (SHA-256)
+Outputs: candidate reduction ratio; cost/time per 1k images; false-positive/false-negative sampling plan.
+Finalize thresholds/models in DECISIONS.md after Phase 1b.
+
 ---
 
 ## Risks / Open Questions (Feasibility)
