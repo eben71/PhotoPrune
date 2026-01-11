@@ -354,10 +354,11 @@ async function runPicker() {
   };
   let itemsStream = null;
   let exitCode = 0;
+  let accessToken = null;
 
   try {
     console.log(`[diag] requested_scopes=${getRequestedScopes()}`);
-    const accessToken = await getValidAccessToken({
+    accessToken = await getValidAccessToken({
       tokenId: args.tokenId,
       metrics: run.auth,
     });
