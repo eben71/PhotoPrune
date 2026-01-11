@@ -114,6 +114,7 @@
 ### Phase 1b Output
 - Update [DECISIONS.md](DECISIONS.md) and [RISK_REGISTER.md](RISK_REGISTER.md) with findings
 - Produce a short Phase 1b report (see `experiments/phase1b/` runs + notes)
+- Clustering + static HTML report for review/calibration (developer-facing)
 
 ### Similarity Pipeline (Tiered Decision)
 1) Candidate narrowing via metadata (mimeType, dimensions, createTime, filename heuristic; GPS only as negative filter when both present)
