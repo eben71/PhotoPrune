@@ -64,20 +64,20 @@
 > **Goal:** Prove Google Photos is viable **before** building the product.
 
 ### Google Photos API Validation (Critical)
-- [ ] OAuth flow works end-to-end
-- [ ] Fetch full library (pagination, large accounts)
-- [ ] Measure under realistic conditions:
-  - [ ] API rate limits encountered during scan
-  - [ ] Time to scan 10k / 50k photos
-  - [ ] Metadata completeness (IDs, URLs, timestamps, dimensions where available)
-- [ ] Validate expiring media URL behaviour (how often you need to refresh access)
-- [ ] Confirm incremental scan strategy feasibility (avoid full re-scan every time)
-- [ ] Identify hard blockers or unacceptable constraints
+- ✅ OAuth flow works end-to-end
+- ✅ Fetch full library (pagination, large accounts)
+- ✅ Measure under realistic conditions:
+  - ✅ API rate limits encountered during scan
+  - ✅ Time to scan 10k / 50k photos
+  - ✅ Metadata completeness (IDs, URLs, timestamps, dimensions where available)
+- ✅ Validate expiring media URL behaviour (how often you need to refresh access)
+- ✅ Confirm incremental scan strategy feasibility (avoid full re-scan every time)
+- ✅ Identify hard blockers or unacceptable constraints
 
 ### Feasibility Decision Outcomes
-- [ ] **GO:** API limits acceptable → proceed
-- [ ] **ADAPT:** limits tight → adjust scan strategy and retry
-- [ ] **STOP:** limits kill viability → reassess product direction
+- ✅ **GO:** API limits acceptable → proceed
+- ✅ **ADAPT:** limits tight → adjust scan strategy and retry
+- ✅ **STOP:** limits kill viability → reassess product direction
 
 ### Phase 1 Conclusion (Library API)
 - **Library API whole-library enumeration: STOP / not viable**
@@ -85,9 +85,9 @@
   - App-created-only scope returns 0 items for typical users
 
 ### CI Additions (Feasibility)
-- [ ] Add smoke tests to CI:
-  - [ ] App boots in CI (headless)
-  - [ ] Minimal health endpoint returns OK (even stubbed)
+- ✅ Add smoke tests to CI:
+  - ✅ App boots in CI (headless)
+  - ✅ Minimal health endpoint returns OK (even stubbed)
 
 > 🚨 **No further phases proceed without passing this gate**
 
@@ -98,13 +98,13 @@
 > **Goal:** Validate Picker session flow + ability to retrieve user-selected items at meaningful scale.
 
 ### What We Must Measure
-- [ ] Selection friction & practical selection size (10, 200, 1k–5k or album-based)
-- [ ] Ability to list selected media items reliably
-- [ ] Content access works (Picker `baseUrl` fetch with Authorization header + required URL params)
-- [ ] Metadata coverage: id, createTime, filename, mimeType, dimensions; % with GPS if present
-- [ ] Duplicate/near-match feasibility:
-  - [ ] Exact duplicates via SHA-256 on downloaded bytes
-  - [ ] Near matches via pHash/embeddings on downloaded renditions
+- ✅ Selection friction & practical selection size (10, 200, 1k–5k or album-based)
+- ✅ Ability to list selected media items reliably
+- ✅ Content access works (Picker `baseUrl` fetch with Authorization header + required URL params)
+- ✅ Metadata coverage: id, createTime, filename, mimeType, dimensions; % with GPS if present
+- ✅ Duplicate/near-match feasibility:
+  - ✅ Exact duplicates via SHA-256 on downloaded bytes
+  - ✅ Near matches via pHash/embeddings on downloaded renditions
 
 ### Red / Amber / Green Gates
 - **GREEN:** user can select/retrieve ≥1k items (or album), high content fetch success, metadata gaps <5%
@@ -112,9 +112,9 @@
 - **RED:** can’t reliably retrieve content/metadata; selection too limited; metadata gaps >20%
 
 ### Phase 1b Output
-- Update [DECISIONS.md](DECISIONS.md) and [RISK_REGISTER.md](RISK_REGISTER.md) with findings
-- Produce a short Phase 1b report (see `experiments/phase1b/` runs + notes)
-- Clustering + static HTML report for review/calibration (developer-facing)
+- ✅ Update [DECISIONS.md](DECISIONS.md) and [RISK_REGISTER.md](RISK_REGISTER.md) with findings
+- ✅ Produce a short Phase 1b report (see `experiments/phase1b/` runs + notes)
+- ✅ Clustering + static HTML report for review/calibration (developer-facing)
 
 ### Similarity Pipeline (Tiered Decision)
 1) Candidate narrowing via metadata (mimeType, dimensions, createTime, filename heuristic; GPS only as negative filter when both present)
