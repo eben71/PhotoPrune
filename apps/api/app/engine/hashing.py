@@ -76,7 +76,7 @@ def hamming_distance(left: int, right: int) -> int:
     return (left ^ right).bit_count()
 
 
-def _load_image(image_bytes: bytes) -> "PilImage.Image":
+def _load_image(image_bytes: bytes) -> PilImage.Image:
     from PIL import Image, ImageOps
 
     with Image.open(BytesIO(image_bytes)) as img:

@@ -35,7 +35,7 @@ class _FakeImage:
         self._fill = fill
         self._size: tuple[int, int] = (0, 0)
 
-    def resize(self, size: tuple[int, int], resample: int | None = None) -> "_FakeImage":
+    def resize(self, size: tuple[int, int], resample: int | None = None) -> _FakeImage:
         self._size = size
         return self
 
