@@ -6,6 +6,8 @@ node_modules
 .next
 *.tsbuildinfo
 coverage
+.coverage
+coverage.xml
 .vitest
 
 # Python
