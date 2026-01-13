@@ -11,8 +11,7 @@ from app.engine.grouping import (
     group_near_duplicates,
     select_representative_pair,
 )
-from app.engine.hashing import HashingService
-from app.engine.hashing import PerceptualHashes
+from app.engine.hashing import HashingService, PerceptualHashes
 from app.engine.models import PhotoItem
 
 
