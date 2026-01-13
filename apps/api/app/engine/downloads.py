@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from collections.abc import Callable
-from urllib.parse import urlparse
 import ipaddress
 import socket
 import urllib.request
+from collections.abc import Callable
+from urllib.parse import urlparse
 
 from app.engine.models import PhotoItem
-
 
 DownloadFetcher = Callable[[PhotoItem], bytes]
 

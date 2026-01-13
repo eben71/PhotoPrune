@@ -61,9 +61,7 @@ def test_near_duplicate_grouping_is_very_similar():
     download_map = {"near1": png_bytes, "near2": jpeg_bytes}
     downloader = DownloadManager(fetcher=lambda item: download_map[item.id])
     hashing = HashingService(downloader)
-    perceptual_hashes = {
-        item.id: hashing.get_perceptual_hashes(item) for item in items
-    }
+    perceptual_hashes = {item.id: hashing.get_perceptual_hashes(item) for item in items}
     thresholds = SimilarityThresholds(
         dhash_very=Settings().scan_dhash_threshold_very,
         dhash_possible=Settings().scan_dhash_threshold_possible,

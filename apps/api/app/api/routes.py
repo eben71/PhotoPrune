@@ -37,17 +37,13 @@ def scan(request: ScanRequest) -> ScanResult:
 
     input_count = len(items)
     if input_count > settings.scan_max_photos:
-        message = (
-            f"Scan requested {input_count} items; max allowed is {settings.scan_max_photos}."
-        )
+        message = f"Scan requested {input_count} items; max allowed is {settings.scan_max_photos}."
         if settings.enforce_scan_limits:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
         logger.warning(message)
 
     if input_count > settings.scan_consent_threshold and not request.consent_confirmed:
-        message = (
-            "Scan exceeds consent threshold; explicit consent is required in production."
-        )
+        message = "Scan exceeds consent threshold; explicit consent is required in production."
         if settings.enforce_scan_limits:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
         logger.warning(message)

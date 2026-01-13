@@ -47,8 +47,7 @@ def run_scan(
     timings["exact_grouping_ms"] = _elapsed_ms(start)
 
     hashable_candidate_sets = [
-        [item for item in group if item.download_url is not None]
-        for group in candidate_sets
+        [item for item in group if item.download_url is not None] for group in candidate_sets
     ]
     hashable_candidate_sets = [group for group in hashable_candidate_sets if len(group) >= 2]
 
@@ -96,9 +95,7 @@ def _estimate_costs(settings: Settings, counts: dict[str, int]) -> CostEstimate:
         counts.get("byte_hashes", 0) * settings.scan_cost_per_byte_hash
         + counts.get("perceptual_hashes", 0) * settings.scan_cost_per_perceptual_hash
     )
-    comparison_cost = (
-        counts.get("comparisons_executed", 0) * settings.scan_cost_per_comparison
-    )
+    comparison_cost = counts.get("comparisons_executed", 0) * settings.scan_cost_per_comparison
     total_cost = download_cost + hash_cost + comparison_cost
     return CostEstimate(
         totalCost=round(total_cost, 6),
