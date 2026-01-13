@@ -76,9 +76,9 @@ def hamming_distance(left: int, right: int) -> int:
 
 def _load_image(image_bytes: bytes) -> Image.Image:
     with Image.open(BytesIO(image_bytes)) as img:
-        img = ImageOps.exif_transpose(img)
-        img = img.convert("L")
-        return img.copy()
+        transposed = ImageOps.exif_transpose(img)
+        grayscale = transposed.convert("L")
+        return grayscale.copy()
 
 
 def _dct_2d(matrix: list[list[int]]) -> list[list[float]]:
