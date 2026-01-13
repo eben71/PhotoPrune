@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from io import BytesIO
 
 from PIL import Image
@@ -19,7 +19,7 @@ from app.engine.models import PhotoItem
 
 
 def test_candidate_narrowing_is_deterministic():
-    base_time = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    base_time = datetime(2024, 1, 1, tzinfo=UTC)
     items = [
         _photo_item("a", base_time, 4000, 3000),
         _photo_item("b", base_time + timedelta(minutes=5), 4000, 3000),
@@ -37,8 +37,8 @@ def test_candidate_narrowing_is_deterministic():
 def test_exact_duplicate_grouping():
     image_bytes = _make_image_bytes("PNG", (120, 80), (10, 10, 10))
     items = [
-        _photo_item("dup1", datetime(2024, 1, 1, tzinfo=timezone.utc), 120, 80),
-        _photo_item("dup2", datetime(2024, 1, 1, tzinfo=timezone.utc), 120, 80),
+        _photo_item("dup1", datetime(2024, 1, 1, tzinfo=UTC), 120, 80),
+        _photo_item("dup2", datetime(2024, 1, 1, tzinfo=UTC), 120, 80),
     ]
     download_map = {"dup1": image_bytes, "dup2": image_bytes}
     downloader = DownloadManager(fetcher=lambda item: download_map[item.id])
@@ -55,8 +55,8 @@ def test_near_duplicate_grouping_is_very_similar():
     png_bytes = _make_image_bytes("PNG", (64, 64), (30, 30, 30))
     jpeg_bytes = _make_image_bytes("JPEG", (64, 64), (30, 30, 30))
     items = [
-        _photo_item("near1", datetime(2024, 1, 1, tzinfo=timezone.utc), 64, 64),
-        _photo_item("near2", datetime(2024, 1, 1, tzinfo=timezone.utc), 64, 64),
+        _photo_item("near1", datetime(2024, 1, 1, tzinfo=UTC), 64, 64),
+        _photo_item("near2", datetime(2024, 1, 1, tzinfo=UTC), 64, 64),
     ]
     download_map = {"near1": png_bytes, "near2": jpeg_bytes}
     downloader = DownloadManager(fetcher=lambda item: download_map[item.id])
@@ -84,7 +84,7 @@ def test_near_duplicate_grouping_is_very_similar():
 
 
 def test_representative_pair_selection():
-    base_time = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    base_time = datetime(2024, 1, 1, tzinfo=UTC)
     items = [
         _photo_item("alpha", base_time + timedelta(minutes=2), 100, 100),
         _photo_item("beta", base_time, 100, 100),

@@ -61,7 +61,10 @@ def group_near_duplicates(
                 right_hashes = perceptual_hashes[right.id]
                 dhash_distance = hamming_distance(left_hashes.dhash, right_hashes.dhash)
                 phash_distance = hamming_distance(left_hashes.phash, right_hashes.phash)
-                if dhash_distance <= thresholds.dhash_very or phash_distance <= thresholds.phash_very:
+                if (
+                    dhash_distance <= thresholds.dhash_very
+                    or phash_distance <= thresholds.phash_very
+                ):
                     _add_edge(edges_very, left.id, right.id)
                 elif (
                     dhash_distance <= thresholds.dhash_possible

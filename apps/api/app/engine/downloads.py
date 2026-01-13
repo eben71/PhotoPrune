@@ -3,8 +3,8 @@ from __future__ import annotations
 import ipaddress
 import socket
 import urllib.request
-from urllib.parse import urlparse
 from collections.abc import Callable
+from urllib.parse import urlparse
 
 from app.engine.models import PhotoItem
 

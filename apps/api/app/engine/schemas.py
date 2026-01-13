@@ -29,7 +29,7 @@ class ScanRequest(BaseModel):
     consent_confirmed: bool = Field(default=False, alias="consentConfirmed")
 
     @model_validator(mode="after")
-    def validate_payload(self) -> "ScanRequest":
+    def validate_payload(self) -> ScanRequest:
         if not self.photo_items and not self.picker_payload:
             raise ValueError("photoItems or pickerPayload is required")
         return self
