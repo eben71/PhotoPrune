@@ -1,0 +1,80 @@
+name: Dependabot Manual Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      ecosystem:
+        description: "Filter by package ecosystem (e.g. npm, pip). Leave blank for all."
+        required: false
+        default: ""
+      directory:
+        description: "Filter by directory from dependabot.yml (e.g. /apps/api). Leave blank for all."
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  trigger-updates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Load Dependabot config
+        id: dependabot-config
+        run: |
+          updates_json=$(ruby -ryaml -rjson -e 'puts JSON.generate(YAML.load_file(".github/dependabot.yml")["updates"])')
+          echo "updates=${updates_json}" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger Dependabot updates
+        env:
+          DEPENDABOT_UPDATES: ${{ steps.dependabot-config.outputs.updates }}
+          ECOSYSTEM: ${{ inputs.ecosystem }}
+          DIRECTORY: ${{ inputs.directory }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "$DEPENDABOT_UPDATES" ]; then
+            echo "No updates found in .github/dependabot.yml" >&2
+            exit 1
+          fi
+
+          filtered=$(echo "$DEPENDABOT_UPDATES" | jq -c --arg ecosystem "$ECOSYSTEM" --arg directory "$DIRECTORY" '
+            map(select(
+              ($ecosystem == "" or ."package-ecosystem" == $ecosystem) and
+              ($directory == "" or .directory == $directory)
+            ))
+          ')
+
+          if [ "$(echo "$filtered" | jq 'length')" -eq 0 ]; then
+            echo "No matching updates for ecosystem=\"$ECOSYSTEM\" directory=\"$DIRECTORY\"" >&2
+            exit 1
+          fi
+
+          while read -r update; do
+            ecosystem=$(echo "$update" | jq -r '."package-ecosystem"')
+            directory=$(echo "$update" | jq -r '.directory')
+            interval=$(echo "$update" | jq -r '.schedule.interval')
+
+            echo "Triggering Dependabot update for $ecosystem $directory"
+
+            payload=$(jq -n \
+              --arg ecosystem "$ecosystem" \
+              --arg directory "$directory" \
+              --arg interval "$interval" \
+              '{
+                "package-ecosystem": $ecosystem,
+                "directory": $directory,
+                "schedule": { "interval": $interval }
+              }'
+            )
+
+            curl --fail-with-body -sS -X POST \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/dependabot/updates" \
+              -d "$payload"
+          done < <(echo "$filtered" | jq -c '.[]')
