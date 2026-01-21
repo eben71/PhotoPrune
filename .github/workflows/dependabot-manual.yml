@@ -36,6 +36,7 @@ jobs:
           DIRECTORY: ${{ inputs.directory }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           if [ -z "$DEPENDABOT_UPDATES" ]; then
             echo "No updates found in .github/dependabot.yml" >&2
             exit 1
@@ -53,7 +54,7 @@ jobs:
             exit 1
           fi
 
-          echo "$filtered" | jq -c '.[]' | while read -r update; do
+          while read -r update; do
             ecosystem=$(echo "$update" | jq -r '."package-ecosystem"')
             directory=$(echo "$update" | jq -r '.directory')
             interval=$(echo "$update" | jq -r '.schedule.interval')
@@ -76,4 +77,4 @@ jobs:
               -H "Accept: application/vnd.github+json" \
               "https://api.github.com/repos/${GITHUB_REPOSITORY}/dependabot/updates" \
               -d "$payload"
-          done
+          done < <(echo "$filtered" | jq -c '.[]')
