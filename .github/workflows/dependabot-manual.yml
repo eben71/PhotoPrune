@@ -1,4 +1,6 @@
 name: Dependabot Manual Run
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:
@@ -12,88 +14,13 @@ on:
         required: false
         default: ""
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   trigger-updates:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Load Dependabot config
-        id: dependabot-config
-        run: |
-          updates_json=$(ruby -ryaml -rjson -e 'puts JSON.generate(YAML.load_file(".github/dependabot.yml")["updates"])')
-          echo "updates=${updates_json}" >> "$GITHUB_OUTPUT"
-
-      - name: Trigger Dependabot updates
-        env:
-          DEPENDABOT_UPDATES: ${{ steps.dependabot-config.outputs.updates }}
-          ECOSYSTEM: ${{ inputs.ecosystem }}
-          DIRECTORY: ${{ inputs.directory }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEPENDABOT_TRIGGER_TOKEN: ${{ secrets.DEPENDABOT_TRIGGER_TOKEN }}
-        run: |
-          set -euo pipefail
-          if [ -z "$DEPENDABOT_UPDATES" ]; then
-            echo "No updates found in .github/dependabot.yml" >&2
-            exit 1
-          fi
-
-          filtered=$(echo "$DEPENDABOT_UPDATES" | jq -c --arg ecosystem "$ECOSYSTEM" --arg directory "$DIRECTORY" '
-            map(select(
-              ($ecosystem == "" or ."package-ecosystem" == $ecosystem) and
-              ($directory == "" or .directory == $directory)
-            ))
-          ')
-
-          if [ "$(echo "$filtered" | jq 'length')" -eq 0 ]; then
-            echo "No matching updates for ecosystem=\"$ECOSYSTEM\" directory=\"$DIRECTORY\"" >&2
-            exit 1
-          fi
-
-          while read -r update; do
-            ecosystem=$(echo "$update" | jq -r '."package-ecosystem"')
-            directory=$(echo "$update" | jq -r '.directory')
-            interval=$(echo "$update" | jq -r '.schedule.interval')
-
-            echo "Triggering Dependabot update for $ecosystem $directory"
-
-            auth_token="$GITHUB_TOKEN"
-            if [ -n "${DEPENDABOT_TRIGGER_TOKEN:-}" ]; then
-              auth_token="$DEPENDABOT_TRIGGER_TOKEN"
-            fi
-
-            payload=$(jq -n \
-              --arg ecosystem "$ecosystem" \
-              --arg directory "$directory" \
-              --arg interval "$interval" \
-              '{
-                "package-ecosystem": $ecosystem,
-                "directory": $directory,
-                "schedule": { "interval": $interval }
-              }'
-            )
-
-            response_file="$(mktemp)"
-            api_url="${GITHUB_API_URL:-https://api.github.com}"
-
-            status_code=$(curl -sS -o "$response_file" -w "%{http_code}" -X POST \
-              -H "Authorization: Bearer $auth_token" \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              "${api_url}/repos/${GITHUB_REPOSITORY}/dependabot/updates" \
-              -d "$payload")
-
-            if [ "${status_code}" -lt 200 ] || [ "${status_code}" -ge 300 ]; then
-              echo "Dependabot update trigger failed with status ${status_code}." >&2
-              cat "$response_file" >&2
-              rm -f "$response_file"
-              exit 1
-            fi
-
-            rm -f "$response_file"
-          done < <(echo "$filtered" | jq -c '.[]')
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: ./.github/workflows/dependabot-trigger.yml
+    with:
+      ecosystem: ${{ inputs.ecosystem }}
+      directory: ${{ inputs.directory }}
+    secrets: inherit
