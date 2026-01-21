@@ -1,0 +1,10 @@
+name: Dependabot Scheduled Run
+
+on:
+  schedule:
+    - cron: "0 1 * * 0"
+
+jobs:
+  trigger-updates:
+    uses: ./.github/workflows/dependabot-trigger.yml
+    secrets: inherit
