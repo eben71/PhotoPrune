@@ -16,6 +16,9 @@ on:
 
 jobs:
   trigger-updates:
+    permissions:
+      contents: write
+      pull-requests: write
     uses: ./.github/workflows/dependabot-trigger.yml
     with:
       ecosystem: ${{ inputs.ecosystem }}
