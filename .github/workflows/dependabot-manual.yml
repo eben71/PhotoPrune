@@ -1,4 +1,6 @@
 name: Dependabot Manual Run
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:
