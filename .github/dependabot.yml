@@ -4,8 +4,8 @@ updates:
   - package-ecosystem: "pip"
     directory: "/apps/api"
     schedule:
-      interval: "daily"
-      day: "sunday"
+      interval: "weekly"
+      day: "wednesday"
       time: "09:00"
       timezone: "Australia/Perth"
     groups:
@@ -26,8 +26,8 @@ updates:
   - package-ecosystem: "pip"
     directory: "/apps/worker"
     schedule:
-      interval: "daily"
-      day: "sunday"
+      interval: "weekly"
+      day: "wednesday"
       time: "09:00"
       timezone: "Australia/Perth"
     groups:
@@ -48,8 +48,8 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "daily"
-      day: "sunday"
+      interval: "weekly"
+      day: "wednesday"
       time: "09:00"
       timezone: "Australia/Perth"
     groups:
