@@ -12,7 +12,7 @@
     "test": "turbo test",
     "build": "turbo build",
     "check:docs": "node scripts/check-docs.js",
-    "prepare": "lefthook install",
+    "prepare": "node scripts/prepare-lefthook.cjs",
     "report:phase1b": "node tools/phase1b-report/cli.js"
   },
   "devDependencies": {
