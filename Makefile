@@ -1,6 +1,17 @@
 SHELL := /bin/bash
 
-PNPM := pnpm
+PNPM_VERSION ?= $(shell \
+	sed -n 's/.*"packageManager"[[:space:]]*:[[:space:]]*"pnpm@\([0-9][0-9.]*\)".*/\1/p' package.json | head -n 1)
+
+PNPM ?= $(shell \
+	if command -v pnpm >/dev/null 2>&1; then printf '%s' 'pnpm'; \
+	elif command -v corepack >/dev/null 2>&1; then printf '%s' 'corepack pnpm'; \
+	elif command -v npx >/dev/null 2>&1 && [ -n "$(PNPM_VERSION)" ]; then printf '%s' 'npx -y pnpm@$(PNPM_VERSION)'; \
+	fi)
+
+ifeq ($(PNPM),)
+$(error pnpm is required. Install pnpm (https://pnpm.io/installation), or install Node and use Corepack ("corepack enable") / npx)
+endif
 # Resolve uv from PATH, falling back to common install locations
 UV ?= $(shell \
 	if command -v uv >/dev/null 2>&1; then command -v uv; \
