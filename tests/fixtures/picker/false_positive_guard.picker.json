@@ -17,7 +17,7 @@
       "createTime": "2025-12-27T03:21:56.142Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdgKtMV7CV-qn5uWRFvnN6B4glPSMTraV20HYBDz7iTK7pLRgy25FE7nj4cBjPjwVr90-fwmXQ",
+        "baseUrl": "https://example.test/media/false_positive_guard.picker-1",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 3072,
@@ -39,7 +39,7 @@
       "createTime": "2025-12-27T03:21:50.341Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdfbcPDCNlhRQGipaJHjy7kWXym3W8iu4HXzL0sjm3uHUBLYAS4kHA0RTLPZJl5YohY4FepYyc",
+        "baseUrl": "https://example.test/media/false_positive_guard.picker-2",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 3072,
@@ -61,7 +61,7 @@
       "createTime": "2025-12-27T03:22:18.842Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gd-zSBxRPPHPwT8EEORiMWD539VWFM6PQScg4QTckxl421RC-BVdY_p2u_WGphnknmRUtn5I8s",
+        "baseUrl": "https://example.test/media/false_positive_guard.picker-3",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 3072,
@@ -83,7 +83,7 @@
       "createTime": "2025-12-27T03:21:32.875Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gfZ4jYSmT-uJFQNrTA5pFjDapEgx0i6E5WrClVxHrTk0C8X-qHcRM8_0HnZSOUcFkUqB90PaiU",
+        "baseUrl": "https://example.test/media/false_positive_guard.picker-4",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 3072,
@@ -105,7 +105,7 @@
       "createTime": "2025-12-27T03:21:12.542Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdoLGxOM-fFbgrmQ-iVS5d5JtMp8E4hd8_7Gnv8dox2ZGn-UnkyiAiYxDlPGsT7_PB8GNyU5Jk",
+        "baseUrl": "https://example.test/media/false_positive_guard.picker-5",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 3072,
@@ -127,7 +127,7 @@
       "createTime": "2025-12-31T14:20:07Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gephbkTAHK9lykg1frvHDjGjTJiFY7J52m_r3eIQ43Vu0OO2C7hTB7WUwGda6VXT4ac_MmoJKE",
+        "baseUrl": "https://example.test/media/false_positive_guard.picker-6",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 1600,
@@ -141,7 +141,7 @@
       "createTime": "2025-12-31T14:20:07Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-geSu_7HG8XxxVglwI1qypMEa1Wp5IOa4gBj_rfSybABpAggRlxLoIRYCMsbNYnbKkLM1FOZAzI",
+        "baseUrl": "https://example.test/media/false_positive_guard.picker-7",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 1200,
@@ -159,7 +159,7 @@
           "createTime": "2025-12-27T03:21:56.142Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdgKtMV7CV-qn5uWRFvnN6B4glPSMTraV20HYBDz7iTK7pLRgy25FE7nj4cBjPjwVr90-fwmXQ",
+            "baseUrl": "https://example.test/media/false_positive_guard.picker-1",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 3072,
@@ -181,7 +181,7 @@
           "createTime": "2025-12-27T03:21:50.341Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdfbcPDCNlhRQGipaJHjy7kWXym3W8iu4HXzL0sjm3uHUBLYAS4kHA0RTLPZJl5YohY4FepYyc",
+            "baseUrl": "https://example.test/media/false_positive_guard.picker-2",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 3072,
@@ -203,7 +203,7 @@
           "createTime": "2025-12-27T03:22:18.842Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gd-zSBxRPPHPwT8EEORiMWD539VWFM6PQScg4QTckxl421RC-BVdY_p2u_WGphnknmRUtn5I8s",
+            "baseUrl": "https://example.test/media/false_positive_guard.picker-3",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 3072,
@@ -225,7 +225,7 @@
           "createTime": "2025-12-27T03:21:32.875Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gfZ4jYSmT-uJFQNrTA5pFjDapEgx0i6E5WrClVxHrTk0C8X-qHcRM8_0HnZSOUcFkUqB90PaiU",
+            "baseUrl": "https://example.test/media/false_positive_guard.picker-4",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 3072,
@@ -247,7 +247,7 @@
           "createTime": "2025-12-27T03:21:12.542Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdoLGxOM-fFbgrmQ-iVS5d5JtMp8E4hd8_7Gnv8dox2ZGn-UnkyiAiYxDlPGsT7_PB8GNyU5Jk",
+            "baseUrl": "https://example.test/media/false_positive_guard.picker-5",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 3072,
@@ -269,7 +269,7 @@
           "createTime": "2025-12-31T14:20:07Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gephbkTAHK9lykg1frvHDjGjTJiFY7J52m_r3eIQ43Vu0OO2C7hTB7WUwGda6VXT4ac_MmoJKE",
+            "baseUrl": "https://example.test/media/false_positive_guard.picker-6",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 1600,
@@ -283,7 +283,7 @@
           "createTime": "2025-12-31T14:20:07Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-geSu_7HG8XxxVglwI1qypMEa1Wp5IOa4gBj_rfSybABpAggRlxLoIRYCMsbNYnbKkLM1FOZAzI",
+            "baseUrl": "https://example.test/media/false_positive_guard.picker-7",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 1200,

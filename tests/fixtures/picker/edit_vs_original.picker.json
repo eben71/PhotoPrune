@@ -17,7 +17,7 @@
       "createTime": "2025-12-23T06:18:47.745Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gf47GDjInpsw86Pi6QMiZYAhGLzdin8MNdtStytpr6-Smkxn1JjZiJLnvoEWwSM6Y0zgYU_m88",
+        "baseUrl": "https://example.test/media/edit_vs_original.picker-1",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 3894,
@@ -39,7 +39,7 @@
       "createTime": "2025-12-23T06:18:24.816Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcihXavzonWi0vCkpGSU3mYAzs4DMIvIV5OqO4GQwZOSR2G_iZjaJKyNJQ9ZZsBps7dFwalc7g",
+        "baseUrl": "https://example.test/media/edit_vs_original.picker-2",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 3983,
@@ -61,7 +61,7 @@
       "createTime": "2025-12-23T06:18:19.620Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcL8nnt9huAoqtIRAJKxrLGOlPXUNQRBh91HefeizN-Le6ndYACTOamiA-fu-ZIQN3OJ5VxJFU",
+        "baseUrl": "https://example.test/media/edit_vs_original.picker-3",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 4080,
@@ -87,7 +87,7 @@
           "createTime": "2025-12-23T06:18:47.745Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gf47GDjInpsw86Pi6QMiZYAhGLzdin8MNdtStytpr6-Smkxn1JjZiJLnvoEWwSM6Y0zgYU_m88",
+            "baseUrl": "https://example.test/media/edit_vs_original.picker-1",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 3894,
@@ -109,7 +109,7 @@
           "createTime": "2025-12-23T06:18:24.816Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcihXavzonWi0vCkpGSU3mYAzs4DMIvIV5OqO4GQwZOSR2G_iZjaJKyNJQ9ZZsBps7dFwalc7g",
+            "baseUrl": "https://example.test/media/edit_vs_original.picker-2",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 3983,
@@ -131,7 +131,7 @@
           "createTime": "2025-12-23T06:18:19.620Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcL8nnt9huAoqtIRAJKxrLGOlPXUNQRBh91HefeizN-Le6ndYACTOamiA-fu-ZIQN3OJ5VxJFU",
+            "baseUrl": "https://example.test/media/edit_vs_original.picker-3",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 4080,
