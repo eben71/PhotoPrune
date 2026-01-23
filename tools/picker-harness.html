@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PhotoPrune Picker Harness</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0b1020;
+        --panel: rgba(255, 255, 255, 0.06);
+        --border: rgba(255, 255, 255, 0.12);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.7);
+        --accent: #6ea8fe;
+        --bad: #ff6b6b;
+        --good: #51cf66;
+      }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: radial-gradient(1200px 800px at 15% 10%, #182147, var(--bg));
+        color: var(--text);
+      }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 20px;
+        letter-spacing: 0.2px;
+      }
+      p {
+        margin: 8px 0;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      @media (min-width: 980px) {
+        .grid {
+          grid-template-columns: 420px 1fr;
+        }
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        backdrop-filter: blur(8px);
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin: 12px 0;
+      }
+      label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(0, 0, 0, 0.2);
+        color: var(--text);
+        padding: 10px 12px;
+        outline: none;
+      }
+      textarea {
+        min-height: 56vh;
+        resize: vertical;
+        font-size: 12px;
+      }
+      button {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 10px 12px;
+        cursor: pointer;
+      }
+      button.primary {
+        border-color: rgba(110, 168, 254, 0.5);
+        background: rgba(110, 168, 254, 0.18);
+      }
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .buttons {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      @media (min-width: 420px) {
+        .buttons {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .status {
+        font-size: 12px;
+        color: var(--muted);
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px dashed var(--border);
+        background: rgba(0, 0, 0, 0.15);
+      }
+      .status strong {
+        color: var(--text);
+      }
+      .status .ok {
+        color: var(--good);
+      }
+      .status .bad {
+        color: var(--bad);
+      }
+      .hint {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>PhotoPrune Picker Harness</h1>
+      <p>
+        Runs the same Google Photos Picker API flow used by
+        <code>experiments/phase1b</code>: get OAuth access token ➜ create picker
+        session ➜ open <code>pickerUri</code> ➜ poll until selected ➜ list
+        <code>mediaItems</code>.
+      </p>
+      <p class="hint">
+        Note: This must be served over <code>http://localhost</code> / <code>http://127.0.0.1</code> (not
+        <code>file://</code>) for Google Identity Services to work. Your OAuth client must allow this
+        exact JavaScript origin: <code id="origin">(loading…)</code>
+      </p>
+      <p class="hint">
+        Important: This page uses the browser token flow (GIS <code>initTokenClient</code>). It requires a
+        <strong>Web application</strong> OAuth client with an <strong>Authorized JavaScript origin</strong> matching the
+        value above. It does <strong>not</strong> use <code>CLIENT_SECRET</code> or a redirect URI.
+        The <code>REDIRECT_URI</code> in <code>.env</code> is for the Node/CLI callback flow.
+      </p>
+
+      <div class="grid">
+        <section class="card">
+          <div class="row">
+            <div>
+              <label for="clientId">OAuth Client ID</label>
+              <input
+                id="clientId"
+                placeholder="1234567890-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com"
+                autocomplete="off"
+              />
+            </div>
+            <div>
+              <label for="scope">Scope</label>
+              <input
+                id="scope"
+                value="https://www.googleapis.com/auth/photospicker.mediaitems.readonly"
+                autocomplete="off"
+              />
+            </div>
+            <div>
+              <label for="maxItemCount">Picker max item count (optional)</label>
+              <input id="maxItemCount" type="number" min="1" placeholder="e.g. 100" />
+            </div>
+            <div>
+              <label for="fetchLimit">Fetch limit (for fixture size)</label>
+              <input id="fetchLimit" type="number" min="1" value="50" />
+            </div>
+          </div>
+
+          <div class="buttons">
+            <button class="primary" id="btnAuth">1) Authorize</button>
+            <button id="btnPick" disabled>2) Open Picker</button>
+            <button id="btnPoll" disabled>Poll Now</button>
+            <button id="btnClear">Clear Output</button>
+          </div>
+
+          <div style="height: 12px"></div>
+
+          <div class="status" id="status">
+            <strong>Status:</strong> idle
+          </div>
+
+          <p class="hint">
+            The output intentionally excludes the access token.
+          </p>
+        </section>
+
+        <section class="card">
+          <p style="margin-top: 0">
+            On selection completion, the resulting payload is printed to
+            <code>console.log(JSON.stringify(payload, null, 2))</code> and shown
+            here for copy/paste into fixture tests.
+          </p>
+          <textarea id="out" spellcheck="false"></textarea>
+          <div class="buttons" style="margin-top: 10px">
+            <button id="btnCopy" class="primary">Copy JSON</button>
+            <button id="btnDownload">Download JSON</button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+      const API_ROOT = "https://photospicker.googleapis.com/v1";
+
+      const elements = {
+        clientId: document.getElementById("clientId"),
+        scope: document.getElementById("scope"),
+        maxItemCount: document.getElementById("maxItemCount"),
+        fetchLimit: document.getElementById("fetchLimit"),
+        status: document.getElementById("status"),
+        out: document.getElementById("out"),
+        btnAuth: document.getElementById("btnAuth"),
+        btnPick: document.getElementById("btnPick"),
+        btnPoll: document.getElementById("btnPoll"),
+        btnClear: document.getElementById("btnClear"),
+        btnCopy: document.getElementById("btnCopy"),
+        btnDownload: document.getElementById("btnDownload"),
+      };
+
+      const state = {
+        accessToken: null,
+        accessTokenExpiresAtMs: 0,
+        tokenClient: null,
+        session: null,
+        pickerWindow: null,
+        polling: false,
+      };
+
+      function setStatus(message, { ok = false, bad = false } = {}) {
+        const prefix = ok ? '<span class="ok">ok</span>' : bad ? '<span class="bad">error</span>' : "";
+        elements.status.innerHTML = `<strong>Status:</strong> ${prefix ? prefix + " — " : ""}${escapeHtml(message)}`;
+      }
+
+      function escapeHtml(text) {
+        return String(text)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function toIntOrNull(value) {
+        const trimmed = String(value || "").trim();
+        if (!trimmed) {
+          return null;
+        }
+        const num = Number(trimmed);
+        if (!Number.isFinite(num) || num <= 0) {
+          return null;
+        }
+        return Math.floor(num);
+      }
+
+      async function fetchJson(path, { method = "GET", body = null } = {}) {
+        if (!state.accessToken) {
+          throw new Error("Missing access token. Click Authorize first.");
+        }
+        const response = await fetch(`${API_ROOT}${path}`, {
+          method,
+          headers: {
+            Authorization: `Bearer ${state.accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: body ? JSON.stringify(body) : undefined,
+        });
+
+        if (!response.ok) {
+          const message = await response.text();
+          throw new Error(`Picker API request failed (${response.status}): ${message}`);
+        }
+        return response.json();
+      }
+
+      async function createSession() {
+        const maxItemCount = toIntOrNull(elements.maxItemCount.value);
+        const body = {};
+        if (maxItemCount) {
+          body.pickingConfig = { maxItemCount: String(maxItemCount) };
+        }
+        return fetchJson(`/sessions`, { method: "POST", body });
+      }
+
+      async function getSession(sessionId) {
+        return fetchJson(`/sessions/${encodeURIComponent(sessionId)}`);
+      }
+
+      async function listMediaItems({ sessionId, pageSize = 100, pageToken = null }) {
+        const params = new URLSearchParams({ sessionId });
+        if (pageSize) params.set("pageSize", String(pageSize));
+        if (pageToken) params.set("pageToken", String(pageToken));
+        return fetchJson(`/mediaItems?${params.toString()}`);
+      }
+
+      function writeOutput(payload) {
+        elements.out.value = JSON.stringify(payload, null, 2);
+        console.log(JSON.stringify(payload, null, 2));
+      }
+
+      async function ensureGisLoaded(timeoutMs = 20000) {
+        const started = Date.now();
+        while (!window.google || !google.accounts || !google.accounts.oauth2) {
+          if (Date.now() - started > timeoutMs) {
+            throw new Error("Google Identity Services failed to load.");
+          }
+          await new Promise((r) => setTimeout(r, 100));
+        }
+      }
+
+      function isTokenValid() {
+        return Boolean(state.accessToken) && Date.now() < state.accessTokenExpiresAtMs - 15000;
+      }
+
+      async function authorize() {
+        const clientId = elements.clientId.value.trim();
+        const scope = elements.scope.value.trim();
+        if (!clientId) {
+          throw new Error("Please enter your OAuth Client ID.");
+        }
+        if (!scope) {
+          throw new Error("Scope is required.");
+        }
+
+        setStatus("loading Google Identity Services...");
+        await ensureGisLoaded();
+
+        setStatus("requesting access token...");
+        const tokenResponse = await new Promise((resolve, reject) => {
+          state.tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+            scope,
+            prompt: "consent",
+            callback: (resp) => {
+              if (!resp || resp.error) {
+                reject(new Error(resp?.error_description || resp?.error || "OAuth failed"));
+                return;
+              }
+              resolve(resp);
+            },
+          });
+          state.tokenClient.requestAccessToken();
+        });
+
+        state.accessToken = tokenResponse.access_token;
+        const expiresInSeconds = Number(tokenResponse.expires_in || 3600);
+        state.accessTokenExpiresAtMs = Date.now() + expiresInSeconds * 1000;
+        setStatus(`authorized (expires in ~${Math.round(expiresInSeconds / 60)} min)`, { ok: true });
+        elements.btnPick.disabled = false;
+      }
+
+      function openPickerWindow(pickerUri) {
+        // Attempt a popup first, fallback to same-tab navigation if blocked.
+        const popup = window.open(pickerUri, "photoprune_photos_picker");
+        if (popup) {
+          state.pickerWindow = popup;
+          try {
+            popup.focus();
+          } catch {
+            // ignore
+          }
+          return;
+        }
+        window.location.assign(pickerUri);
+      }
+
+      async function startPicker() {
+        if (!isTokenValid()) {
+          throw new Error("Access token missing/expired. Click Authorize again.");
+        }
+        setStatus("creating session...");
+        const session = await createSession();
+        state.session = session;
+        elements.btnPoll.disabled = false;
+
+        setStatus(`session created (${session.id}). opening picker UI...`, { ok: true });
+        openPickerWindow(session.pickerUri);
+
+        // Start background polling automatically.
+        pollUntilSelectionComplete().catch((err) => {
+          setStatus(err.message || String(err), { bad: true });
+        });
+      }
+
+      function nextPollDelayMs(attempt) {
+        const base = 1000;
+        const max = 10000;
+        return Math.min(max, base * 2 ** (attempt - 1));
+      }
+
+      async function pollUntilSelectionComplete({ timeoutMs = 10 * 60 * 1000 } = {}) {
+        if (state.polling) {
+          return;
+        }
+        if (!state.session?.id) {
+          throw new Error("No active session. Click Open Picker first.");
+        }
+
+        state.polling = true;
+        const startedAt = Date.now();
+        let attempt = 0;
+
+        try {
+          while (Date.now() - startedAt < timeoutMs) {
+            attempt += 1;
+            setStatus(`polling session (attempt ${attempt})...`);
+            const session = await getSession(state.session.id);
+            state.session = session;
+
+            if (session.mediaItemsSet) {
+              setStatus("selection complete. fetching media items...", { ok: true });
+              const payload = await fetchSelectionPayload();
+              writeOutput(payload);
+              setStatus("done — payload written to textarea + console", { ok: true });
+              return;
+            }
+
+            const delay = nextPollDelayMs(attempt);
+            await new Promise((r) => setTimeout(r, delay));
+          }
+          throw new Error("Timed out waiting for picker selection. Use Poll Now after you finish selecting.");
+        } finally {
+          state.polling = false;
+        }
+      }
+
+      async function fetchSelectionPayload() {
+        const sessionId = state.session.id;
+        const fetchLimit = toIntOrNull(elements.fetchLimit.value) || 50;
+
+        const pages = [];
+        const items = [];
+        let pageToken = null;
+
+        while (items.length < fetchLimit) {
+          const remaining = fetchLimit - items.length;
+          const pageSize = Math.min(100, remaining);
+          const page = await listMediaItems({ sessionId, pageSize, pageToken });
+          pages.push({
+            mediaItems: page.mediaItems || [],
+            nextPageToken: page.nextPageToken || null,
+          });
+
+          for (const item of page.mediaItems || []) {
+            items.push(item);
+            if (items.length >= fetchLimit) break;
+          }
+
+          pageToken = page.nextPageToken;
+          if (!pageToken) break;
+        }
+
+        // Output is designed to be fixture-friendly.
+        return {
+          generatedAt: new Date().toISOString(),
+          session: {
+            id: state.session.id,
+            pickerUri: state.session.pickerUri,
+            expireTime: state.session.expireTime || null,
+            mediaItemsSet: Boolean(state.session.mediaItemsSet),
+          },
+          listing: {
+            fetchedCount: items.length,
+            fetchLimit,
+            pages: pages.length,
+            hasMore: Boolean(pageToken),
+          },
+          mediaItems: items,
+          // Keeping raw pages makes it easier to create tests
+          // that mirror API responses without storing a huge list.
+          rawPages: pages,
+        };
+      }
+
+      function clearOutput() {
+        elements.out.value = "";
+        setStatus("cleared");
+      }
+
+      async function copyOutput() {
+        const value = elements.out.value;
+        if (!value.trim()) {
+          setStatus("nothing to copy", { bad: true });
+          return;
+        }
+        await navigator.clipboard.writeText(value);
+        setStatus("copied to clipboard", { ok: true });
+      }
+
+      function downloadOutput() {
+        const value = elements.out.value;
+        if (!value.trim()) {
+          setStatus("nothing to download", { bad: true });
+          return;
+        }
+        const blob = new Blob([value], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `picker-selection-${new Date().toISOString().replaceAll(":", "-")}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        setStatus("download started", { ok: true });
+      }
+
+      elements.btnAuth.addEventListener("click", async () => {
+        try {
+          await authorize();
+        } catch (err) {
+          setStatus(err.message || String(err), { bad: true });
+        }
+      });
+
+      elements.btnPick.addEventListener("click", async () => {
+        try {
+          await startPicker();
+        } catch (err) {
+          setStatus(err.message || String(err), { bad: true });
+        }
+      });
+
+      elements.btnPoll.addEventListener("click", async () => {
+        try {
+          await pollUntilSelectionComplete();
+        } catch (err) {
+          setStatus(err.message || String(err), { bad: true });
+        }
+      });
+
+      elements.btnClear.addEventListener("click", () => {
+        clearOutput();
+      });
+
+      elements.btnCopy.addEventListener("click", async () => {
+        try {
+          await copyOutput();
+        } catch (err) {
+          setStatus(err.message || String(err), { bad: true });
+        }
+      });
+
+      elements.btnDownload.addEventListener("click", () => {
+        try {
+          downloadOutput();
+        } catch (err) {
+          setStatus(err.message || String(err), { bad: true });
+        }
+      });
+
+      setStatus("idle");
+      document.getElementById("origin").textContent = window.location.origin;
+    </script>
+  </body>
+</html>
