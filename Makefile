@@ -1,6 +1,31 @@
 SHELL := /bin/bash
 
-PNPM := pnpm
+PNPM_VERSION ?= $(shell \
+	sed -n 's/.*"packageManager"[[:space:]]*:[[:space:]]*"pnpm@\([0-9][0-9.]*\)".*/\1/p' package.json | head -n 1)
+
+PNPM ?= $(shell \
+	if command -v pnpm >/dev/null 2>&1; then printf '%s' 'pnpm'; \
+	elif command -v corepack >/dev/null 2>&1; then printf '%s' 'corepack pnpm'; \
+	elif command -v npx >/dev/null 2>&1 && [ -n "$(PNPM_VERSION)" ]; then printf '%s' 'npx -y pnpm@$(PNPM_VERSION)'; \
+	fi)
+
+ifeq ($(PNPM),)
+$(error pnpm is required. Install pnpm (https://pnpm.io/installation), or install Node and use Corepack ("corepack enable") / npx)
+endif
+
+DOCKER ?= $(shell \
+	if command -v docker >/dev/null 2>&1; then command -v docker; \
+	elif [ -x "/Applications/Docker.app/Contents/Resources/bin/docker" ]; then printf '%s' "/Applications/Docker.app/Contents/Resources/bin/docker"; \
+	elif [ -x "/usr/local/bin/docker" ]; then printf '%s' "/usr/local/bin/docker"; \
+	elif [ -x "/opt/homebrew/bin/docker" ]; then printf '%s' "/opt/homebrew/bin/docker"; \
+	fi)
+
+ifeq ($(DOCKER),)
+$(error docker is required for local dev. Install Docker Desktop for Mac (https://www.docker.com/products/docker-desktop/) and ensure the 'docker' CLI is on PATH)
+endif
+
+DOCKER_BIN_DIR := $(dir $(DOCKER))
+DOCKER_RUN := PATH="$(DOCKER_BIN_DIR):$$PATH" $(DOCKER)
 # Resolve uv from PATH, falling back to common install locations
 UV ?= $(shell \
 	if command -v uv >/dev/null 2>&1; then command -v uv; \
@@ -14,7 +39,7 @@ endif
 
 .PHONY: setup dev lint format format-check typecheck test build hooks
 
-_dev_compose := docker compose -f docker-compose.yml -p photoprune
+_dev_compose := $(DOCKER_RUN) compose -f docker-compose.yml -p photoprune
 
 setup:
 	$(PNPM) install
@@ -22,7 +47,11 @@ setup:
 	cd apps/worker && $(UV) venv && $(UV) pip install -r requirements-dev.lock
 
 dev:
-	$(_dev_compose) up --build
+	@$(DOCKER_RUN) image inspect postgres:16-alpine >/dev/null 2>&1 || $(DOCKER_RUN) pull postgres:16-alpine
+	@$(DOCKER_RUN) image inspect redis:7-alpine >/dev/null 2>&1 || $(DOCKER_RUN) pull redis:7-alpine
+	@$(DOCKER_RUN) image inspect python:3.12-slim >/dev/null 2>&1 || $(DOCKER_RUN) pull python:3.12-slim
+	@$(DOCKER_RUN) image inspect node:20-slim >/dev/null 2>&1 || $(DOCKER_RUN) pull node:20-slim
+	$(_dev_compose) up --build --pull never
 
 lint:
 	$(PNPM) lint
