@@ -17,7 +17,7 @@
       "createTime": "2025-07-28T04:57:26.202Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcrkg52UY74L3b9jblECnFvYM5toPAAKKxETZJRaf8durFp6eGv1AHih_ZnlPd2AE2xQxnxgJw",
+        "baseUrl": "https://example.test/media/exact_dupes.picker-1",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 3149,
@@ -39,7 +39,7 @@
       "createTime": "2025-07-28T04:59:19.687Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-ge265A1c0UIqEjjE3wM5MP187RrVWcJojR8BwwHVMnsRW34piza4bO7jyFkzqIdluGULhVHkto",
+        "baseUrl": "https://example.test/media/exact_dupes.picker-2",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 3529,
@@ -61,7 +61,7 @@
       "createTime": "2025-07-28T04:58:57.719Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdXTb39fMqFs0AFCWpBQZIBPy6JHgrCRYSGPUseNooCrMALYHz2GX4lhaEix4ju-aSbNEKPglg",
+        "baseUrl": "https://example.test/media/exact_dupes.picker-3",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 3351,
@@ -83,7 +83,7 @@
       "createTime": "2025-07-28T04:58:41.889Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gfMksXwfpdHAEAh1mhzmJVMIg1X3uZ-PS22A3-pZBMhwYTaRIC7pP_Okd8eNDVULYREdwqv1FM",
+        "baseUrl": "https://example.test/media/exact_dupes.picker-4",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 2748,
@@ -105,7 +105,7 @@
       "createTime": "2025-07-28T04:58:30.919Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdg_GDgJ95c6dfxNsAq8LFG4VutTQsaBNKBLVdCNBKqesAr8MSGUKr-Jww9FQkvE5fUBTH0DwI",
+        "baseUrl": "https://example.test/media/exact_dupes.picker-5",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 3536,
@@ -127,7 +127,7 @@
       "createTime": "2025-08-11T02:28:58Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gesz_NSBHG3YYQYQLUnJi1IgRIgNTWx39kiKpBqgA_ivbG4TAKimmhOf9G3IS1XZqWY323bUmM",
+        "baseUrl": "https://example.test/media/exact_dupes.picker-6",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 1600,
@@ -141,7 +141,7 @@
       "createTime": "2025-08-11T02:28:58Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-ge2I-48Dw02PxFUGt9LyL_igGNy7Zzjki_evHzCMsfb0urQD1I0AWZKOFZ4GDV2naaUs4QREbM",
+        "baseUrl": "https://example.test/media/exact_dupes.picker-7",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 1600,
@@ -155,7 +155,7 @@
       "createTime": "2025-07-28T04:58:57.719Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcDzhHDwZGB-PC6r-SqjC1A5KV8-pyN-sle4U7Y_-JNvzEdI8U6l9_0f--ET2kNCuQdmH16t5E",
+        "baseUrl": "https://example.test/media/exact_dupes.picker-8",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 3351,
@@ -177,7 +177,7 @@
       "createTime": "2025-07-28T04:59:19.687Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdRv-SPExwJ3mKqDmNbpymJgZ7OPxDTBsRxd-E1nS5F8YjNmZuK1UugRHg1HD48MK_YaUWPZAQ",
+        "baseUrl": "https://example.test/media/exact_dupes.picker-9",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 3529,
@@ -199,7 +199,7 @@
       "createTime": "2025-07-28T04:58:30.919Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcKrkrO_rI6z2oFthePLAVfhVTBotDHdsjuOw5hh4_whNp9snOXJ15Zx8ahcWkERFjsZcYfHxg",
+        "baseUrl": "https://example.test/media/exact_dupes.picker-10",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 3536,
@@ -221,7 +221,7 @@
       "createTime": "2025-07-28T04:58:41.889Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-genLuccWuTrOGO3NFwk4nkGJH5MgG4qyEFHZa76-P4FFTqieACbjWj66RPTpyw08xKLtv1U6TU",
+        "baseUrl": "https://example.test/media/exact_dupes.picker-11",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 2748,
@@ -243,7 +243,7 @@
       "createTime": "2025-07-28T04:57:26.202Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gevYeDBeOPJFMHgRQ0diEeKzWP5n2jkt2dx2KUiEn8Kr9wvwP604-f1GxD135sQrNHyorHVryI",
+        "baseUrl": "https://example.test/media/exact_dupes.picker-12",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 3149,
@@ -269,7 +269,7 @@
           "createTime": "2025-07-28T04:57:26.202Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcrkg52UY74L3b9jblECnFvYM5toPAAKKxETZJRaf8durFp6eGv1AHih_ZnlPd2AE2xQxnxgJw",
+            "baseUrl": "https://example.test/media/exact_dupes.picker-1",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 3149,
@@ -291,7 +291,7 @@
           "createTime": "2025-07-28T04:59:19.687Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-ge265A1c0UIqEjjE3wM5MP187RrVWcJojR8BwwHVMnsRW34piza4bO7jyFkzqIdluGULhVHkto",
+            "baseUrl": "https://example.test/media/exact_dupes.picker-2",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 3529,
@@ -313,7 +313,7 @@
           "createTime": "2025-07-28T04:58:57.719Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdXTb39fMqFs0AFCWpBQZIBPy6JHgrCRYSGPUseNooCrMALYHz2GX4lhaEix4ju-aSbNEKPglg",
+            "baseUrl": "https://example.test/media/exact_dupes.picker-3",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 3351,
@@ -335,7 +335,7 @@
           "createTime": "2025-07-28T04:58:41.889Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gfMksXwfpdHAEAh1mhzmJVMIg1X3uZ-PS22A3-pZBMhwYTaRIC7pP_Okd8eNDVULYREdwqv1FM",
+            "baseUrl": "https://example.test/media/exact_dupes.picker-4",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 2748,
@@ -357,7 +357,7 @@
           "createTime": "2025-07-28T04:58:30.919Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdg_GDgJ95c6dfxNsAq8LFG4VutTQsaBNKBLVdCNBKqesAr8MSGUKr-Jww9FQkvE5fUBTH0DwI",
+            "baseUrl": "https://example.test/media/exact_dupes.picker-5",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 3536,
@@ -379,7 +379,7 @@
           "createTime": "2025-08-11T02:28:58Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gesz_NSBHG3YYQYQLUnJi1IgRIgNTWx39kiKpBqgA_ivbG4TAKimmhOf9G3IS1XZqWY323bUmM",
+            "baseUrl": "https://example.test/media/exact_dupes.picker-6",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 1600,
@@ -393,7 +393,7 @@
           "createTime": "2025-08-11T02:28:58Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-ge2I-48Dw02PxFUGt9LyL_igGNy7Zzjki_evHzCMsfb0urQD1I0AWZKOFZ4GDV2naaUs4QREbM",
+            "baseUrl": "https://example.test/media/exact_dupes.picker-7",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 1600,
@@ -407,7 +407,7 @@
           "createTime": "2025-07-28T04:58:57.719Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcDzhHDwZGB-PC6r-SqjC1A5KV8-pyN-sle4U7Y_-JNvzEdI8U6l9_0f--ET2kNCuQdmH16t5E",
+            "baseUrl": "https://example.test/media/exact_dupes.picker-8",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 3351,
@@ -429,7 +429,7 @@
           "createTime": "2025-07-28T04:59:19.687Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdRv-SPExwJ3mKqDmNbpymJgZ7OPxDTBsRxd-E1nS5F8YjNmZuK1UugRHg1HD48MK_YaUWPZAQ",
+            "baseUrl": "https://example.test/media/exact_dupes.picker-9",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 3529,
@@ -451,7 +451,7 @@
           "createTime": "2025-07-28T04:58:30.919Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcKrkrO_rI6z2oFthePLAVfhVTBotDHdsjuOw5hh4_whNp9snOXJ15Zx8ahcWkERFjsZcYfHxg",
+            "baseUrl": "https://example.test/media/exact_dupes.picker-10",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 3536,
@@ -473,7 +473,7 @@
           "createTime": "2025-07-28T04:58:41.889Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-genLuccWuTrOGO3NFwk4nkGJH5MgG4qyEFHZa76-P4FFTqieACbjWj66RPTpyw08xKLtv1U6TU",
+            "baseUrl": "https://example.test/media/exact_dupes.picker-11",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 2748,
@@ -495,7 +495,7 @@
           "createTime": "2025-07-28T04:57:26.202Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gevYeDBeOPJFMHgRQ0diEeKzWP5n2jkt2dx2KUiEn8Kr9wvwP604-f1GxD135sQrNHyorHVryI",
+            "baseUrl": "https://example.test/media/exact_dupes.picker-12",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 3149,

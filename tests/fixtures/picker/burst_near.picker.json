@@ -17,7 +17,7 @@
       "createTime": "2025-11-11T10:28:23.207Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcwhkye7Y1pZHVa-cGGKhek5FJb9ynNypRjtm8Es34LX-IAFMGezcDhANsPro1c_4FUbc40lsc",
+        "baseUrl": "https://example.test/media/burst_near.picker-1",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 4080,
@@ -39,7 +39,7 @@
       "createTime": "2025-11-11T10:28:21.415Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcf5Cupg_HU9TOFbWGX_n55VIGHq2C4u0-mRiA1JdsYGHXP6kqLBhtIIlpuDSFeGR0wVLJIoFk",
+        "baseUrl": "https://example.test/media/burst_near.picker-2",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 4080,
@@ -61,7 +61,7 @@
       "createTime": "2025-11-11T10:28:19.532Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gc7jysxIaxBqftl2eb_GPsE4cbBMNVx2eV6IDqzEJg_HJf4qu-GNUs9yDzNb11D1FdoFXLYu_w",
+        "baseUrl": "https://example.test/media/burst_near.picker-3",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 4080,
@@ -83,7 +83,7 @@
       "createTime": "2025-11-14T10:59:19.227Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdqHaY6QFDS-eNKw7Cbhem4KOkkAzUEEv9Naed4TDAboLOegpD2KzFbCtaJtQzFu0XSuDrBLXM",
+        "baseUrl": "https://example.test/media/burst_near.picker-4",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 4080,
@@ -105,7 +105,7 @@
       "createTime": "2025-11-14T10:59:17.496Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcF2nqbWHU32VaMOIBU21W_YMW3GTxHCB1MBZn5nGVehd5jHM7UMZCVM0fwYp8jQOjy54jKyjo",
+        "baseUrl": "https://example.test/media/burst_near.picker-5",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 4080,
@@ -127,7 +127,7 @@
       "createTime": "2025-11-14T10:59:15.666Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gejSHHaFtn0ZWThNBsYjzI_FjLGysV18-LufPGMcD9xOMwDQQfBdtbG8MgOejDAIGpjgosl8gM",
+        "baseUrl": "https://example.test/media/burst_near.picker-6",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 4080,
@@ -149,7 +149,7 @@
       "createTime": "2025-12-31T14:20:07Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-geDzDaM1LmnNnp0ObUN8W4ftW362-gAqR2KmVS5Q1Mi4cP2TPrux2VVImMvYHpXQitVCsGG8e0",
+        "baseUrl": "https://example.test/media/burst_near.picker-7",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 1600,
@@ -163,7 +163,7 @@
       "createTime": "2025-12-31T14:20:07Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gd-4KWOyWTw5vSDEwEA2_JOMJgN5qWgZIp7X00HxRKKAsRj0mHhgWT2AC5KKxe0EJrOgS_C6lE",
+        "baseUrl": "https://example.test/media/burst_near.picker-8",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 1600,
@@ -177,7 +177,7 @@
       "createTime": "2025-12-31T14:20:07Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gfCwJTUcz5Pldl4tytqs98ejvSD2jNihpwbyW99V4iHzxuL5IYy0i-iMN8HCkHIdblZYPP_lEg",
+        "baseUrl": "https://example.test/media/burst_near.picker-9",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 1600,
@@ -191,7 +191,7 @@
       "createTime": "2025-12-31T14:20:07Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gfVIlbWnjLOJ9ISzdth-pjSvNObgQ_SkO5VcRAOew-700rIDJpyE3umzJEcAZtd608oRxbzDb8",
+        "baseUrl": "https://example.test/media/burst_near.picker-10",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 1200,
@@ -205,7 +205,7 @@
       "createTime": "2025-12-31T14:20:07Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gfYDlxgkjo6_yzVoBIUqgh26Dc1tGIizWH0kGULEmBKVEBEb2w7eI5FP8rM2G5AmAN__9uqGC4",
+        "baseUrl": "https://example.test/media/burst_near.picker-11",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 1200,
@@ -219,7 +219,7 @@
       "createTime": "2025-12-31T14:20:07Z",
       "type": "PHOTO",
       "mediaFile": {
-        "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdAyl5Deq_E28xTefE9sr6sQH67JAv9xcntK8tSlgHrHTvCO-0XwcBRBhzdSr3qyjogHCH74-c",
+        "baseUrl": "https://example.test/media/burst_near.picker-12",
         "mimeType": "image/jpeg",
         "mediaFileMetadata": {
           "width": 1181,
@@ -237,7 +237,7 @@
           "createTime": "2025-11-11T10:28:23.207Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcwhkye7Y1pZHVa-cGGKhek5FJb9ynNypRjtm8Es34LX-IAFMGezcDhANsPro1c_4FUbc40lsc",
+            "baseUrl": "https://example.test/media/burst_near.picker-1",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 4080,
@@ -259,7 +259,7 @@
           "createTime": "2025-11-11T10:28:21.415Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcf5Cupg_HU9TOFbWGX_n55VIGHq2C4u0-mRiA1JdsYGHXP6kqLBhtIIlpuDSFeGR0wVLJIoFk",
+            "baseUrl": "https://example.test/media/burst_near.picker-2",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 4080,
@@ -281,7 +281,7 @@
           "createTime": "2025-11-11T10:28:19.532Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gc7jysxIaxBqftl2eb_GPsE4cbBMNVx2eV6IDqzEJg_HJf4qu-GNUs9yDzNb11D1FdoFXLYu_w",
+            "baseUrl": "https://example.test/media/burst_near.picker-3",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 4080,
@@ -303,7 +303,7 @@
           "createTime": "2025-11-14T10:59:19.227Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdqHaY6QFDS-eNKw7Cbhem4KOkkAzUEEv9Naed4TDAboLOegpD2KzFbCtaJtQzFu0XSuDrBLXM",
+            "baseUrl": "https://example.test/media/burst_near.picker-4",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 4080,
@@ -325,7 +325,7 @@
           "createTime": "2025-11-14T10:59:17.496Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gcF2nqbWHU32VaMOIBU21W_YMW3GTxHCB1MBZn5nGVehd5jHM7UMZCVM0fwYp8jQOjy54jKyjo",
+            "baseUrl": "https://example.test/media/burst_near.picker-5",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 4080,
@@ -347,7 +347,7 @@
           "createTime": "2025-11-14T10:59:15.666Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gejSHHaFtn0ZWThNBsYjzI_FjLGysV18-LufPGMcD9xOMwDQQfBdtbG8MgOejDAIGpjgosl8gM",
+            "baseUrl": "https://example.test/media/burst_near.picker-6",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 4080,
@@ -369,7 +369,7 @@
           "createTime": "2025-12-31T14:20:07Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-geDzDaM1LmnNnp0ObUN8W4ftW362-gAqR2KmVS5Q1Mi4cP2TPrux2VVImMvYHpXQitVCsGG8e0",
+            "baseUrl": "https://example.test/media/burst_near.picker-7",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 1600,
@@ -383,7 +383,7 @@
           "createTime": "2025-12-31T14:20:07Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gd-4KWOyWTw5vSDEwEA2_JOMJgN5qWgZIp7X00HxRKKAsRj0mHhgWT2AC5KKxe0EJrOgS_C6lE",
+            "baseUrl": "https://example.test/media/burst_near.picker-8",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 1600,
@@ -397,7 +397,7 @@
           "createTime": "2025-12-31T14:20:07Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gfCwJTUcz5Pldl4tytqs98ejvSD2jNihpwbyW99V4iHzxuL5IYy0i-iMN8HCkHIdblZYPP_lEg",
+            "baseUrl": "https://example.test/media/burst_near.picker-9",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 1600,
@@ -411,7 +411,7 @@
           "createTime": "2025-12-31T14:20:07Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gfVIlbWnjLOJ9ISzdth-pjSvNObgQ_SkO5VcRAOew-700rIDJpyE3umzJEcAZtd608oRxbzDb8",
+            "baseUrl": "https://example.test/media/burst_near.picker-10",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 1200,
@@ -425,7 +425,7 @@
           "createTime": "2025-12-31T14:20:07Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gfYDlxgkjo6_yzVoBIUqgh26Dc1tGIizWH0kGULEmBKVEBEb2w7eI5FP8rM2G5AmAN__9uqGC4",
+            "baseUrl": "https://example.test/media/burst_near.picker-11",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 1200,
@@ -439,7 +439,7 @@
           "createTime": "2025-12-31T14:20:07Z",
           "type": "PHOTO",
           "mediaFile": {
-            "baseUrl": "https://lh3.googleusercontent.com/ppa/ADWS-gdAyl5Deq_E28xTefE9sr6sQH67JAv9xcntK8tSlgHrHTvCO-0XwcBRBhzdSr3qyjogHCH74-c",
+            "baseUrl": "https://example.test/media/burst_near.picker-12",
             "mimeType": "image/jpeg",
             "mediaFileMetadata": {
               "width": 1181,
