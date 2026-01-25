@@ -21,6 +21,18 @@
 - Clear confidence labels and known limitations are shown to users.
 - Cost guardrails prevent unexpected usage spikes.
 
+## Phase 2.2 Functional UX (Current)
+
+Phase 2.2 delivers a **single-session, review-only** web flow:
+
+1. **Start** (`/`) — expectations + “Select photos” CTA
+2. **Run** (`/run`) — confirm selection, start analysis, monitor progress + cost, cancel if needed
+3. **Results** (`/results`) — review duplicate groups, expand groups, and open items in Google Photos
+
+The UI consumes a Phase 2.2 envelope schema (version `2.2.0`) and uses a local fixture
+(`apps/web/fixtures/phase2_2_sample_results.json`) via an in-memory adapter to simulate
+engine output until Phase 2.1 is fully wired.
+
 ## Tech stack (current)
 
 - **Frontend:** Next.js + React + TypeScript
@@ -72,7 +84,8 @@ fields or `mediaFile.*`. No photo bytes or URLs are persisted.
 
 ## Repo Structure
 
-- `apps/web` — Next.js app with a basic home page and `/health` check that calls the API
+- `apps/web` — Next.js app with the Phase 2.2 flow (`/`, `/run`, `/results`) plus a `/health` check
+- `apps/web/fixtures` — Phase 2.2 sample envelope data for the async run simulation
 - `apps/api` — FastAPI service exposing `/healthz` and loading settings from env
 - `apps/worker` — Celery worker with a demo `ping` task
 - `packages/shared` — Shared Zod schemas/types (e.g., health payload)

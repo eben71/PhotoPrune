@@ -1,0 +1,172 @@
+{
+  "schemaVersion": "2.2.0",
+  "run": {
+    "runId": "fixture-run",
+    "status": "COMPLETED",
+    "startedAt": "2025-01-10T12:00:00.000Z",
+    "finishedAt": "2025-01-10T12:00:10.000Z",
+    "selection": {
+      "requestedCount": 5,
+      "acceptedCount": 5,
+      "rejectedCount": 0
+    }
+  },
+  "progress": {
+    "stage": "FINALIZE",
+    "message": "Fixture data loaded.",
+    "counts": {
+      "processed": 5,
+      "total": 5
+    }
+  },
+  "telemetry": {
+    "cost": {
+      "apiCalls": 6,
+      "estimatedUnits": 420,
+      "softCapUnits": 1200,
+      "hardCapUnits": 2000,
+      "hitSoftCap": false,
+      "hitHardCap": false
+    },
+    "timingMs": 10432,
+    "warnings": [
+      {
+        "code": "FIXTURE_DATA",
+        "severity": "INFO",
+        "message": "Using Phase 2.2 fixture output for UI wiring."
+      }
+    ]
+  },
+  "results": {
+    "summary": {
+      "groupsCount": 2,
+      "groupedItemsCount": 5,
+      "ungroupedItemsCount": 0
+    },
+    "groups": [
+      {
+        "groupId": "group-1",
+        "groupType": "EXACT",
+        "confidence": "HIGH",
+        "reasonCodes": ["HASH_MATCH"],
+        "itemsCount": 3,
+        "representativeItemIds": ["item-1", "item-2"],
+        "items": [
+          {
+            "itemId": "item-1",
+            "type": "PHOTO",
+            "createTime": "2024-12-12T10:12:00.000Z",
+            "filename": "IMG_0001.JPG",
+            "mimeType": "image/jpeg",
+            "dimensions": { "width": 4032, "height": 3024 },
+            "thumbnail": {
+              "baseUrl": "https://placehold.co/300x300/png?text=Photo+1",
+              "suggestedSizePx": 300
+            },
+            "links": {
+              "googlePhotos": {
+                "url": null,
+                "fallbackQuery": "IMG_0001 item-1",
+                "fallbackUrl": "https://photos.google.com/"
+              }
+            }
+          },
+          {
+            "itemId": "item-2",
+            "type": "PHOTO",
+            "createTime": "2024-12-12T10:12:05.000Z",
+            "filename": "IMG_0001_COPY.JPG",
+            "mimeType": "image/jpeg",
+            "dimensions": { "width": 4032, "height": 3024 },
+            "thumbnail": {
+              "baseUrl": "https://placehold.co/300x300/png?text=Photo+2",
+              "suggestedSizePx": 300
+            },
+            "links": {
+              "googlePhotos": {
+                "url": null,
+                "fallbackQuery": "IMG_0001_COPY item-2",
+                "fallbackUrl": "https://photos.google.com/"
+              }
+            }
+          },
+          {
+            "itemId": "item-3",
+            "type": "PHOTO",
+            "createTime": "2024-12-12T10:12:12.000Z",
+            "filename": "IMG_0001_EDIT.JPG",
+            "mimeType": "image/jpeg",
+            "dimensions": { "width": 4032, "height": 3024 },
+            "thumbnail": {
+              "baseUrl": "https://placehold.co/300x300/png?text=Photo+3",
+              "suggestedSizePx": 300
+            },
+            "links": {
+              "googlePhotos": {
+                "url": null,
+                "fallbackQuery": "IMG_0001_EDIT item-3",
+                "fallbackUrl": "https://photos.google.com/"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "groupId": "group-2",
+        "groupType": "BURST_SERIES",
+        "confidence": "MEDIUM",
+        "reasonCodes": ["BURST_WINDOW"],
+        "itemsCount": 2,
+        "representativeItemIds": ["item-4", "item-5"],
+        "items": [
+          {
+            "itemId": "item-4",
+            "type": "PHOTO",
+            "createTime": "2024-11-21T08:00:00.000Z",
+            "filename": "IMG_1021.JPG",
+            "mimeType": "image/jpeg",
+            "dimensions": { "width": 4032, "height": 3024 },
+            "thumbnail": {
+              "baseUrl": "https://placehold.co/300x300/png?text=Photo+4",
+              "suggestedSizePx": 300
+            },
+            "links": {
+              "googlePhotos": {
+                "url": null,
+                "fallbackQuery": "IMG_1021 item-4",
+                "fallbackUrl": "https://photos.google.com/"
+              }
+            }
+          },
+          {
+            "itemId": "item-5",
+            "type": "PHOTO",
+            "createTime": "2024-11-21T08:00:05.000Z",
+            "filename": "IMG_1022.JPG",
+            "mimeType": "image/jpeg",
+            "dimensions": { "width": 4032, "height": 3024 },
+            "thumbnail": {
+              "baseUrl": "https://placehold.co/300x300/png?text=Photo+5",
+              "suggestedSizePx": 300
+            },
+            "links": {
+              "googlePhotos": {
+                "url": null,
+                "fallbackQuery": "IMG_1022 item-5",
+                "fallbackUrl": "https://photos.google.com/"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "skippedItems": [
+      {
+        "itemId": "item-6",
+        "reasonCode": "UNSUPPORTED_TYPE",
+        "message": "Unsupported media type."
+      }
+    ],
+    "failedItems": []
+  }
+}
