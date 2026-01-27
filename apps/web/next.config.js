@@ -3,7 +3,7 @@ const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
   transpilePackages: ['@photoprune/shared'],
-  typedRoutes: true
+  typedRoutes: true,
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'placehold.co' },
