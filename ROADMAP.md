@@ -150,9 +150,9 @@ Finalize thresholds/models in DECISIONS.md after Phase 1b.
 - ✅ Deterministic, repeatable scan results
 
 ### Phase 2.2: Functional UX
-- [ ] Single-session review flow (no background jobs)
-- [ ] Grouping + review-only UI (no deletion)
-- [ ] Clear match confidence labels + explanations
+- [x] Single-session review flow (no background jobs)
+- [x] Grouping + review-only UI (no deletion)
+- [x] Clear match confidence labels + explanations
 
 ### Phase 2.3: Style & Trust Layer
 - [ ] Trust-first copy (predictability over hype)
