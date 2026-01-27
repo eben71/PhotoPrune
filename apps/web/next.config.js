@@ -3,9 +3,7 @@ const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
   transpilePackages: ['@photoprune/shared'],
-  experimental: {
-    typedRoutes: true
-  }
+  typedRoutes: true
 };
 
 module.exports = nextConfig;
