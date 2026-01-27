@@ -1,11 +1,10 @@
 # AGENT_RULES.md
 
-## Phase 1 Feasibility Guardrails (Mandatory)
-- This repo is in **Phase 1 feasibility**. Ship only disposable probe code.
-- All spike/probe code **must live in `experiments/phase1/`** unless minimal plumbing is required elsewhere.
-- Do **not** build reusable services, production-grade pipelines, or long-lived abstractions.
+## Phase 2 MVP Build Status (Mandatory)
+- PhotoPrune is **past feasibility** and now in **Phase 2 MVP development**.
+- MVP product work **may** modify the app and services directly (not limited to `experiments/`).
+- Stay within the Phase 2 scope in `ROADMAP.md` and the user-provided phase instructions.
 - Keep dependencies minimal and well-justified.
-- Follow the `ROADMAP.md` Phase 1 scope and CI additions.
 
 ## Token Safety (Non-Negotiable)
 - Never commit or log access/refresh tokens or authorization codes.
