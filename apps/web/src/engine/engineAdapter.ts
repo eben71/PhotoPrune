@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 
 import {
@@ -43,11 +44,20 @@ const stageMessages: Record<(typeof stagePlan)[number]['stage'], string> = {
 };
 
 async function loadFixture(): Promise<RunEnvelope> {
-  const fixtureUrl = new URL(
-    '../../fixtures/phase2_2_sample_results.json',
-    import.meta.url
-  );
-  const fixturePath = fileURLToPath(fixtureUrl);
+  let fixturePath: string;
+  const moduleUrl = new URL(import.meta.url);
+  if (moduleUrl.protocol === 'file:') {
+    const fixtureUrl = new URL(
+      '../../fixtures/phase2_2_sample_results.json',
+      moduleUrl
+    );
+    fixturePath = fileURLToPath(fixtureUrl);
+  } else {
+    fixturePath = path.resolve(
+      process.cwd(),
+      'apps/web/fixtures/phase2_2_sample_results.json'
+    );
+  }
   const raw = await readFile(fixturePath, 'utf-8');
   return RunEnvelopeSchema.parse(JSON.parse(raw));
 }
