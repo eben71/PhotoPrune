@@ -152,9 +152,21 @@ function applySelectionToFixture(
   selection: PickerItem[]
 ): RunEnvelope {
   if (selection.length === 0) {
-    return fixture;
+    return {
+      ...fixture,
+      run: {
+        ...fixture.run,
+        selection: {
+          requestedCount: 0,
+          acceptedCount: 0,
+          rejectedCount: 0
+        }
+      },
+      results: buildEmptyResults()
+    };
   }
 
+  const selectionIds = new Set(selection.map((item) => item.id));
   const flattenedItems = fixture.results.groups.flatMap((group) => group.items);
   const selectionByIndex = selection.slice(0, flattenedItems.length);
   let cursor = 0;
@@ -214,6 +226,12 @@ function applySelectionToFixture(
     0,
     selection.length - groupedItemIds.size
   );
+  const filteredSkippedItems = fixture.results.skippedItems.filter((item) =>
+    selectionIds.has(item.itemId)
+  );
+  const filteredFailedItems = fixture.results.failedItems.filter((item) =>
+    selectionIds.has(item.itemId)
+  );
 
   return {
     ...fixture,
@@ -226,13 +244,14 @@ function applySelectionToFixture(
       }
     },
     results: {
-      ...fixture.results,
       summary: {
         groupsCount: updatedGroups.length,
         groupedItemsCount: groupedItemIds.size,
         ungroupedItemsCount
       },
-      groups: updatedGroups
+      groups: updatedGroups,
+      skippedItems: filteredSkippedItems,
+      failedItems: filteredFailedItems
     }
   };
 }
