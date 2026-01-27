@@ -4,7 +4,8 @@ PNPM_VERSION ?= $(shell \
 	sed -n 's/.*"packageManager"[[:space:]]*:[[:space:]]*"pnpm@\([0-9][0-9.]*\)".*/\1/p' package.json | head -n 1)
 
 PNPM ?= $(shell \
-	if command -v pnpm >/dev/null 2>&1; then printf '%s' 'pnpm'; \
+	if [ -n "$$PNPM_HOME" ] && [ -x "$$PNPM_HOME/pnpm" ]; then printf '%s' "$$PNPM_HOME/pnpm"; \
+	elif command -v pnpm >/dev/null 2>&1; then printf '%s' 'pnpm'; \
 	elif command -v corepack >/dev/null 2>&1; then printf '%s' 'corepack pnpm'; \
 	elif command -v npx >/dev/null 2>&1 && [ -n "$(PNPM_VERSION)" ]; then printf '%s' 'npx -y pnpm@$(PNPM_VERSION)'; \
 	fi)
@@ -12,6 +13,19 @@ PNPM ?= $(shell \
 ifeq ($(PNPM),)
 $(error pnpm is required. Install pnpm (https://pnpm.io/installation), or install Node and use Corepack ("corepack enable") / npx)
 endif
+
+NODE ?= $(shell \
+	if command -v node >/dev/null 2>&1; then command -v node; \
+	elif [ -x "/usr/local/bin/node" ]; then printf '%s' "/usr/local/bin/node"; \
+	elif [ -x "/opt/homebrew/bin/node" ]; then printf '%s' "/opt/homebrew/bin/node"; \
+	fi)
+
+ifeq ($(NODE),)
+$(error node is required. Install Node.js (https://nodejs.org/) and ensure it is on PATH)
+endif
+
+NODE_BIN_DIR := $(dir $(NODE))
+PNPM_RUN := PATH="$(NODE_BIN_DIR):$$PATH" $(PNPM)
 
 DOCKER ?= $(shell \
 	if command -v docker >/dev/null 2>&1; then command -v docker; \
@@ -42,7 +56,7 @@ endif
 _dev_compose := $(DOCKER_RUN) compose -f docker-compose.yml -p photoprune
 
 setup:
-	$(PNPM) install
+	$(PNPM_RUN) install
 	cd apps/api && $(UV) venv && $(UV) pip install -r requirements-dev.lock
 	cd apps/worker && $(UV) venv && $(UV) pip install -r requirements-dev.lock
 
@@ -54,34 +68,34 @@ dev:
 	$(_dev_compose) up --build --pull never
 
 lint:
-	$(PNPM) lint
+	$(PNPM_RUN) lint
 	cd apps/api && $(UV) run ruff check app tests
 	cd apps/worker && $(UV) run ruff check app tests
 
 format:
-	$(PNPM) format
+	$(PNPM_RUN) format
 	cd apps/api && $(UV) run black app tests
 	cd apps/worker && $(UV) run black app tests
 
 format-check:
-	$(PNPM) format:check
+	$(PNPM_RUN) format:check
 	cd apps/api && $(UV) run black --check app tests
 	cd apps/worker && $(UV) run black --check app tests
 
 typecheck:
-	$(PNPM) typecheck
+	$(PNPM_RUN) typecheck
 	cd apps/api && $(UV) run mypy app
 	cd apps/worker && $(UV) run mypy app
 
 test:
-	$(PNPM) test
+	$(PNPM_RUN) test
 	cd apps/api && $(UV) run pytest
 	cd apps/worker && $(UV) run pytest
 
 build:
-	$(PNPM) build
+	$(PNPM_RUN) build
 	cd apps/api && $(UV) run python -m compileall app
 	cd apps/worker && $(UV) run python -m compileall app
 
 hooks:
-	$(PNPM) lefthook install
+	$(PNPM_RUN) lefthook install
