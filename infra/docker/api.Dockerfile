@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir uv
 COPY apps/api/requirements.lock ./requirements.lock
 RUN uv venv /app/.venv && uv pip install -r requirements.lock
 
-COPY apps/api ./app
+COPY apps/api/app ./app
 
 ENV PATH="/app/.venv/bin:$PATH"
 
