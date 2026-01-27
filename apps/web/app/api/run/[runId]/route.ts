@@ -4,8 +4,9 @@ import { pollRun } from '../../../../src/engine/engineAdapter';
 
 export async function GET(
   _request: Request,
-  { params }: { params: { runId: string } }
+  { params }: { params: Promise<{ runId: string }> }
 ) {
-  const envelope = await pollRun(params.runId);
+  const { runId } = await params;
+  const envelope = await pollRun(runId);
   return NextResponse.json(envelope);
 }

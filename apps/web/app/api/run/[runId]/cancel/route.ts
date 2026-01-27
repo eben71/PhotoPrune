@@ -4,8 +4,9 @@ import { cancelRun } from '../../../../../src/engine/engineAdapter';
 
 export async function POST(
   _request: Request,
-  { params }: { params: { runId: string } }
+  { params }: { params: Promise<{ runId: string }> }
 ) {
-  const envelope = await cancelRun(params.runId);
+  const { runId } = await params;
+  const envelope = await cancelRun(runId);
   return NextResponse.json(envelope);
 }
