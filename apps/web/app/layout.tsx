@@ -1,16 +1,20 @@
 import './globals.css';
 import type { ReactNode } from 'react';
 
+import { RunSessionProvider } from './state/runSessionStore';
+
 export const metadata = {
   title: 'PhotoPrune',
-  description: 'Skeleton app for PhotoPrune Phase 0'
+  description: 'Review potential photo duplicates from a Picker session.'
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <main>{children}</main>
+        <RunSessionProvider>
+          <main>{children}</main>
+        </RunSessionProvider>
       </body>
     </html>
   );

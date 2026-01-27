@@ -1,6 +1,9 @@
 # AGENTS.md
 
 ## Purpose
+
+**Status:** PhotoPrune is past feasibility and actively building the Phase 2 MVP application.
+
 This file instructs development agents (e.g., CODEX) and reviewers on how to produce
 **secure, clean, testable, and maintainable code** for the PhotoPrune codebase.
 
