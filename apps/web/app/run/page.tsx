@@ -55,6 +55,10 @@ export default function RunPage() {
   }, [state.run?.runId, state.run?.status, applyEnvelope]);
 
   const handleStart = async () => {
+    if (!hydrated || state.selection.length === 0) {
+      setError('Selection is not ready yet. Please wait a moment.');
+      return;
+    }
     setError(null);
     setStarting(true);
     clearResults();
@@ -113,7 +117,7 @@ export default function RunPage() {
       <button
         type="button"
         onClick={() => void handleStart()}
-        disabled={starting}
+        disabled={starting || !hydrated || state.selection.length === 0}
       >
         {starting ? 'Starting…' : 'Start analysis'}
       </button>
