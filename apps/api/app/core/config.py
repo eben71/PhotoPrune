@@ -1,5 +1,7 @@
+import json
 from collections.abc import Callable, Sequence
 from functools import lru_cache
+from json import JSONDecodeError
 from typing import Any
 
 from pydantic import field_validator
@@ -16,16 +18,12 @@ class Settings(BaseSettings):
 
     app_name: str = "PhotoPrune API"
     database_url: str = "postgresql://postgres:postgres@localhost:5432/photoprune"
-    redis_url: str = "redis://localhost:6379/0"
+    redis_url: str = "redis://redis:6379/0"
     cors_origins: list[str] = ["http://localhost:3000"]
     environment: str = "local"
     scan_max_photos: int = 250
     scan_consent_threshold: int = 200
-    scan_allowed_download_hosts: list[str] = [
-        "photos.google.com",
-        "lh3.googleusercontent.com",
-        "googleusercontent.com",
-    ]
+    scan_allowed_download_hosts: list[str] = []
     scan_dhash_threshold_very: int = 5
     scan_dhash_threshold_possible: int = 10
     scan_phash_threshold_very: int = 6
@@ -46,6 +44,15 @@ class Settings(BaseSettings):
     @classmethod
     def split_allowed_hosts(cls, value: Sequence[str] | str) -> list[str]:
         if isinstance(value, str):
+            stripped_value = value.strip()
+            if not stripped_value:
+                return []
+            try:
+                parsed = json.loads(stripped_value)
+            except JSONDecodeError:
+                parsed = None
+            if isinstance(parsed, list):
+                return [str(host).strip() for host in parsed if str(host).strip()]
             return [host.strip() for host in value.split(",") if host.strip()]
         return list(value)
 
@@ -64,7 +71,9 @@ class Settings(BaseSettings):
     ) -> tuple[SettingsSourceCallable, ...]:
         class CorsEnvSettingsSource(EnvSettingsSource):
             def decode_complex_value(self, field_name: str, field: Any, value: Any) -> Any:
-                if field_name == "cors_origins" and isinstance(value, str):
+                if field_name in {"cors_origins", "scan_allowed_download_hosts"} and isinstance(
+                    value, str
+                ):
                     return value
                 return super().decode_complex_value(field_name, field, value)
 
