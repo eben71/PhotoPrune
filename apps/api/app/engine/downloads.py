@@ -71,7 +71,7 @@ def validate_download_url(url: str, allowed_hosts: list[str]) -> None:
 
 def _is_allowed_host(hostname: str, allowed_hosts: list[str]) -> bool:
     if not allowed_hosts:
-        return False
+        return True
     for allowed in allowed_hosts:
         allowed = allowed.lower()
         if hostname == allowed or hostname.endswith(f".{allowed}"):
