@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { OpenInGooglePhotosButton } from '../app/components/OpenInGooglePhotosButton';
@@ -82,15 +83,19 @@ describe('OpenInGooglePhotosButton', () => {
       `Fallback search: ${baseItem.links.googlePhotos.fallbackQuery}`
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /copy query/i }));
-    await Promise.resolve();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /copy query/i }));
+      await Promise.resolve();
+    });
 
     expect(writeText).toHaveBeenCalledWith(
       baseItem.links.googlePhotos.fallbackQuery
     );
     expect(screen.getByRole('button', { name: /copied/i })).toBeInTheDocument();
 
-    vi.advanceTimersByTime(1500);
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
 
     expect(
       screen.getByRole('button', { name: /copy query/i })
