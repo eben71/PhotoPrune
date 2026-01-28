@@ -14,19 +14,6 @@ ifeq ($(PNPM),)
 $(error pnpm is required. Install pnpm (https://pnpm.io/installation), or install Node and use Corepack ("corepack enable") / npx)
 endif
 
-NODE ?= $(shell \
-	if command -v node >/dev/null 2>&1; then command -v node; \
-	elif [ -x "/usr/local/bin/node" ]; then printf '%s' "/usr/local/bin/node"; \
-	elif [ -x "/opt/homebrew/bin/node" ]; then printf '%s' "/opt/homebrew/bin/node"; \
-	fi)
-
-ifeq ($(NODE),)
-$(error node is required. Install Node.js (https://nodejs.org/) and ensure it is on PATH)
-endif
-
-NODE_BIN_DIR := $(dir $(NODE))
-PNPM_RUN := PATH="$(NODE_BIN_DIR):$$PATH" $(PNPM)
-
 DOCKER ?= $(shell \
 	if command -v docker >/dev/null 2>&1; then command -v docker; \
 	elif [ -x "/Applications/Docker.app/Contents/Resources/bin/docker" ]; then printf '%s' "/Applications/Docker.app/Contents/Resources/bin/docker"; \
@@ -56,7 +43,7 @@ endif
 _dev_compose := $(DOCKER_RUN) compose -f docker-compose.yml -p photoprune
 
 setup:
-	$(PNPM_RUN) install
+	$(PNPM) install
 	cd apps/api && $(UV) venv && $(UV) pip install -r requirements-dev.lock
 	cd apps/worker && $(UV) venv && $(UV) pip install -r requirements-dev.lock
 
@@ -68,34 +55,34 @@ dev:
 	$(_dev_compose) up --build --pull never
 
 lint:
-	$(PNPM_RUN) lint
+	$(PNPM) lint
 	cd apps/api && $(UV) run ruff check app tests
 	cd apps/worker && $(UV) run ruff check app tests
 
 format:
-	$(PNPM_RUN) format
+	$(PNPM) format
 	cd apps/api && $(UV) run black app tests
 	cd apps/worker && $(UV) run black app tests
 
 format-check:
-	$(PNPM_RUN) format:check
+	$(PNPM) format:check
 	cd apps/api && $(UV) run black --check app tests
 	cd apps/worker && $(UV) run black --check app tests
 
 typecheck:
-	$(PNPM_RUN) typecheck
+	$(PNPM) typecheck
 	cd apps/api && $(UV) run mypy app
 	cd apps/worker && $(UV) run mypy app
 
 test:
-	$(PNPM_RUN) test
+	$(PNPM) test
 	cd apps/api && $(UV) run pytest
 	cd apps/worker && $(UV) run pytest
 
 build:
-	$(PNPM_RUN) build
+	$(PNPM) build
 	cd apps/api && $(UV) run python -m compileall app
 	cd apps/worker && $(UV) run python -m compileall app
 
 hooks:
-	$(PNPM_RUN) lefthook install
+	$(PNPM) lefthook install

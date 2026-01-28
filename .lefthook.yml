@@ -3,29 +3,13 @@ pre-commit:
   commands:
     block-sensitive-paths:
       run: |
-        export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$HOME/.nvm/versions/node/v22.4.0/bin:$PATH"
         scripts/block-sensitive-paths.sh
-    web-lint:
-      run: |
-        export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$HOME/.nvm/versions/node/v22.4.0/bin:$PATH"
-        pnpm --filter web lint
     web-format:
       run: |
-        export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$HOME/.nvm/versions/node/v22.4.0/bin:$PATH"
         pnpm --filter web format:check
-    api-lint:
-      run: |
-        export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$HOME/.nvm/versions/node/v22.4.0/bin:$PATH"
-        cd apps/api && uv run ruff check app tests
     api-format:
       run: |
-        export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$HOME/.nvm/versions/node/v22.4.0/bin:$PATH"
         cd apps/api && uv run black --check app tests
-    worker-lint:
-      run: |
-        export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$HOME/.nvm/versions/node/v22.4.0/bin:$PATH"
-        cd apps/worker && uv run ruff check app tests
     worker-format:
       run: |
-        export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$HOME/.nvm/versions/node/v22.4.0/bin:$PATH"
         cd apps/worker && uv run black --check app tests

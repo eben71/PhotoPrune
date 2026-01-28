@@ -113,7 +113,13 @@ Prereqs: Node.js 20+, pnpm (via Corepack), Python 3.12+, and `uv`.
    make build     # Turbo builds + Python bytecode compile
    make hooks     # install git hooks via lefthook
    ```
-4. If you regenerate lockfiles (e.g., after dependency changes), commit the updated `pnpm-lock.yaml` and requirement locks so CI stays reproducible.
+5. Web tests only run from `apps/web/tests` (excluding `.next`) to avoid picking up compiled artifacts.
+4. Web tests only run from `apps/web/tests` (excluding `.next`) to avoid picking up compiled artifacts.
+5. If you regenerate lockfiles (e.g., after dependency changes), commit the updated `pnpm-lock.yaml` and requirement locks so CI stays reproducible.
+
+### CI notes
+
+CI runs the same Makefile targets listed above (`make lint`, `make format-check`, `make typecheck`, `make test`, `make build`) to keep checks consistent between local and GitHub Actions.
 
 ### API configuration (scan guardrails)
 
