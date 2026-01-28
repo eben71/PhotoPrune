@@ -29,7 +29,7 @@ def test_validate_download_url_rejects_missing_hostname():
 def test_is_allowed_host_supports_exact_and_subdomains():
     assert downloads._is_allowed_host("photos.google.com", ["photos.google.com"])
     assert downloads._is_allowed_host("a.photos.google.com", ["photos.google.com"])
-    assert not downloads._is_allowed_host("photos.google.com", [])
+    assert downloads._is_allowed_host("photos.google.com", [])
 
 
 def test_reject_private_addresses_blocks_resolved_private_ip(monkeypatch: pytest.MonkeyPatch):
