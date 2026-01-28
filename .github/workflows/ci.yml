@@ -33,7 +33,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install Node dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -55,50 +55,23 @@ jobs:
           uv venv .venv
           uv pip install -r requirements-dev.lock
 
-      - name: Lint (web + shared)
-        run: pnpm lint
-
-      - name: Lint (python)
-        run: |
-          (cd apps/api && uv run ruff check app tests)
-          (cd apps/worker && uv run ruff check app tests)
+      - name: Lint
+        run: make lint
 
       - name: Format check
-        run: |
-          pnpm format:check
-          (cd apps/api && uv run black --check app tests)
-          (cd apps/worker && uv run black --check app tests)
+        run: make format-check
 
       - name: Type check
-        run: |
-          pnpm typecheck
-          (cd apps/api && uv run mypy app)
-          (cd apps/worker && uv run mypy app)
+        run: make typecheck
 
-      - name: Tests (web)
-        run: pnpm test
-
-      - name: Tests (api)
-        working-directory: apps/api
-        run: uv run pytest
-
-      - name: Tests (worker)
-        working-directory: apps/worker
-        run: uv run pytest
+      - name: Tests
+        run: make test
 
       - name: Coverage gate
         run: node scripts/check-coverage.mjs
 
-      - name: Build (web + shared)
-        run: pnpm build
-
-      - name: Build (api)
-        working-directory: apps/api
-        run: uv run python -m compileall app
-
-      - name: Build (worker)
-        working-directory: apps/worker
-        run: uv run python -m compileall app
+      - name: Build
+        run: make build
 
       - name: Documentation guard
         run: pnpm check:docs
