@@ -133,7 +133,9 @@ SCAN_COST_PER_COMPARISON=0.00001
 ```
 
 In `local` or `dev`, guardrails only log warnings. In `prod`, limits are enforced. Download
-URLs are restricted to the allowlisted Google Photos hosts and rejected if they resolve to
+`SCAN_ALLOWED_DOWNLOAD_HOSTS` accepts a JSON array (e.g. `["lh3.googleusercontent.com"]`),
+a comma-delimited string, or an empty/unset value to disable the allowlist locally. URLs
+are restricted to the allowlisted Google Photos hosts and rejected if they resolve to
 non-global addresses to mitigate SSRF risk.
 
 ## Out of Scope (Phase 2)
