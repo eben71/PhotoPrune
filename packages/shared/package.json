@@ -6,7 +6,7 @@
   "types": "src/index.ts",
   "scripts": {
     "build": "tsup src/index.ts --dts",
-    "lint": "eslint 'src/**/*.{ts,tsx}'",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit"
