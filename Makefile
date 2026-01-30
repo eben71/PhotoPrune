@@ -26,7 +26,8 @@ $(error docker is required for local dev. Install Docker Desktop for Mac (https:
 endif
 
 DOCKER_BIN_DIR := $(dir $(DOCKER))
-DOCKER_RUN := PATH="$(DOCKER_BIN_DIR):$$PATH" $(DOCKER)
+# Quote docker path so Windows Git Bash paths with spaces (e.g. /c/Program Files/...) work.
+DOCKER_RUN := PATH="$(DOCKER_BIN_DIR):$$PATH" "$(DOCKER)"
 # Resolve uv from PATH, falling back to common install locations
 UV ?= $(shell \
 	if command -v uv >/dev/null 2>&1; then command -v uv; \
