@@ -121,6 +121,28 @@ Prereqs: Node.js 20+, pnpm (via Corepack), Python 3.12+, and `uv`.
 
 CI runs the same Makefile targets listed above (`make lint`, `make format-check`, `make typecheck`, `make test`, `make build`) to keep checks consistent between local and GitHub Actions.
 
+### Agent skill: `fix:ci`
+
+For local CI parity checks with safe auto-fixes, use the PhotoPrune agent skill:
+
+```bash
+node skills/agent-fix-ci/agent-fix-ci.mjs
+```
+
+This reads `.github/workflows/ci.yml` to stay aligned with CI and will stop with a clear reason if manual intervention is required.
+
+You can also run the shortcut:
+
+```bash
+make agent-fix-ci
+```
+
+Future agent skills follow the same Makefile convention:
+
+```bash
+make agent-<name>
+```
+
 ### API configuration (scan guardrails)
 
 ```

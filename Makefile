@@ -39,7 +39,7 @@ ifeq ($(UV),)
 $(error uv is required. Install via "brew install uv" or "curl -LsSf https://astral.sh/uv/install.sh | sh", ensure it is on PATH, or set UV=/full/path/to/uv)
 endif
 
-.PHONY: setup dev lint format format-check typecheck test build hooks
+.PHONY: setup dev lint format format-check typecheck test build hooks agent-%
 
 _dev_compose := $(DOCKER_RUN) compose -f docker-compose.yml -p photoprune
 
@@ -87,3 +87,6 @@ build:
 
 hooks:
 	$(PNPM) lefthook install
+
+agent-%:
+	node skills/agent-$*/agent-$*.mjs
