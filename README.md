@@ -143,6 +143,12 @@ You can also run the shortcut:
 make agent-fix-ci
 ```
 
+To pass flags through Make, append them after the target:
+
+```bash
+make agent-fix-ci -- --codex
+```
+
 Future agent skills follow the same Makefile convention:
 
 ```bash

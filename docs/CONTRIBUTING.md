@@ -72,6 +72,12 @@ Or via Makefile:
 make agent-fix-ci
 ```
 
+To pass flags through Make, append them after the target:
+
+```bash
+make agent-fix-ci -- --codex
+```
+
 Makefile agent convention (for future skills):
 
 ```bash

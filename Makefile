@@ -89,4 +89,7 @@ hooks:
 	$(PNPM) lefthook install
 
 agent-%:
-	node skills/agent-$*/agent-$*.mjs
+	node skills/agent-$*/agent-$*.mjs $(filter-out $@,$(MAKECMDGOALS))
+
+--%:
+	@:
