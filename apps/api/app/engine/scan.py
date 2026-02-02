@@ -21,8 +21,14 @@ def run_scan(
 ) -> ScanResult:
     run_id = uuid4().hex
     photo_items = list(items)
+    host_overrides = (
+        settings.scan_download_host_overrides if settings.environment.lower() != "prod" else {}
+    )
+    allow_override_exceptions = settings.environment.lower() != "prod" and bool(host_overrides)
     download_manager = download_manager or DownloadManager(
-        allowed_hosts=settings.scan_allowed_download_hosts
+        allowed_hosts=settings.scan_allowed_download_hosts,
+        host_overrides=host_overrides,
+        allow_override_exceptions=allow_override_exceptions,
     )
     hashing_service = HashingService(download_manager)
     timings: dict[str, float] = {}

@@ -1,7 +1,5 @@
-from __future__ import annotations
-
 from datetime import datetime
-from typing import Any
+from typing import Annotated, Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -22,14 +20,14 @@ class PhotoItemPayload(BaseModel):
 
 
 class ScanRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
 
-    photo_items: list[PhotoItemPayload] | None = Field(default=None, alias="photoItems")
-    picker_payload: dict[str, Any] | None = Field(default=None, alias="pickerPayload")
-    consent_confirmed: bool = Field(default=False, alias="consentConfirmed")
+    photo_items: Annotated[list[PhotoItemPayload] | None, Field(alias="photoItems")] = None
+    picker_payload: Annotated[dict[str, Any] | None, Field(alias="pickerPayload")] = None
+    consent_confirmed: Annotated[bool, Field(alias="consentConfirmed")] = False
 
     @model_validator(mode="after")
-    def validate_payload(self) -> ScanRequest:
+    def validate_payload(self) -> "ScanRequest":
         if not self.photo_items and not self.picker_payload:
             raise ValueError("photoItems or pickerPayload is required")
         return self

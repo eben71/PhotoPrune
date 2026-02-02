@@ -174,9 +174,22 @@ SCAN_COST_PER_COMPARISON=0.00001
 
 In `local` or `dev`, guardrails only log warnings. In `prod`, limits are enforced. Download
 `SCAN_ALLOWED_DOWNLOAD_HOSTS` accepts a JSON array (e.g. `["lh3.googleusercontent.com"]`),
-a comma-delimited string, or an empty/unset value to disable the allowlist locally. URLs
-are restricted to the allowlisted Google Photos hosts and rejected if they resolve to
-non-global addresses to mitigate SSRF risk.
+a comma-delimited string, or an empty/unset value to disable the allowlist locally. Only
+exact hostnames are allowed. To accept Google Photos media hosts like `lh4.googleusercontent.com`,
+include `googleusercontent.com` or `.googleusercontent.com` in the allowlist, which enables
+only `lh<N>.googleusercontent.com` (not arbitrary subdomains). URLs are rejected if they
+resolve to non-global addresses to mitigate SSRF risk. Fixtures must not obfuscate hostnames;
+if they do, add the real hostnames to the allowlist in local/dev.
+
+For local/dev fixture runs with obfuscated hosts, you can rewrite hostnames before validation
+and download with `SCAN_DOWNLOAD_HOST_OVERRIDES` (JSON map or `source:dest` CSV). This is
+ignored in `prod`. If an override is present in local/dev, the host allowlist and
+private-address checks are bypassed for that overridden host to support local fixture
+servers. Example:
+
+```
+SCAN_DOWNLOAD_HOST_OVERRIDES=example.test:http://127.0.0.1:8001
+```
 
 ## Out of Scope (Phase 2)
 
