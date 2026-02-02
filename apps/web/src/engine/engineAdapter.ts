@@ -26,7 +26,6 @@ type RunRecord = {
 };
 
 const runRegistry = new Map<string, RunRecord>();
-const nousedCount = 123;
 
 const stagePlan = [
   { stage: 'INGEST', durationMs: 1200 },
