@@ -39,6 +39,15 @@ description: "Run PhotoPrune CI-equivalent checks locally, apply safe auto-fixes
   - A single-line JSON capsule describing the failure.
 - The capsule contains the failing step, failure reason, output tail, guardrails, allowed actions, and a rerun command.
 
+## Codex guardrails (automated)
+- The `--codex` runner tracks progress across iterations in `.codex/agent-fix-ci.json`.
+- Guardrails enforced between runs:
+  - Max iterations: 7
+  - Max files changed per iteration: 10
+  - Max total lines changed per iteration: 300
+  - Stop if `.github/workflows/**` is modified
+  - Stop if the same failing step + reason repeats twice
+
 ## How to use with Codex
 1. Run `node skills/agent-fix-ci/agent-fix-ci.mjs --codex`.
 2. When the capsule prints, Codex should propose and apply the minimal patch.
