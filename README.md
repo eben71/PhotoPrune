@@ -131,6 +131,12 @@ node skills/agent-fix-ci/agent-fix-ci.mjs
 
 This reads `.github/workflows/ci.yml` to stay aligned with CI and will stop with a clear reason if manual intervention is required.
 
+To emit a Codex repair capsule for non-fixable failures:
+
+```bash
+node skills/agent-fix-ci/agent-fix-ci.mjs --codex
+```
+
 You can also run the shortcut:
 
 ```bash

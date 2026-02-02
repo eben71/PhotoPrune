@@ -54,6 +54,12 @@ Run it from the repo root:
 node skills/agent-fix-ci/agent-fix-ci.mjs
 ```
 
+To emit a Codex repair capsule on non-fixable failures:
+
+```bash
+node skills/agent-fix-ci/agent-fix-ci.mjs --codex
+```
+
 Or via pnpm:
 
 ```bash

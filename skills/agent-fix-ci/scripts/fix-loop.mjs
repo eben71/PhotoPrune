@@ -1,6 +1,15 @@
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 
+const MAX_OUTPUT_CHARS = 2 * 1024 * 1024;
+
+function capOutput(output) {
+  if (output.length <= MAX_OUTPUT_CHARS) {
+    return output;
+  }
+  return output.slice(-MAX_OUTPUT_CHARS);
+}
+
 function runCommand(command, cwd) {
   const result = spawnSync(command, {
     shell: true,
@@ -12,7 +21,7 @@ function runCommand(command, cwd) {
 
   const stdout = result.stdout ?? '';
   const stderr = result.stderr ?? '';
-  const output = `${stdout}${stderr}`;
+  const output = capOutput(`${stdout}${stderr}`);
 
   if (stdout) {
     process.stdout.write(stdout);
@@ -27,11 +36,12 @@ function runCommand(command, cwd) {
   };
 }
 
-export function runFixLoop({ steps, repoRoot, classifyFailure }) {
+export function runFixLoop({ steps, repoRoot, classifyFailure, mode }) {
   const summary = {
     checks: [],
     fixed: [],
     stopped: null,
+    mode,
   };
 
   for (const step of steps) {
@@ -46,6 +56,7 @@ export function runFixLoop({ steps, repoRoot, classifyFailure }) {
     );
 
     const result = runCommand(step.run, workingDirectory);
+    const stepOutput = result.output;
     summary.checks.push({
       name: step.name,
       command: step.run,
@@ -57,11 +68,14 @@ export function runFixLoop({ steps, repoRoot, classifyFailure }) {
       continue;
     }
 
-    const failure = classifyFailure(step, result.output);
+    const failure = classifyFailure(step, stepOutput);
 
     if (!failure.fixable) {
       summary.stopped = {
-        step: step.name,
+        stepName: step.name,
+        stepCommand: step.run,
+        stepWorkingDirectory: step.workingDirectory ?? '.',
+        output: stepOutput,
         reason: failure.reason,
       };
       return summary;
@@ -82,7 +96,10 @@ export function runFixLoop({ steps, repoRoot, classifyFailure }) {
 
     if (fixResult.status !== 0) {
       summary.stopped = {
-        step: step.name,
+        stepName: step.name,
+        stepCommand: step.run,
+        stepWorkingDirectory: step.workingDirectory ?? '.',
+        output: fixResult.output,
         reason: 'Auto-fix command failed.',
       };
       return summary;
@@ -99,7 +116,10 @@ export function runFixLoop({ steps, repoRoot, classifyFailure }) {
 
     if (rerunResult.status !== 0) {
       summary.stopped = {
-        step: step.name,
+        stepName: step.name,
+        stepCommand: step.run,
+        stepWorkingDirectory: step.workingDirectory ?? '.',
+        output: rerunResult.output,
         reason: 'Check still failing after auto-fix.',
       };
       return summary;

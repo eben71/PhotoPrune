@@ -6,6 +6,12 @@ import {
 } from './scripts/ci-workflow.mjs';
 import { runFixLoop } from './scripts/fix-loop.mjs';
 import { classifyFailure } from './scripts/failure-parser.mjs';
+import { buildCodexCapsule } from './scripts/codex-capsule.mjs';
+
+const args = process.argv.slice(2);
+const codexRequested = args.includes('--codex') || args.includes('--ai');
+const mode = codexRequested ? 'codex' : 'deterministic';
+const rerunFlag = args.includes('--ai') ? '--ai' : '--codex';
 
 const repoRoot = findRepoRoot(process.cwd());
 
@@ -38,6 +44,7 @@ const summary = runFixLoop({
   steps: checkSteps,
   repoRoot,
   classifyFailure,
+  mode,
 });
 
 console.log('\nSummary:');
@@ -55,6 +62,31 @@ if (summary.fixed.length > 0) {
 }
 
 if (summary.stopped) {
+  if (mode === 'codex') {
+    const guardrails = [
+      'Never modify CI config or weaken checks.',
+      'Never delete tests.',
+      'Do not change business logic semantics to satisfy tests.',
+      'Do not auto-commit changes.',
+      'Prefer minimal, reviewable diffs.',
+    ];
+    const allowedActions = [
+      'edit_files',
+      'run_commands',
+      'update_tests_only_if_test_expected_is_wrong',
+    ];
+    const capsule = buildCodexCapsule({
+      repoRoot,
+      stopped: summary.stopped,
+      guardrails,
+      allowedActions,
+      rerunCommand: `node skills/agent-fix-ci/agent-fix-ci.mjs ${rerunFlag}`,
+    });
+    console.log('CODEX_REPAIR_REQUIRED');
+    console.log(JSON.stringify(capsule));
+    process.exit(2);
+  }
+
   console.log(
     `\nStopped: manual intervention required (${summary.stopped.reason})`
   );

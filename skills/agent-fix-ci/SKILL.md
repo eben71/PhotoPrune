@@ -25,11 +25,24 @@ description: "Run PhotoPrune CI-equivalent checks locally, apply safe auto-fixes
 - Never modify CI config or weaken checks.
 - Never delete tests or change business logic to satisfy checks.
 - Do not commit changes automatically.
+- Prefer minimal, reviewable diffs.
 
 ## Use the bundled scripts
 - Run `node skills/agent-fix-ci/agent-fix-ci.mjs` to execute the fix loop.
+- Run `node skills/agent-fix-ci/agent-fix-ci.mjs --codex` to emit a Codex repair capsule on non-fixable failures.
 - Reuse `skills/agent-fix-ci/scripts/*` for workflow parsing and loop orchestration.
 - Reuse `skills/agent-utils/common/*` for shared helpers.
+
+## Codex repair mode contract
+- When `--codex` is provided and a step is not auto-fixable, the agent emits:
+  - `CODEX_REPAIR_REQUIRED`
+  - A single-line JSON capsule describing the failure.
+- The capsule contains the failing step, failure reason, output tail, guardrails, allowed actions, and a rerun command.
+
+## How to use with Codex
+1. Run `node skills/agent-fix-ci/agent-fix-ci.mjs --codex`.
+2. When the capsule prints, Codex should propose and apply the minimal patch.
+3. Re-run the same command until all checks pass or manual intervention is required.
 
 ## Expected output
 - Print each step name, command, and working directory.
