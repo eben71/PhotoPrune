@@ -21,13 +21,13 @@ DOCKER ?= $(shell \
 	elif [ -x "/opt/homebrew/bin/docker" ]; then printf '%s' "/opt/homebrew/bin/docker"; \
 	fi)
 
-ifeq ($(DOCKER),)
-$(error docker is required for local dev. Install Docker Desktop for Mac (https://www.docker.com/products/docker-desktop/) and ensure the 'docker' CLI is on PATH)
-endif
-
+ifdef DOCKER
 DOCKER_BIN_DIR := $(dir $(DOCKER))
 # Quote docker path so Windows Git Bash paths with spaces (e.g. /c/Program Files/...) work.
 DOCKER_RUN := PATH="$(DOCKER_BIN_DIR):$$PATH" "$(DOCKER)"
+else
+DOCKER_RUN := docker
+endif
 # Resolve uv from PATH, falling back to common install locations
 UV ?= $(shell \
 	if command -v uv >/dev/null 2>&1; then command -v uv; \
@@ -49,6 +49,10 @@ setup:
 	cd apps/worker && $(UV) venv && $(UV) pip install -r requirements-dev.lock
 
 dev:
+	@if [ -z "$(DOCKER)" ]; then \
+		echo "docker is required for local dev. Install Docker Desktop for Mac (https://www.docker.com/products/docker-desktop/) and ensure the 'docker' CLI is on PATH." >&2; \
+		exit 1; \
+	fi
 	@$(DOCKER_RUN) image inspect postgres:16-alpine >/dev/null 2>&1 || $(DOCKER_RUN) pull postgres:16-alpine
 	@$(DOCKER_RUN) image inspect redis:7-alpine >/dev/null 2>&1 || $(DOCKER_RUN) pull redis:7-alpine
 	@$(DOCKER_RUN) image inspect python:3.12-slim >/dev/null 2>&1 || $(DOCKER_RUN) pull python:3.12-slim

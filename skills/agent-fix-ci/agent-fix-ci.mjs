@@ -7,6 +7,10 @@ import {
 import { runFixLoop } from './scripts/fix-loop.mjs';
 import { classifyFailure } from './scripts/failure-parser.mjs';
 import { buildCodexCapsule } from './scripts/codex-capsule.mjs';
+import {
+  finalizeCodexRun,
+  prepareCodexRun,
+} from './scripts/codex-guardrails.mjs';
 
 const args = process.argv.slice(2);
 const codexRequested = args.includes('--codex') || args.includes('--ai');
@@ -40,12 +44,40 @@ checkSteps.forEach((step, index) => {
   );
 });
 
-const summary = runFixLoop({
-  steps: checkSteps,
-  repoRoot,
-  classifyFailure,
-  mode,
-});
+let codexState = null;
+let summary = null;
+
+if (codexRequested) {
+  const prepared = prepareCodexRun(repoRoot);
+  codexState = prepared.state ?? null;
+  if (prepared.stop) {
+    summary = {
+      checks: [],
+      fixed: [],
+      stopped: {
+        stepName: 'Guardrail',
+        stepCommand: 'N/A',
+        stepWorkingDirectory: '.',
+        output: prepared.stop.output ?? '',
+        reason: prepared.stop.reason,
+      },
+      mode,
+    };
+  }
+}
+
+if (!summary) {
+  summary = runFixLoop({
+    steps: checkSteps,
+    repoRoot,
+    classifyFailure,
+    mode,
+  });
+}
+
+if (codexRequested) {
+  finalizeCodexRun(repoRoot, codexState, summary);
+}
 
 console.log('\nSummary:');
 summary.checks.forEach((check) => {
