@@ -1,11 +1,11 @@
 import path from 'node:path';
-import { findRepoRoot } from '../../scripts/agent-utils/repo-root.mjs';
+import { findRepoRoot } from '../../scripts/agent-utils/common/repo-root.mjs';
 import {
   loadCiWorkflowSteps,
   selectCiCheckSteps,
-} from '../../scripts/agent-utils/ci-workflow.mjs';
-import { runFixLoop } from '../../scripts/agent-utils/fix-loop.mjs';
-import { classifyFailure } from '../../scripts/agent-utils/failure-parser.mjs';
+} from '../../scripts/agent-utils/fix-ci/ci-workflow.mjs';
+import { runFixLoop } from '../../scripts/agent-utils/fix-ci/fix-loop.mjs';
+import { classifyFailure } from '../../scripts/agent-utils/fix-ci/failure-parser.mjs';
 
 const repoRoot = findRepoRoot(process.cwd());
 
