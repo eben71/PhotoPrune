@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 
 const MAX_OUTPUT_CHARS = 2 * 1024 * 1024;
+const MAX_FIX_ATTEMPTS = 3;
 
 function capOutput(output) {
   if (output.length <= MAX_OUTPUT_CHARS) {
@@ -48,81 +49,80 @@ export function runFixLoop({ steps, repoRoot, classifyFailure, mode }) {
     const workingDirectory = step.workingDirectory
       ? path.resolve(repoRoot, step.workingDirectory)
       : repoRoot;
+    let fixAttempts = 0;
+    let attemptLabel = 0;
 
-    process.stdout.write(
-      `\n==> Running: ${step.name}\n` +
-        `Command: ${step.run}\n` +
-        `Working directory: ${workingDirectory}\n`
-    );
+    while (true) {
+      const label = attemptLabel === 0 ? step.name : `${step.name} (re-run ${attemptLabel})`;
+      process.stdout.write(
+        `\n==> Running: ${label}\n` +
+          `Command: ${step.run}\n` +
+          `Working directory: ${workingDirectory}\n`
+      );
 
-    const result = runCommand(step.run, workingDirectory);
-    const stepOutput = result.output;
-    summary.checks.push({
-      name: step.name,
-      command: step.run,
-      workingDirectory: step.workingDirectory ?? '.',
-      status: result.status === 0 ? 'passed' : 'failed',
-    });
+      const result = runCommand(step.run, workingDirectory);
+      const stepOutput = result.output;
+      summary.checks.push({
+        name: label,
+        command: step.run,
+        workingDirectory: step.workingDirectory ?? '.',
+        status: result.status === 0 ? 'passed' : 'failed',
+      });
 
-    if (result.status === 0) {
-      continue;
-    }
+      if (result.status === 0) {
+        break;
+      }
 
-    const failure = classifyFailure(step, stepOutput);
+      const failure = classifyFailure(step, stepOutput);
 
-    if (!failure.fixable) {
-      summary.stopped = {
-        stepName: step.name,
-        stepCommand: step.run,
-        stepWorkingDirectory: step.workingDirectory ?? '.',
-        output: stepOutput,
-        reason: failure.reason,
-      };
-      return summary;
-    }
+      if (!failure.fixable) {
+        summary.stopped = {
+          stepName: step.name,
+          stepCommand: step.run,
+          stepWorkingDirectory: step.workingDirectory ?? '.',
+          output: stepOutput,
+          reason: failure.reason,
+        };
+        return summary;
+      }
 
-    process.stdout.write(
-      `\nAttempting auto-fix: ${failure.fixCommand}\n` +
-        `Reason: ${failure.reason}\n`
-    );
+      fixAttempts += 1;
+      if (fixAttempts > MAX_FIX_ATTEMPTS) {
+        summary.stopped = {
+          stepName: step.name,
+          stepCommand: step.run,
+          stepWorkingDirectory: step.workingDirectory ?? '.',
+          output: stepOutput,
+          reason: `Guardrail triggered: exceeded ${MAX_FIX_ATTEMPTS} auto-fix attempts for ${step.name}.`,
+        };
+        return summary;
+      }
 
-    const fixResult = runCommand(failure.fixCommand, repoRoot);
-    summary.fixed.push({
-      step: step.name,
-      fixCommand: failure.fixCommand,
-      summary: failure.fixSummary ?? 'Applied auto-fix.',
-      status: fixResult.status === 0 ? 'applied' : 'failed',
-    });
+      process.stdout.write(
+        `\nAttempting auto-fix (${fixAttempts}/${MAX_FIX_ATTEMPTS}): ${failure.fixCommand}\n` +
+          `Reason: ${failure.reason}\n`
+      );
 
-    if (fixResult.status !== 0) {
-      summary.stopped = {
-        stepName: step.name,
-        stepCommand: step.run,
-        stepWorkingDirectory: step.workingDirectory ?? '.',
-        output: fixResult.output,
-        reason: 'Auto-fix command failed.',
-      };
-      return summary;
-    }
+      const fixResult = runCommand(failure.fixCommand, repoRoot);
+      summary.fixed.push({
+        step: step.name,
+        fixCommand: failure.fixCommand,
+        summary: failure.fixSummary ?? 'Applied auto-fix.',
+        status: fixResult.status === 0 ? 'applied' : 'failed',
+      });
 
-    process.stdout.write(`\nRe-running: ${step.name}\n`);
-    const rerunResult = runCommand(step.run, workingDirectory);
-    summary.checks.push({
-      name: `${step.name} (re-run)`,
-      command: step.run,
-      workingDirectory: step.workingDirectory ?? '.',
-      status: rerunResult.status === 0 ? 'passed' : 'failed',
-    });
+      if (fixResult.status !== 0) {
+        summary.stopped = {
+          stepName: step.name,
+          stepCommand: step.run,
+          stepWorkingDirectory: step.workingDirectory ?? '.',
+          output: fixResult.output,
+          reason: 'Auto-fix command failed.',
+        };
+        return summary;
+      }
 
-    if (rerunResult.status !== 0) {
-      summary.stopped = {
-        stepName: step.name,
-        stepCommand: step.run,
-        stepWorkingDirectory: step.workingDirectory ?? '.',
-        output: rerunResult.output,
-        reason: 'Check still failing after auto-fix.',
-      };
-      return summary;
+      attemptLabel += 1;
     }
   }
 
