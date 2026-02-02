@@ -129,7 +129,7 @@ For local CI parity checks with safe auto-fixes, use the PhotoPrune agent skill:
 node skills/agent-fix-ci/agent-fix-ci.mjs
 ```
 
-This reads `.github/workflows/ci.yml` to stay aligned with CI and will stop with a clear reason if manual intervention is required.
+This reads `.github/workflows/ci.yml` to stay aligned with CI. It will auto-apply safe fixes (formatting) and re-run a step until it passes or a guardrail/manual failure stops the loop.
 
 To emit a Codex repair capsule for non-fixable failures:
 

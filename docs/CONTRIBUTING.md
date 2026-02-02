@@ -45,7 +45,7 @@ PhotoPrune ships a local-only helper skill for keeping CI checks green.
 
 ### `agent fix:ci`
 - Runs the same checks defined in `.github/workflows/ci.yml`.
-- Attempts safe auto-fixes (currently formatting via `make format` only).
+- Attempts safe auto-fixes (currently formatting via `make format` only), re-running a step until it passes or a guardrail/manual failure is hit.
 - Stops on any non-fixable failure and explains why.
 
 Run it from the repo root:
