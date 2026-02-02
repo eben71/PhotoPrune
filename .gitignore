@@ -23,6 +23,7 @@ __pycache__
 .env.production
 .env.test
 experiments/phase1/.tokens/
+tests/fixtures/results/*
 .codex/
 
 # IDE
@@ -38,3 +39,4 @@ build
 
 # Misc
 .DS_Store
+

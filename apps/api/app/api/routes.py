@@ -48,4 +48,10 @@ def scan(request: ScanRequest) -> ScanResult:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
         logger.warning(message)
 
-    return run_scan(items, settings)
+    try:
+        return run_scan(items, settings)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc

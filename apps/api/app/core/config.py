@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     scan_max_photos: int = 250
     scan_consent_threshold: int = 200
     scan_allowed_download_hosts: list[str] = []
+    scan_download_host_overrides: dict[str, str] = {}
     scan_dhash_threshold_very: int = 5
     scan_dhash_threshold_possible: int = 10
     scan_phash_threshold_very: int = 6
@@ -56,6 +57,39 @@ class Settings(BaseSettings):
             return [host.strip() for host in value.split(",") if host.strip()]
         return list(value)
 
+    @field_validator("scan_download_host_overrides", mode="before")
+    @classmethod
+    def parse_download_host_overrides(cls, value: Any) -> dict[str, str]:
+        if isinstance(value, dict):
+            return {
+                str(key).strip(): str(val).strip() for key, val in value.items() if str(key).strip()
+            }
+        if isinstance(value, str):
+            stripped_value = value.strip()
+            if not stripped_value:
+                return {}
+            try:
+                parsed = json.loads(stripped_value)
+            except JSONDecodeError:
+                parsed = None
+            if isinstance(parsed, dict):
+                return {
+                    str(key).strip(): str(val).strip()
+                    for key, val in parsed.items()
+                    if str(key).strip()
+                }
+            overrides: dict[str, str] = {}
+            for pair in stripped_value.split(","):
+                if ":" not in pair:
+                    continue
+                src, dest = pair.split(":", 1)
+                src = src.strip()
+                dest = dest.strip()
+                if src and dest:
+                    overrides[src] = dest
+            return overrides
+        return {}
+
     @property
     def enforce_scan_limits(self) -> bool:
         return self.environment.lower() == "prod"
@@ -71,9 +105,11 @@ class Settings(BaseSettings):
     ) -> tuple[SettingsSourceCallable, ...]:
         class CorsEnvSettingsSource(EnvSettingsSource):
             def decode_complex_value(self, field_name: str, field: Any, value: Any) -> Any:
-                if field_name in {"cors_origins", "scan_allowed_download_hosts"} and isinstance(
-                    value, str
-                ):
+                if field_name in {
+                    "cors_origins",
+                    "scan_allowed_download_hosts",
+                    "scan_download_host_overrides",
+                } and isinstance(value, str):
                     return value
                 return super().decode_complex_value(field_name, field, value)
 
