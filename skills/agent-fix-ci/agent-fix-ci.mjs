@@ -90,6 +90,9 @@ if (summary.stopped) {
   console.log(
     `\nStopped: manual intervention required (${summary.stopped.reason})`
   );
+  console.log(
+    'Tip: re-run with --codex to emit a repair capsule for AI-assisted fixing.'
+  );
   process.exit(1);
 }
 
