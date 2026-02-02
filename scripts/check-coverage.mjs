@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import { readFileSync, existsSync } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-const root = path.resolve(new URL('..', import.meta.url).pathname);
+const root = fileURLToPath(new URL('..', import.meta.url));
 
 const webCoveragePath = path.join(root, 'apps', 'web', 'coverage', 'coverage-summary.json');
 const apiCoveragePath = path.join(root, 'apps', 'api', 'coverage.xml');

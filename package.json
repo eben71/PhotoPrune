@@ -11,13 +11,14 @@
     "typecheck": "turbo typecheck",
     "test": "turbo test",
     "build": "turbo build",
+    "agent:fix:ci": "node skills/agent-fix-ci/agent-fix-ci.mjs",
     "check:docs": "node scripts/check-docs.js",
     "prepare": "node scripts/prepare-lefthook.cjs",
     "report:phase1b": "node tools/phase1b-report/cli.js"
   },
   "devDependencies": {
     "lefthook": "^2.0.16",
-    "turbo": "^2.7.6",
+    "turbo": "^2.8.1",
     "typescript": "^5.9.3"
   },
   "dependencies": {
