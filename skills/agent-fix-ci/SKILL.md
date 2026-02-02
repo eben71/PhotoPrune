@@ -28,8 +28,8 @@ description: "Run PhotoPrune CI-equivalent checks locally, apply safe auto-fixes
 
 ## Use the bundled scripts
 - Run `node skills/agent-fix-ci/agent-fix-ci.mjs` to execute the fix loop.
-- Reuse `scripts/agent-utils/fix-ci/*` for workflow parsing and loop orchestration.
-- Reuse `scripts/agent-utils/common/*` for shared helpers.
+- Reuse `skills/agent-fix-ci/scripts/*` for workflow parsing and loop orchestration.
+- Reuse `skills/agent-utils/common/*` for shared helpers.
 
 ## Expected output
 - Print each step name, command, and working directory.
