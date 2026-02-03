@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Any
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -22,9 +22,9 @@ class PhotoItemPayload(BaseModel):
 class ScanRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
 
-    photo_items: Annotated[list[PhotoItemPayload] | None, Field(alias="photoItems")] = None
-    picker_payload: Annotated[dict[str, Any] | None, Field(alias="pickerPayload")] = None
-    consent_confirmed: Annotated[bool, Field(alias="consentConfirmed")] = False
+    photo_items: list[PhotoItemPayload] | None = Field(default=None, alias="photoItems")
+    picker_payload: dict[str, Any] | None = Field(default=None, alias="pickerPayload")
+    consent_confirmed: bool = Field(default=False, alias="consentConfirmed")
 
     @model_validator(mode="after")
     def validate_payload(self) -> "ScanRequest":
@@ -65,6 +65,7 @@ class GroupResult(BaseModel):
 class StageMetrics(BaseModel):
     timings_ms: dict[str, float] = Field(alias="timingsMs")
     counts: dict[str, int]
+    debug: dict[str, Any] | None = None
 
 
 class CostEstimate(BaseModel):

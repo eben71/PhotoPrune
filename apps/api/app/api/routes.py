@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Header, HTTPException, status
 
 from app.core.config import get_settings
 from app.engine.normalizer import normalize_photo_items, normalize_picker_payload
@@ -22,7 +22,10 @@ async def health() -> dict[str, str]:
 
 
 @router.post("/api/scan", response_model=ScanResult)
-def scan(request: ScanRequest) -> ScanResult:
+def scan(
+    request: ScanRequest,
+    x_scan_explain: str | None = Header(default=None, alias="X-Scan-Explain"),
+) -> ScanResult:
     settings = get_settings()
     if request.photo_items:
         items = normalize_photo_items(request.photo_items)
@@ -48,10 +51,17 @@ def scan(request: ScanRequest) -> ScanResult:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
         logger.warning(message)
 
+    explain_requested = _parse_explain_header(x_scan_explain)
     try:
-        return run_scan(items, settings)
+        return run_scan(items, settings, explain=explain_requested or settings.scan_explain)
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(exc),
         ) from exc
+
+
+def _parse_explain_header(value: str | None) -> bool:
+    if value is None:
+        return False
+    return value.strip().lower() in {"1", "true", "yes", "on"}

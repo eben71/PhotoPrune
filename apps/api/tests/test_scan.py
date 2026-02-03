@@ -57,6 +57,40 @@ def test_run_scan_tracks_counts_and_costs(monkeypatch):
     assert costs.total_cost == round(expected_total, 6)
 
 
+def test_small_input_fallback_runs_hashing_and_comparisons(monkeypatch):
+    items = [
+        _photo_item("one", "https://photos.google.com/one"),
+        _photo_item("two", "https://photos.google.com/two"),
+        _photo_item("three", "https://photos.google.com/three"),
+    ]
+    downloader = DownloadManager(fetcher=lambda item: item.id.encode())
+    observed: dict[str, object] = {}
+
+    def fake_candidate_sets(_items):
+        return []
+
+    def fake_near_duplicates(candidate_sets, _hashes, _thresholds):
+        observed["candidate_sets"] = candidate_sets
+        return ([], [], 1)
+
+    def fake_perceptual_hashes(self: HashingService, _item: PhotoItem) -> PerceptualHashes:
+        self.perceptual_hash_count += 1
+        return PerceptualHashes(dhash=0, phash=0)
+
+    monkeypatch.setattr(scan, "build_candidate_sets", fake_candidate_sets)
+    monkeypatch.setattr(scan, "group_near_duplicates", fake_near_duplicates)
+    monkeypatch.setattr(HashingService, "get_perceptual_hashes", fake_perceptual_hashes)
+
+    result = scan.run_scan(items, Settings(), download_manager=downloader)
+
+    counts = result.stage_metrics.counts
+    assert counts["fallback_triggered"] == 1
+    assert counts["fallback_candidate_items"] == 3
+    assert counts["perceptual_hashes"] == 3
+    assert counts["comparisons_executed"] == 1
+    assert observed["candidate_sets"]
+
+
 def _photo_item(item_id: str, download_url: str | None) -> PhotoItem:
     return PhotoItem(
         id=item_id,
