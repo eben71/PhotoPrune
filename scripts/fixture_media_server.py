@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import io
 import re
+import zlib
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 try:
@@ -13,6 +14,7 @@ except ImportError as exc:  # pragma: no cover - runtime guard
 
 
 MEDIA_RE = re.compile(r"^/media/(?P<fixture>[a-z0-9_]+)\.picker-(?P<item_id>\d+)$")
+MEDIA_TOKEN_RE = re.compile(r"^/media/(?P<token>[^/]+)$")
 PAIR_SEEDS = {
     "exact_dupes": {
         1: 1,
@@ -50,13 +52,18 @@ class FixtureHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler signature
         match = MEDIA_RE.match(self.path)
-        if not match:
-            self.send_error(404)
-            return
-        fixture = match.group("fixture")
-        item_id = int(match.group("item_id"))
-        fixture_pairs = PAIR_SEEDS.get(fixture, {})
-        seed = fixture_pairs.get(item_id, item_id)
+        if match:
+            fixture = match.group("fixture")
+            item_id = int(match.group("item_id"))
+            fixture_pairs = PAIR_SEEDS.get(fixture, {})
+            seed = fixture_pairs.get(item_id, item_id)
+        else:
+            token_match = MEDIA_TOKEN_RE.match(self.path)
+            if not token_match:
+                self.send_error(404)
+                return
+            token = token_match.group("token")
+            seed = (zlib.crc32(token.encode("utf-8")) % 500) + 1
         payload = self._cache.get(seed)
         if payload is None:
             payload = _generate_png_bytes(seed)

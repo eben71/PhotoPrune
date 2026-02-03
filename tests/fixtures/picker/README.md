@@ -7,10 +7,6 @@ make fixture-server
 Ensure your .env includes:
 
 SCAN_DOWNLOAD_HOST_OVERRIDES=example.test:http://127.0.0.1:8001
-SCAN_FIXTURE_BYTES_DIR=tests/fixtures/bytes
-SCAN_FIXTURE_BYTES_STRICT=1
-
-Store local fixture images as {photo_id}.jpg/.jpeg/.png in SCAN_FIXTURE_BYTES_DIR.
 Do not commit live downloadUrl values.
 
 Then run the following command in a BASH terminal for each file in /tests/fixtures/picker

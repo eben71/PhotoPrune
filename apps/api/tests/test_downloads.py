@@ -1,5 +1,4 @@
 from datetime import UTC, datetime
-from pathlib import Path
 
 import pytest
 
@@ -129,45 +128,6 @@ def test_download_manager_uses_default_fetcher_and_caches(monkeypatch: pytest.Mo
     assert manager.get_bytes(item) == b"payload"
     assert manager.download_count == 1
     assert calls == [("ok", 12.5, ["photos.google.com"], "photo-1", True)]
-
-
-def test_download_manager_fixture_bytes_loads_from_disk(tmp_path: Path):
-    payload = b"fixture-bytes"
-    (tmp_path / "photo-1.jpg").write_bytes(payload)
-    calls: list[str] = []
-
-    def fake_fetcher(_: PhotoItem) -> bytes:
-        calls.append("network")
-        return b"network"
-
-    manager = downloads.DownloadManager(
-        fetcher=fake_fetcher,
-        fixture_bytes_dir=str(tmp_path),
-    )
-    item = _photo_item("photo-1", "https://photos.google.com/photo-1")
-
-    assert manager.get_bytes(item) == payload
-    assert calls == []
-    assert manager.download_count == 1
-
-
-def test_download_manager_fixture_bytes_strict_missing(tmp_path: Path):
-    calls: list[str] = []
-
-    def fake_fetcher(_: PhotoItem) -> bytes:
-        calls.append("network")
-        return b"network"
-
-    manager = downloads.DownloadManager(
-        fetcher=fake_fetcher,
-        fixture_bytes_dir=str(tmp_path),
-        fixture_bytes_strict=True,
-    )
-    item = _photo_item("photo-2", "https://photos.google.com/photo-2")
-
-    with pytest.raises(ValueError, match="Fixture bytes missing"):
-        manager.get_bytes(item)
-    assert calls == []
 
 
 def _photo_item(item_id: str, download_url: str | None) -> PhotoItem:

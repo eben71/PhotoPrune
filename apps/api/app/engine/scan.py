@@ -31,15 +31,10 @@ def run_scan(
         settings.scan_download_host_overrides if settings.environment.lower() != "prod" else {}
     )
     allow_override_exceptions = settings.environment.lower() != "prod" and bool(host_overrides)
-    fixture_bytes_dir = (
-        settings.scan_fixture_bytes_dir if settings.environment.lower() != "prod" else ""
-    )
     download_manager = download_manager or DownloadManager(
         allowed_hosts=settings.scan_allowed_download_hosts,
         host_overrides=host_overrides,
         allow_override_exceptions=allow_override_exceptions,
-        fixture_bytes_dir=fixture_bytes_dir,
-        fixture_bytes_strict=settings.scan_fixture_bytes_strict,
     )
     hashing_service = HashingService(download_manager)
     timings: dict[str, float] = {}
