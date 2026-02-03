@@ -6,13 +6,18 @@ from urllib.parse import quote
 
 
 class _DeepLinkItem(Protocol):
-    id: str
+    @property
+    def id(self) -> str: ...
 
 
 @dataclass(frozen=True)
 class _DeepLinkParts:
-    id: str
+    _id: str
     deep_link: str | None
+
+    @property
+    def id(self) -> str:
+        return self._id
 
 
 def build_google_photos_deep_link(item: _DeepLinkItem) -> str | None:
@@ -30,7 +35,7 @@ def build_google_photos_deep_link_from_parts(
     item_id: str,
     deep_link: str | None,
 ) -> str | None:
-    return build_google_photos_deep_link(_DeepLinkParts(id=item_id, deep_link=deep_link))
+    return build_google_photos_deep_link(_DeepLinkParts(_id=item_id, deep_link=deep_link))
 
 
 def _extract_deep_link(item: _DeepLinkItem) -> str | None:
