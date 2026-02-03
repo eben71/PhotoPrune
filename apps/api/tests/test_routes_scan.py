@@ -31,7 +31,6 @@ def test_scan_rejects_disallowed_download_host_returns_422(monkeypatch):
         detail = response.json()["detail"]
         assert "not allowed" in detail
         assert "downloadUrl host" in detail
-        assert "SCAN_FIXTURE_BYTES_DIR" in detail
     finally:
         config.get_settings.cache_clear()
 
@@ -152,34 +151,7 @@ def test_scan_rejects_host_docker_internal_with_guidance(monkeypatch):
         assert response.status_code == 422
         detail = response.json()["detail"]
         assert "host.docker.internal" in detail
-        assert "SCAN_FIXTURE_BYTES_DIR" in detail
         assert "https://host.docker.internal" not in detail
-    finally:
-        config.get_settings.cache_clear()
-
-
-def test_scan_fixture_bytes_strict_missing_returns_422(monkeypatch, tmp_path):
-    monkeypatch.setenv("SCAN_FIXTURE_BYTES_DIR", str(tmp_path))
-    monkeypatch.setenv("SCAN_FIXTURE_BYTES_STRICT", "1")
-    config.get_settings.cache_clear()
-    try:
-        client = TestClient(create_app())
-        payload = {
-            "photoItems": [
-                {
-                    "id": "photo-1",
-                    "createTime": "2024-01-01T00:00:00Z",
-                    "downloadUrl": "https://photos.google.com/file.jpg",
-                }
-            ]
-        }
-
-        response = client.post("/api/scan", json=payload)
-
-        assert response.status_code == 422
-        detail = response.json()["detail"]
-        assert "Fixture bytes missing" in detail
-        assert "SCAN_FIXTURE_BYTES_STRICT" in detail
     finally:
         config.get_settings.cache_clear()
 
@@ -217,7 +189,6 @@ def test_scan_network_failure_returns_422_without_url(monkeypatch):
         detail = response.json()["detail"]
         assert "photos.google.com" in detail
         assert "status 404" in detail
-        assert "SCAN_FIXTURE_BYTES_DIR" in detail
         assert "https://photos.google.com/file.jpg" not in detail
     finally:
         config.get_settings.cache_clear()

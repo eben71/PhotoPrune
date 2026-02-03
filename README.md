@@ -225,21 +225,9 @@ Recommended `.gitignore` additions for local-only fixtures:
 
 ```
 tests/fixtures/picker/*
-tests/fixtures/bytes/*
 tests/fixtures/requests/*
 tests/fixtures/results/*
 ```
-
-For repeatable local scans without live URLs, enable fixture bytes mode:
-
-```
-SCAN_FIXTURE_BYTES_DIR=tests/fixtures/bytes
-SCAN_FIXTURE_BYTES_STRICT=1
-```
-
-Place files as `{photo_id}.jpg` (or `.jpeg`/`.png`) under `SCAN_FIXTURE_BYTES_DIR`. When
-`SCAN_FIXTURE_BYTES_STRICT=1`, missing files return HTTP 422 instead of falling back to
-network fetch.
 
 ## Out of Scope (Phase 2)
 
