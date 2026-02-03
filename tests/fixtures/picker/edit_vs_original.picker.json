@@ -1,158 +1,155 @@
 {
-  "pickerPayload": {
-    "generatedAt": "2026-01-23T03:32:06.123Z",
-    "session": {
-      "id": "3509a313-0ad1-4d1d-9056-1217d19680a9",
-      "expireTime": "2026-01-30T03:30:52.766447Z",
-      "mediaItemsSet": true
-    },
-    "listing": {
-      "fetchedCount": 3,
-      "fetchLimit": 50,
-      "pages": 1,
-      "hasMore": false
-    },
-    "mediaItems": [
-      {
-        "id": "AHTKS5U3Lox5HYfZFanjH0ExqyEy61Qn1lV7Z-HBwpakEGzHoIKThhXM-TpNWW8heEu6I8IQNZFMsWaJ5314oJuPzhzOXy2Lrg",
-        "createTime": "2025-12-23T06:18:47.745Z",
-        "type": "PHOTO",
-        "mediaFile": {
-          "baseUrl": "https://example.test/media/edit_vs_original.picker-1",
-          "mimeType": "image/jpeg",
-          "mediaFileMetadata": {
-            "width": 3894,
-            "height": 2480,
-            "cameraMake": "Google",
-            "cameraModel": "Pixel 7 Pro",
-            "photoMetadata": {
-              "focalLength": 6.81,
-              "apertureFNumber": 1.85,
-              "isoEquivalent": 56,
-              "exposureTime": "0.000273999s"
-            }
-          },
-          "filename": "PXL_20251223_061847745.PORTRAIT~2.jpg"
-        }
-      },
-      {
-        "id": "AHTKS5WFE6cBCJ_ZdqR7OBlxJLJK__wLt68_mDHgQq8Y5qY3WUgmGJKZ4-m-OYXyLT5I7Fn00Zc-Vrn2yFXNnVFWOzrdhdBdeA",
-        "createTime": "2025-12-23T06:18:24.816Z",
-        "type": "PHOTO",
-        "mediaFile": {
-          "baseUrl": "https://example.test/media/edit_vs_original.picker-2",
-          "mimeType": "image/jpeg",
-          "mediaFileMetadata": {
-            "width": 3983,
-            "height": 2253,
-            "cameraMake": "Google",
-            "cameraModel": "Pixel 7 Pro",
-            "photoMetadata": {
-              "focalLength": 6.81,
-              "apertureFNumber": 1.85,
-              "isoEquivalent": 54,
-              "exposureTime": "0.000239s"
-            }
-          },
-          "filename": "PXL_20251223_061824816~2.jpg"
-        }
-      },
-      {
-        "id": "AHTKS5WjKyGIIb7u6exZJAkGXfxpgLX5oNnHhzDfdJPu_5f0g6ffLf42k7EVV1bx2OeKMfs6bLEP7D_KUJUTzB8QWSdwJyIYUA",
-        "createTime": "2025-12-23T06:18:19.620Z",
-        "type": "PHOTO",
-        "mediaFile": {
-          "baseUrl": "https://example.test/media/edit_vs_original.picker-3",
-          "mimeType": "image/jpeg",
-          "mediaFileMetadata": {
-            "width": 4080,
-            "height": 3072,
-            "cameraMake": "Google",
-            "cameraModel": "Pixel 7 Pro",
-            "photoMetadata": {
-              "focalLength": 6.81,
-              "apertureFNumber": 1.85,
-              "isoEquivalent": 51,
-              "exposureTime": "0.000211999s"
-            }
-          },
-          "filename": "PXL_20251223_061819620.PORTRAIT~2.jpg"
-        }
-      }
-    ],
-    "rawPages": [
-      {
-        "mediaItems": [
-          {
-            "id": "AHTKS5U3Lox5HYfZFanjH0ExqyEy61Qn1lV7Z-HBwpakEGzHoIKThhXM-TpNWW8heEu6I8IQNZFMsWaJ5314oJuPzhzOXy2Lrg",
-            "createTime": "2025-12-23T06:18:47.745Z",
-            "type": "PHOTO",
-            "mediaFile": {
-              "baseUrl": "https://example.test/media/edit_vs_original.picker-1",
-              "mimeType": "image/jpeg",
-              "mediaFileMetadata": {
-                "width": 3894,
-                "height": 2480,
-                "cameraMake": "Google",
-                "cameraModel": "Pixel 7 Pro",
-                "photoMetadata": {
-                  "focalLength": 6.81,
-                  "apertureFNumber": 1.85,
-                  "isoEquivalent": 56,
-                  "exposureTime": "0.000273999s"
-                }
-              },
-              "filename": "PXL_20251223_061847745.PORTRAIT~2.jpg"
-            }
-          },
-          {
-            "id": "AHTKS5WFE6cBCJ_ZdqR7OBlxJLJK__wLt68_mDHgQq8Y5qY3WUgmGJKZ4-m-OYXyLT5I7Fn00Zc-Vrn2yFXNnVFWOzrdhdBdeA",
-            "createTime": "2025-12-23T06:18:24.816Z",
-            "type": "PHOTO",
-            "mediaFile": {
-              "baseUrl": "https://example.test/media/edit_vs_original.picker-2",
-              "mimeType": "image/jpeg",
-              "mediaFileMetadata": {
-                "width": 3983,
-                "height": 2253,
-                "cameraMake": "Google",
-                "cameraModel": "Pixel 7 Pro",
-                "photoMetadata": {
-                  "focalLength": 6.81,
-                  "apertureFNumber": 1.85,
-                  "isoEquivalent": 54,
-                  "exposureTime": "0.000239s"
-                }
-              },
-              "filename": "PXL_20251223_061824816~2.jpg"
-            }
-          },
-          {
-            "id": "AHTKS5WjKyGIIb7u6exZJAkGXfxpgLX5oNnHhzDfdJPu_5f0g6ffLf42k7EVV1bx2OeKMfs6bLEP7D_KUJUTzB8QWSdwJyIYUA",
-            "createTime": "2025-12-23T06:18:19.620Z",
-            "type": "PHOTO",
-            "mediaFile": {
-              "baseUrl": "https://example.test/media/edit_vs_original.picker-3",
-              "mimeType": "image/jpeg",
-              "mediaFileMetadata": {
-                "width": 4080,
-                "height": 3072,
-                "cameraMake": "Google",
-                "cameraModel": "Pixel 7 Pro",
-                "photoMetadata": {
-                  "focalLength": 6.81,
-                  "apertureFNumber": 1.85,
-                  "isoEquivalent": 51,
-                  "exposureTime": "0.000211999s"
-                }
-              },
-              "filename": "PXL_20251223_061819620.PORTRAIT~2.jpg"
-            }
-          }
-        ],
-        "nextPageToken": null
-      }
-    ]
+  "generatedAt": "2026-02-03T03:44:04.499Z",
+  "session": {
+    "id": "41e6835e-8357-40ed-9967-d0ba3b72b778",
+    "expireTime": "2026-02-10T03:43:32.367311Z",
+    "mediaItemsSet": true
   },
-  "consentConfirmed": true
+  "listing": {
+    "fetchedCount": 3,
+    "fetchLimit": 50,
+    "pages": 1,
+    "hasMore": false
+  },
+  "mediaItems": [
+    {
+      "id": "AHTKS5WJfMyykS9vzecowV9fTrJ2dMldj8fcmmd_97NMcyGex_e89p_uouBewmN9jVK9-qJ6gziSSbctgjUwhKGKkziwO2gPcg",
+      "createTime": "2026-02-01T02:35:38.467Z",
+      "type": "PHOTO",
+      "mediaFile": {
+        "baseUrl": "https://example.test/media/AMYsHD0QZpjbV_A6pedTIlE7x3fQToZ80ETJ288Jk6zVFijiB2GeHSeveditEUS2kUK8EZ-PGD0Z2Jc",
+        "mimeType": "image/jpeg",
+        "mediaFileMetadata": {
+          "width": 3072,
+          "height": 4080,
+          "cameraMake": "Google",
+          "cameraModel": "Pixel 7 Pro",
+          "photoMetadata": {
+            "focalLength": 1.95,
+            "apertureFNumber": 2.2,
+            "isoEquivalent": 495,
+            "exposureTime": "0.036729s"
+          }
+        },
+        "filename": "PXL_20260201_023538467.MP.jpg"
+      }
+    },
+    {
+      "id": "AHTKS5VkYgUC6rP8hitsftXvjEul4iFrOX2VbmlhAy0XZ94bkGPaZ4bNz_3d-u-T0kWXJwrR6OU3Cc5Rjhzg1ugXE7edrG0LGA",
+      "createTime": "2026-02-01T02:35:38.467Z",
+      "type": "PHOTO",
+      "mediaFile": {
+        "baseUrl": "https://example.test/media/AMYsHD0S2IkloyDYKsccjCLTh1Sk9RjzqWzg8u98pHfp-1TFJLNVcp8jwo6kRRRZi7guJF8H_wQcIWo",
+        "mimeType": "image/jpeg",
+        "mediaFileMetadata": {
+          "width": 1911,
+          "height": 3761,
+          "cameraMake": "Google",
+          "cameraModel": "Pixel 7 Pro",
+          "photoMetadata": {
+            "focalLength": 1.95,
+            "apertureFNumber": 2.2,
+            "isoEquivalent": 495,
+            "exposureTime": "0.036729s"
+          }
+        },
+        "filename": "PXL_20260201_023538467.MP-EDIT.jpg"
+      }
+    },
+    {
+      "id": "AHTKS5Ue2FLU5nqujVzNqqVuY5QO9uUaqWr31pxzIC5bCmmocU9cCyyzvZ1vHAI_phnZx7jNbKwAglwKAI6knMpgHVDqmpOL2w",
+      "createTime": "2026-02-01T02:35:38.467Z",
+      "type": "PHOTO",
+      "mediaFile": {
+        "baseUrl": "https://example.test/media/AMYsHD2QrpHEncJiSpENhgV3Qoo0kQexlkPPyQyj9qvjYpCSeyjJK1HaN2y_9vxaZ2ljJXjCsEWHuFY",
+        "mimeType": "image/jpeg",
+        "mediaFileMetadata": {
+          "width": 3072,
+          "height": 4080,
+          "cameraMake": "Google",
+          "cameraModel": "Pixel 7 Pro",
+          "photoMetadata": {
+            "focalLength": 1.95,
+            "apertureFNumber": 2.2,
+            "isoEquivalent": 495,
+            "exposureTime": "0.036729s"
+          }
+        },
+        "filename": "PXL_20260201_023538467_exported_1770087161338.jpg"
+      }
+    }
+  ],
+  "rawPages": [
+    {
+      "mediaItems": [
+        {
+          "id": "AHTKS5WJfMyykS9vzecowV9fTrJ2dMldj8fcmmd_97NMcyGex_e89p_uouBewmN9jVK9-qJ6gziSSbctgjUwhKGKkziwO2gPcg",
+          "createTime": "2026-02-01T02:35:38.467Z",
+          "type": "PHOTO",
+          "mediaFile": {
+            "baseUrl": "https://example.test/media/AMYsHD0QZpjbV_A6pedTIlE7x3fQToZ80ETJ288Jk6zVFijiB2GeHSeveditEUS2kUK8EZ-PGD0Z2Jc",
+            "mimeType": "image/jpeg",
+            "mediaFileMetadata": {
+              "width": 3072,
+              "height": 4080,
+              "cameraMake": "Google",
+              "cameraModel": "Pixel 7 Pro",
+              "photoMetadata": {
+                "focalLength": 1.95,
+                "apertureFNumber": 2.2,
+                "isoEquivalent": 495,
+                "exposureTime": "0.036729s"
+              }
+            },
+            "filename": "PXL_20260201_023538467.MP.jpg"
+          }
+        },
+        {
+          "id": "AHTKS5VkYgUC6rP8hitsftXvjEul4iFrOX2VbmlhAy0XZ94bkGPaZ4bNz_3d-u-T0kWXJwrR6OU3Cc5Rjhzg1ugXE7edrG0LGA",
+          "createTime": "2026-02-01T02:35:38.467Z",
+          "type": "PHOTO",
+          "mediaFile": {
+            "baseUrl": "https://example.test/media/AMYsHD0S2IkloyDYKsccjCLTh1Sk9RjzqWzg8u98pHfp-1TFJLNVcp8jwo6kRRRZi7guJF8H_wQcIWo",
+            "mimeType": "image/jpeg",
+            "mediaFileMetadata": {
+              "width": 1911,
+              "height": 3761,
+              "cameraMake": "Google",
+              "cameraModel": "Pixel 7 Pro",
+              "photoMetadata": {
+                "focalLength": 1.95,
+                "apertureFNumber": 2.2,
+                "isoEquivalent": 495,
+                "exposureTime": "0.036729s"
+              }
+            },
+            "filename": "PXL_20260201_023538467.MP-EDIT.jpg"
+          }
+        },
+        {
+          "id": "AHTKS5Ue2FLU5nqujVzNqqVuY5QO9uUaqWr31pxzIC5bCmmocU9cCyyzvZ1vHAI_phnZx7jNbKwAglwKAI6knMpgHVDqmpOL2w",
+          "createTime": "2026-02-01T02:35:38.467Z",
+          "type": "PHOTO",
+          "mediaFile": {
+            "baseUrl": "https://example.test/media/AMYsHD2QrpHEncJiSpENhgV3Qoo0kQexlkPPyQyj9qvjYpCSeyjJK1HaN2y_9vxaZ2ljJXjCsEWHuFY",
+            "mimeType": "image/jpeg",
+            "mediaFileMetadata": {
+              "width": 3072,
+              "height": 4080,
+              "cameraMake": "Google",
+              "cameraModel": "Pixel 7 Pro",
+              "photoMetadata": {
+                "focalLength": 1.95,
+                "apertureFNumber": 2.2,
+                "isoEquivalent": 495,
+                "exposureTime": "0.036729s"
+              }
+            },
+            "filename": "PXL_20260201_023538467_exported_1770087161338.jpg"
+          }
+        }
+      ],
+      "nextPageToken": null
+    }
+  ]
 }
