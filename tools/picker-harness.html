@@ -471,7 +471,7 @@
         }
 
         // Output is designed to be fixture-friendly.
-        return {
+        const pickerPayload = {
           generatedAt: new Date().toISOString(),
           session: {
             id: state.session.id,
@@ -489,6 +489,11 @@
           // Keeping raw pages makes it easier to create tests
           // that mirror API responses without storing a huge list.
           rawPages: pages,
+        };
+        const sanitizedPayload = obfuscatePayload(pickerPayload);
+        return {
+          pickerPayload: sanitizedPayload,
+          consentConfirmed: true,
         };
       }
 
@@ -571,6 +576,37 @@
 
       setStatus("idle");
       document.getElementById("origin").textContent = window.location.origin;
+
+      function obfuscatePayload(payload) {
+        const clone = JSON.parse(JSON.stringify(payload));
+        clone.mediaItems = (clone.mediaItems || []).map(obfuscateMediaItem);
+        clone.rawPages = (clone.rawPages || []).map((page) => ({
+          ...page,
+          mediaItems: (page.mediaItems || []).map(obfuscateMediaItem),
+        }));
+        return clone;
+      }
+
+      function obfuscateMediaItem(item) {
+        const updated = { ...item };
+        const itemId = item?.id || item?.mediaFile?.id || "redacted";
+        if (typeof updated.baseUrl === "string") {
+          updated.baseUrl = obfuscatedBaseUrl(itemId);
+        }
+        if (updated.mediaFile && typeof updated.mediaFile === "object") {
+          const mediaFile = { ...updated.mediaFile };
+          if (typeof mediaFile.baseUrl === "string") {
+            mediaFile.baseUrl = obfuscatedBaseUrl(itemId);
+          }
+          updated.mediaFile = mediaFile;
+        }
+        return updated;
+      }
+
+      function obfuscatedBaseUrl(itemId) {
+        const safeId = String(itemId || "redacted");
+        return `https://example.test/media/${encodeURIComponent(safeId)}`;
+      }
     </script>
   </body>
 </html>

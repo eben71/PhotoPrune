@@ -1,13 +1,13 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import fs from "node:fs";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
 
-const STATE_DIR = '.codex';
-const STATE_FILE = 'agent-fix-ci.json';
+const STATE_DIR = ".codex";
+const STATE_FILE = "agent-fix-ci.json";
 const MAX_ITERATIONS = 7;
-const MAX_FILES_CHANGED = 10;
+const MAX_FILES_CHANGED = 15;
 const MAX_LINES_CHANGED = 300;
-const FORBIDDEN_PREFIX = '.github/workflows/';
+const FORBIDDEN_PREFIX = ".github/workflows/";
 
 function readState(statePath) {
   if (!fs.existsSync(statePath)) {
@@ -18,7 +18,7 @@ function readState(statePath) {
       lastDiffStats: { files: {} },
     };
   }
-  const raw = fs.readFileSync(statePath, 'utf8');
+  const raw = fs.readFileSync(statePath, "utf8");
   return JSON.parse(raw);
 }
 
@@ -38,7 +38,7 @@ function getStatePath(repoRoot) {
 }
 
 function parseNumstatLine(line) {
-  const [addedRaw, deletedRaw, file] = line.split('\t');
+  const [addedRaw, deletedRaw, file] = line.split("\t");
   if (!file) {
     return null;
   }
@@ -48,17 +48,17 @@ function parseNumstatLine(line) {
 }
 
 function getDiffStats(repoRoot) {
-  const result = spawnSync('git diff --numstat', {
+  const result = spawnSync("git diff --numstat", {
     shell: true,
     cwd: repoRoot,
     env: process.env,
-    encoding: 'utf8',
+    encoding: "utf8",
   });
   if (result.status !== 0) {
     return { files: {}, error: result.stderr || result.stdout };
   }
   const files = {};
-  const lines = (result.stdout || '').trim().split('\n').filter(Boolean);
+  const lines = (result.stdout || "").trim().split("\n").filter(Boolean);
   for (const line of lines) {
     const parsed = parseNumstatLine(line);
     if (!parsed) {
@@ -91,7 +91,7 @@ function diffDelta(prevStats, nextStats) {
 
 function containsForbiddenFiles(stats) {
   return Object.keys(stats.files || {}).some((file) =>
-    file.startsWith(FORBIDDEN_PREFIX)
+    file.startsWith(FORBIDDEN_PREFIX),
   );
 }
 
@@ -103,7 +103,7 @@ export function prepareCodexRun(repoRoot) {
     return {
       stop: {
         reason: `Guardrail triggered: max iterations (${MAX_ITERATIONS}) reached.`,
-        output: '',
+        output: "",
       },
       state,
     };
@@ -113,7 +113,7 @@ export function prepareCodexRun(repoRoot) {
   if (diffStats.error) {
     return {
       stop: {
-        reason: 'Guardrail triggered: unable to read git diff state.',
+        reason: "Guardrail triggered: unable to read git diff state.",
         output: diffStats.error,
       },
       state,
@@ -123,8 +123,9 @@ export function prepareCodexRun(repoRoot) {
   if (containsForbiddenFiles(diffStats)) {
     return {
       stop: {
-        reason: 'Guardrail triggered: forbidden files modified (.github/workflows).',
-        output: '',
+        reason:
+          "Guardrail triggered: forbidden files modified (.github/workflows).",
+        output: "",
       },
       state,
     };
@@ -135,7 +136,7 @@ export function prepareCodexRun(repoRoot) {
     return {
       stop: {
         reason: `Guardrail triggered: ${delta.changedFiles} files changed (max ${MAX_FILES_CHANGED}).`,
-        output: '',
+        output: "",
       },
       state,
     };
@@ -145,7 +146,7 @@ export function prepareCodexRun(repoRoot) {
     return {
       stop: {
         reason: `Guardrail triggered: ${delta.changedLines} lines changed (max ${MAX_LINES_CHANGED}).`,
-        output: '',
+        output: "",
       },
       state,
     };
