@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from collections.abc import Callable
-from functools import partial
-from typing import cast
-from urllib.parse import urlparse
 import ipaddress
 import logging
 import re
 import socket
 import urllib.error
 import urllib.request
+from collections.abc import Callable
+from functools import partial
+from typing import cast
+from urllib.parse import urlparse
 
 from app.engine.models import PhotoItem
 

@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 
 const MAX_OUTPUT_CHARS = 2 * 1024 * 1024;
 const MAX_FIX_ATTEMPTS = 2;
-const LINT_FAILURE_REASON = 'Lint failed (eslint).';
+const LINT_FAILURE_REASON = 'Lint failed.';
 
 function capOutput(output) {
   if (output.length <= MAX_OUTPUT_CHARS) {
@@ -100,6 +100,43 @@ function detectFailingPackages(output) {
   return targets;
 }
 
+function detectRuffTargets(output) {
+  const normalized = normalize(output);
+  const targets = [];
+  if (normalized.includes('apps/api')) {
+    targets.push('apps/api');
+  }
+  if (normalized.includes('apps/worker')) {
+    targets.push('apps/worker');
+  }
+  if (targets.length === 0 && normalized.includes('ruff')) {
+    if (fs.existsSync(path.join(process.cwd(), 'apps', 'api'))) {
+      targets.push('apps/api');
+    }
+    if (fs.existsSync(path.join(process.cwd(), 'apps', 'worker'))) {
+      targets.push('apps/worker');
+    }
+  }
+  return targets;
+}
+
+function buildRuffFixCommands(repoRoot, output) {
+  const normalized = normalize(output);
+  if (!normalized.includes('ruff')) {
+    return [];
+  }
+  const targets = detectRuffTargets(output);
+  if (targets.length === 0) {
+    return [];
+  }
+
+  return targets.map((target) => ({
+    command: 'uv run ruff check app tests --fix',
+    cwd: path.join(repoRoot, target),
+    summary: `Applied ruff --fix in ${target}.`,
+  }));
+}
+
 function buildEslintFallbackCommands(repoRoot, output) {
   const targets = detectFailingPackages(output);
   if (targets.length === 0) {
@@ -163,6 +200,11 @@ function getLintFixPlan({ repoRoot, step, output }) {
         summary: 'Applied pnpm recursive lint -- --fix.',
       },
     ];
+  }
+
+  const ruffFixes = buildRuffFixCommands(repoRoot, output);
+  if (ruffFixes.length > 0) {
+    return ruffFixes;
   }
 
   const fallbackCommands = buildEslintFallbackCommands(repoRoot, output);
