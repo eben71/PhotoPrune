@@ -44,6 +44,13 @@ const defaultState: RunSessionState = {
   results: null
 };
 
+const isDefaultState = (state: RunSessionState) =>
+  state.selection.length === 0 &&
+  state.run === null &&
+  state.progress === null &&
+  state.telemetry === null &&
+  state.results === null;
+
 const RunSessionContext = createContext<RunSessionContextValue | undefined>(
   undefined
 );
@@ -78,6 +85,10 @@ export function RunSessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) {
+      return;
+    }
+    if (isDefaultState(state)) {
+      sessionStorage.removeItem(SESSION_KEY);
       return;
     }
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
