@@ -4,6 +4,7 @@ import hashlib
 from collections import defaultdict, deque
 from dataclasses import dataclass
 
+from app.engine.deeplinks import build_google_photos_deep_link
 from app.engine.hashing import PerceptualHashes, hamming_distance
 from app.engine.models import PhotoItem
 from app.engine.schemas import GroupRepresentativePair, GroupResult, PhotoItemSummary
@@ -158,7 +159,9 @@ def _build_groups(
                 moreCount=max(len(ordered) - 2, 0),
                 explanation=explanation,
                 googlePhotosDeepLinks=[
-                    item.deep_link for item in ordered if item.deep_link is not None
+                    link
+                    for link in (build_google_photos_deep_link(item) for item in ordered)
+                    if link is not None
                 ],
             )
         )
@@ -179,7 +182,7 @@ def _to_summary(item: PhotoItem) -> PhotoItemSummary:
         mimeType=item.mime_type,
         width=item.width,
         height=item.height,
-        googlePhotosDeepLink=item.deep_link,
+        googlePhotosDeepLink=build_google_photos_deep_link(item),
     )
 
 
