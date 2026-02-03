@@ -119,6 +119,21 @@ Prereqs: Node.js 20+, pnpm (via Corepack), Python 3.12+, and `uv`.
 4. Web tests only run from `apps/web/tests` (excluding `.next`) to avoid picking up compiled artifacts.
 5. If you regenerate lockfiles (e.g., after dependency changes), commit the updated `pnpm-lock.yaml` and requirement locks so CI stays reproducible.
 
+### Picker harness (fixture extraction)
+
+Use `tools/picker-harness.html` to run the Google Photos Picker flow locally and export fixture JSON for tests/UI mocks.
+
+1. Serve the `tools/` directory over localhost (GIS requires `http://localhost` / `http://127.0.0.1`, not `file://`):
+   ```bash
+   python3 -m http.server --directory tools 8001
+   ```
+2. Open `http://localhost:8001/picker-harness.html`.
+3. Use a **Web application** OAuth client and ensure the **Authorized JavaScript origin** matches the page’s origin (shown at the top of the page).
+4. Click **Authorize**, then **Open Picker**, select items, and wait for polling to finish.
+5. Copy or download the JSON payload, then save it as a fixture (for example, in `apps/web/fixtures/`).
+
+The harness prints the payload to the page and `console.log()` and intentionally excludes access tokens.
+
 ### CI notes
 
 CI runs the same Makefile targets listed above (`make lint`, `make format-check`, `make typecheck`, `make test`, `make build`) to keep checks consistent between local and GitHub Actions.
