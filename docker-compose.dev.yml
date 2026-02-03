@@ -1,0 +1,49 @@
+services:
+  api:
+    command:
+      [
+        "uv",
+        "run",
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload",
+        "--reload-dir",
+        "/app/app"
+      ]
+    volumes:
+      - ./apps/api/app:/app/app
+
+  worker:
+    command:
+      [
+        "/bin/bash",
+        "-lc",
+        "uv run celery -A app.celery_app.app worker -l info --pool=solo --autoreload || uv run celery -A app.celery_app.app worker -l info --pool=solo"
+      ]
+    volumes:
+      - ./apps/worker/app:/app/app
+
+  web:
+    environment:
+      CHOKIDAR_USEPOLLING: "1"
+      WATCHPACK_POLLING: "1"
+    command:
+      [
+        "pnpm",
+        "--filter",
+        "web",
+        "dev",
+        "--",
+        "--hostname",
+        "0.0.0.0",
+        "--port",
+        "3000"
+      ]
+    volumes:
+      - ./apps/web:/app/apps/web
+      - /app/apps/web/node_modules
+      - ./packages/shared:/app/packages/shared
