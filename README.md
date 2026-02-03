@@ -216,6 +216,31 @@ servers. Example:
 SCAN_DOWNLOAD_HOST_OVERRIDES=example.test:http://127.0.0.1:8001
 ```
 
+### Fixture Hygiene (Local Dev)
+
+Do not commit live or expiring `downloadUrl` values in fixtures. Keep fixture payloads
+sanitized and prefer local bytes for repeatable runs.
+
+Recommended `.gitignore` additions for local-only fixtures:
+
+```
+tests/fixtures/picker/*
+tests/fixtures/bytes/*
+tests/fixtures/requests/*
+tests/fixtures/results/*
+```
+
+For repeatable local scans without live URLs, enable fixture bytes mode:
+
+```
+SCAN_FIXTURE_BYTES_DIR=tests/fixtures/bytes
+SCAN_FIXTURE_BYTES_STRICT=1
+```
+
+Place files as `{photo_id}.jpg` (or `.jpeg`/`.png`) under `SCAN_FIXTURE_BYTES_DIR`. When
+`SCAN_FIXTURE_BYTES_STRICT=1`, missing files return HTTP 422 instead of falling back to
+network fetch.
+
 ## Out of Scope (Phase 2)
 
 - Library-wide scanning (Library API enumeration)

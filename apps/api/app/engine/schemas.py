@@ -29,7 +29,7 @@ class ScanRequest(BaseModel):
     @model_validator(mode="after")
     def validate_payload(self) -> "ScanRequest":
         if not self.photo_items and not self.picker_payload:
-            raise ValueError("photoItems or pickerPayload is required")
+            raise ValueError("photo_items or picker_payload is required")
         return self
 
 
