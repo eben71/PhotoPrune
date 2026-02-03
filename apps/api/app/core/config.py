@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     scan_cost_per_byte_hash: float = 0.00005
     scan_cost_per_perceptual_hash: float = 0.00008
     scan_cost_per_comparison: float = 0.00001
+    scan_small_input_fallback_max: int = 20
+    scan_explain: bool = False
 
     @field_validator("cors_origins", mode="before")
     @classmethod

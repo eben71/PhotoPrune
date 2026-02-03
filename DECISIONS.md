@@ -26,6 +26,8 @@
 | --- | --- | --- | --- |
 | 2026-01-15 | Implement the Phase 2.1 core engine in the FastAPI service using Python. | Keeps scan execution server-side for cost control and aligns with the existing backend stack. | Approved |
 | 2026-01-15 | Use Pillow for deterministic image decoding and dHash/pHash generation. | Provides stable, maintained image handling for perceptual hashing without bespoke codecs. | Approved |
+| 2026-01-16 | Generate Google Photos deep links by preferring picker/product links and falling back to a conservative Google Photos search-by-id URL. | Ensures Phase 2.2 review flows can open items in Google Photos even when the picker payload omits explicit product links. | Approved |
+| 2026-01-16 | Add a small-input fallback (≤20 items) to bypass candidate narrowing when it yields zero candidates. | Prevents common "edited vs original" selections from appearing broken while keeping cost predictable for larger selections. | Approved |
 
 ## Deferred Decisions (TODO: Phase 3)
 

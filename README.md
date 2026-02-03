@@ -80,7 +80,9 @@ It also emits timing/count metrics and a cost estimate per run.
 ```
 
 For Picker payloads, the engine normalizes `mediaItems` with metadata under either top-level
-fields or `mediaFile.*`. No photo bytes or URLs are persisted.
+fields or `mediaFile.*`. No photo bytes or URLs are persisted. Google Photos deep links are
+propagated when provided (`googlePhotosDeepLink` or picker `productUrl`) and otherwise
+fall back to a conservative Google Photos search link by item id to support manual review.
 
 ## Repo Structure
 
@@ -170,6 +172,8 @@ SCAN_COST_PER_DOWNLOAD=0.0002
 SCAN_COST_PER_BYTE_HASH=0.00005
 SCAN_COST_PER_PERCEPTUAL_HASH=0.00008
 SCAN_COST_PER_COMPARISON=0.00001
+SCAN_SMALL_INPUT_FALLBACK_MAX=20
+SCAN_EXPLAIN=0
 ```
 
 In `local` or `dev`, guardrails only log warnings. In `prod`, limits are enforced. Download
@@ -180,6 +184,12 @@ include `googleusercontent.com` or `.googleusercontent.com` in the allowlist, wh
 only `lh<N>.googleusercontent.com` (not arbitrary subdomains). URLs are rejected if they
 resolve to non-global addresses to mitigate SSRF risk. Fixtures must not obfuscate hostnames;
 if they do, add the real hostnames to the allowlist in local/dev.
+
+For small scans where metadata narrowing yields zero candidates, the engine optionally
+falls back to a lightweight near-duplicate pass across the full selection when
+`SCAN_SMALL_INPUT_FALLBACK_MAX` is set (defaults to 20). For diagnostics, set `SCAN_EXPLAIN=1`
+or send `X-Scan-Explain: 1` in local/dev to include extra candidate narrowing counters and a
+debug block (ids/counts only; no URLs) in the scan response.
 
 For local/dev fixture runs with obfuscated hosts, you can rewrite hostnames before validation
 and download with `SCAN_DOWNLOAD_HOST_OVERRIDES` (JSON map or `source:dest` CSV). This is

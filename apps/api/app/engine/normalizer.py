@@ -4,6 +4,7 @@ from collections.abc import Iterable
 from datetime import UTC, datetime
 from typing import Any
 
+from app.engine.deeplinks import build_google_photos_deep_link_from_parts
 from app.engine.models import GPSLocation, PhotoItem
 from app.engine.schemas import PhotoItemPayload
 
@@ -19,7 +20,7 @@ def normalize_photo_items(items: Iterable[PhotoItemPayload]) -> list[PhotoItem]:
             height=item.height,
             gps=_build_gps(item.gps_latitude, item.gps_longitude),
             download_url=item.download_url,
-            deep_link=item.deep_link,
+            deep_link=build_google_photos_deep_link_from_parts(item.id, item.deep_link),
         )
         for item in items
     ]
@@ -41,6 +42,8 @@ def normalize_picker_payload(payload: dict[str, Any]) -> list[PhotoItem]:
         if not item_id or not create_time_raw:
             continue
         create_time = _parse_datetime(create_time_raw)
+        raw_deep_link = _get_first_value(item, ("productUrl",), ("mediaFile", "productUrl"))
+        deep_link = build_google_photos_deep_link_from_parts(str(item_id), raw_deep_link)
         normalized.append(
             PhotoItem(
                 id=str(item_id),
@@ -65,7 +68,7 @@ def normalize_picker_payload(payload: dict[str, Any]) -> list[PhotoItem]:
                 ),
                 gps=_extract_gps(item),
                 download_url=_get_first_value(item, ("baseUrl",), ("mediaFile", "baseUrl")),
-                deep_link=_get_first_value(item, ("productUrl",), ("mediaFile", "productUrl")),
+                deep_link=deep_link,
             )
         )
     return normalized
