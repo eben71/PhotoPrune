@@ -187,8 +187,11 @@ def test_scan_network_failure_returns_422_without_url(monkeypatch):
 
         assert response.status_code == 422
         detail = response.json()["detail"]
-        assert "photos.google.com" in detail
-        assert "status 404" in detail
+        expected_detail = (
+            "Download failed for host 'photos.google.com' with status 404. "
+            "Regenerate fixtures without obfuscating downloadUrl host."
+        )
+        assert detail == expected_detail
         assert "https://photos.google.com/file.jpg" not in detail
     finally:
         config.get_settings.cache_clear()
