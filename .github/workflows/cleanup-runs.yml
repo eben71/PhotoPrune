@@ -19,28 +19,37 @@ jobs:
           # RETAIN_PER_BRANCH controls how many recent runs to keep per branch.
 
           REPO="${GITHUB_REPOSITORY}"
-          gh api -H "Accept: application/vnd.github+json" \
-            "/repos/${REPO}/actions/runs" --paginate \
-            | jq -c '.workflow_runs[]' \
+          all_runs=$(gh api -H "Accept: application/vnd.github+json" \
+            "/repos/${REPO}/actions/runs?per_page=100" --paginate)
+
+          echo "$all_runs" \
+            | jq -c '.workflow_runs[] | select(.head_branch == null)' \
             | while read -r run; do
-                branch=$(echo "$run" | jq -r '.head_branch')
                 run_id=$(echo "$run" | jq -r '.id')
-                updated_at=$(echo "$run" | jq -r '.updated_at')
+                echo "Deleting run $run_id (no branch)"
+                gh api -X DELETE "/repos/${REPO}/actions/runs/${run_id}"
+              done
 
-                if [ -z "$branch" ] || [ "$branch" = "null" ]; then
-                  echo "Deleting run $run_id (no branch)"
-                  gh api -X DELETE "/repos/${REPO}/actions/runs/${run_id}"
-                  continue
-                fi
+          echo "$all_runs" \
+            | jq -r '.workflow_runs[].head_branch' \
+            | grep -v '^null$' \
+            | sort -u \
+            | while read -r branch; do
+                branch_runs=$(gh api -H "Accept: application/vnd.github+json" \
+                  "/repos/${REPO}/actions/runs?branch=${branch}&per_page=100" --paginate)
 
-                count=$(gh api -H "Accept: application/vnd.github+json" \
-                  "/repos/${REPO}/actions/runs?branch=${branch}&per_page=100" \
-                  | jq '.workflow_runs | length')
-
-                if [ "$count" -gt "$RETAIN_PER_BRANCH" ]; then
-                  echo "Deleting run $run_id for branch $branch (exceeds retention)"
-                  gh api -X DELETE "/repos/${REPO}/actions/runs/${run_id}"
-                else
-                  echo "Keeping run $run_id for branch $branch"
-                fi
+                echo "$branch_runs" \
+                  | jq -r --argjson retain "$RETAIN_PER_BRANCH" \
+                    '.workflow_runs
+                    | map(select(.status == "completed"))
+                    | sort_by(.updated_at)
+                    | reverse
+                    | .[$retain:]
+                    | .[].id' \
+                  | while read -r run_id; do
+                      if [ -n "$run_id" ]; then
+                        echo "Deleting run $run_id for branch $branch (exceeds retention)"
+                        gh api -X DELETE "/repos/${REPO}/actions/runs/${run_id}"
+                      fi
+                    done
               done
