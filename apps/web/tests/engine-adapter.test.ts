@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-const selection = [
+import type { PickerItem } from '../src/types/phase2Envelope';
+
+const selection: PickerItem[] = [
   {
     id: 'test-1',
     baseUrl: 'https://placehold.co/200x200/png?text=Test',
@@ -86,7 +88,7 @@ describe('engineAdapter', () => {
     resolveFetch({
       ok: true,
       status: 200,
-      json: async () => buildScanResult()
+      json: () => Promise.resolve(buildScanResult())
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
     const completed = await adapter.pollRun(runId);
@@ -97,7 +99,9 @@ describe('engineAdapter', () => {
   it('reports failures when the scan API fails', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => ({ ok: false, status: 500 })) as unknown as typeof fetch
+      vi.fn(() =>
+        Promise.resolve({ ok: false, status: 500 })
+      ) as unknown as typeof fetch
     );
     const adapter = await loadAdapter({
       USE_PHASE2_FIXTURE: '0',
