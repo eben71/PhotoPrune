@@ -221,14 +221,14 @@ function mapScanResults(record: RunRecord, scan: ScanResult): RunEnvelope {
           }
         }
       }));
-    const repIds = [
-      group.representativePair.earliest.id,
-      group.representativePair.latest.id
-    ];
-    const representativeItemIds = Array.from(new Set(repIds)).slice(0, 2);
-    if (representativeItemIds.length === 0 && items.length > 0) {
+    const representativeItemIds = Array.from(
+      new Set([
+        group.representativePair.earliest.id,
+        group.representativePair.latest.id
+      ])
+    ).slice(0, 2);
+    if (representativeItemIds.length === 0 && items.length > 0)
       representativeItemIds.push(items[0].itemId);
-    }
     return {
       groupId: group.groupId,
       groupType: mapping.groupType,
@@ -239,7 +239,6 @@ function mapScanResults(record: RunRecord, scan: ScanResult): RunEnvelope {
       items
     };
   });
-
   const groupedIds = new Set(
     groups.flatMap((group) => group.items.map((item) => item.itemId))
   );
@@ -256,7 +255,6 @@ function mapScanResults(record: RunRecord, scan: ScanResult): RunEnvelope {
     1,
     Math.round(scan.costEstimate.totalCost * COST_UNIT_SCALE)
   );
-
   return {
     schemaVersion: '2.2.0',
     run: {
