@@ -33,6 +33,9 @@ The UI consumes a Phase 2.2 envelope schema (version `2.2.0`) and uses a local f
 (`apps/web/fixtures/phase2_2_sample_results.json`) via an in-memory adapter to simulate
 engine output until Phase 2.1 is fully wired.
 
+Phase 2.2 runs Next.js images in unoptimized mode to avoid remote host restrictions during
+MVP validation; revisit this in Phase 2.3 when the image pipeline is stabilized.
+
 ## Tech stack (current)
 
 - **Frontend:** Next.js + React + TypeScript

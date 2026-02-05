@@ -17,7 +17,8 @@ const StartRunResponseSchema = z.object({ runId: z.string() });
 
 export default function RunPage() {
   const router = useRouter();
-  const { state, hydrated, applyEnvelope, clearResults } = useRunSession();
+  const { state, hydrated, applyEnvelope, clearResults, clearSelection } =
+    useRunSession();
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -82,6 +83,11 @@ export default function RunPage() {
     }
   };
 
+  const handleClearSession = () => {
+    clearSelection();
+    router.push('/');
+  };
+
   const handleCancel = async () => {
     if (!state.run?.runId) {
       return;
@@ -97,6 +103,10 @@ export default function RunPage() {
     <section>
       <h1>Run analysis</h1>
       <p>Confirm your selection and start a one-time analysis.</p>
+
+      <button type="button" onClick={handleClearSession}>
+        Clear session
+      </button>
 
       <SelectionSummary selection={state.selection} />
 
