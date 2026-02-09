@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 
 import { POST as startRun } from '../app/api/run/route';
@@ -20,16 +20,44 @@ const selection = [
 ];
 
 describe('run API lifecycle', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
-  });
-
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it('starts, progresses, and completes a run', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({
+              runId: 'scan-run',
+              inputCount: selection.length,
+              stageMetrics: {
+                timingsMs: { candidate_narrowing_ms: 1 },
+                counts: { downloads_performed: 1 }
+              },
+              costEstimate: { totalCost: 0.0012 },
+              groupsExact: [
+                {
+                  groupId: 'group-1',
+                  category: 'EXACT',
+                  items: [{ id: selection[0].id }],
+                  representativePair: {
+                    earliest: { id: selection[0].id },
+                    latest: { id: selection[0].id }
+                  }
+                }
+              ],
+              groupsVerySimilar: [],
+              groupsPossiblySimilar: []
+            })
+        })
+      ) as unknown as typeof fetch
+    );
     const request = new Request('http://localhost/api/run', {
       method: 'POST',
       body: JSON.stringify({ selection })
@@ -38,24 +66,39 @@ describe('run API lifecycle', () => {
     const response = await startRun(request);
     const { runId } = StartRunResponseSchema.parse(await response.json());
 
-    let envelopeResponse = await getRun(new Request('http://localhost'), {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const envelopeResponse = await getRun(new Request('http://localhost'), {
       params: Promise.resolve({ runId })
     });
-    let envelope = RunEnvelopeSchema.parse(await envelopeResponse.json());
-
-    expect(envelope.run.status).toBe('RUNNING');
-
-    vi.setSystemTime(new Date('2025-01-01T00:00:10.000Z'));
-
-    envelopeResponse = await getRun(new Request('http://localhost'), {
-      params: Promise.resolve({ runId })
-    });
-    envelope = RunEnvelopeSchema.parse(await envelopeResponse.json());
+    const envelope = RunEnvelopeSchema.parse(await envelopeResponse.json());
 
     expect(envelope.run.status).toBe('COMPLETED');
   });
 
   it('cancels a run', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({
+              runId: 'scan-run',
+              inputCount: selection.length,
+              stageMetrics: {
+                timingsMs: { candidate_narrowing_ms: 1 },
+                counts: { downloads_performed: 1 }
+              },
+              costEstimate: { totalCost: 0.0012 },
+              groupsExact: [],
+              groupsVerySimilar: [],
+              groupsPossiblySimilar: []
+            })
+        })
+      ) as unknown as typeof fetch
+    );
     const request = new Request('http://localhost/api/run', {
       method: 'POST',
       body: JSON.stringify({ selection })

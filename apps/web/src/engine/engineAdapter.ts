@@ -1,6 +1,3 @@
-import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 
 import type { PickerItem, RunEnvelope } from '../types/phase2Envelope';
@@ -80,26 +77,6 @@ const stageMessages: Record<(typeof stagePlan)[number]['stage'], string> = {
   GROUP: 'Clustering potential duplicates into review groups.',
   FINALIZE: 'Finalizing results and cost totals.'
 };
-const useFixture =
-  process.env.USE_PHASE2_FIXTURE === '1' || process.env.NODE_ENV === 'test';
-async function loadFixture(): Promise<RunEnvelope> {
-  let fixturePath: string;
-  const moduleUrl = new URL(import.meta.url);
-  if (moduleUrl.protocol === 'file:') {
-    const fixtureUrl = new URL(
-      '../../fixtures/phase2_2_sample_results.json',
-      moduleUrl
-    );
-    fixturePath = fileURLToPath(fixtureUrl);
-  } else {
-    fixturePath = path.resolve(
-      process.cwd(),
-      'apps/web/fixtures/phase2_2_sample_results.json'
-    );
-  }
-  const raw = await readFile(fixturePath, 'utf-8');
-  return JSON.parse(raw) as RunEnvelope;
-}
 function nowIso() {
   return new Date().toISOString();
 }
@@ -255,6 +232,30 @@ function mapScanResults(record: RunRecord, scan: ScanResult): RunEnvelope {
     1,
     Math.round(scan.costEstimate.totalCost * COST_UNIT_SCALE)
   );
+  const softCapUnits = record.limits?.softCapUnits ?? DEFAULT_SOFT_CAP_UNITS;
+  const hardCapUnits = record.limits?.hardCapUnits ?? DEFAULT_HARD_CAP_UNITS;
+  const hitSoftCap = estimatedUnits >= softCapUnits;
+  const hitHardCap = estimatedUnits >= hardCapUnits;
+  const warnings = [
+    ...(hitHardCap
+      ? [
+          {
+            code: 'HARD_CAP_REACHED',
+            severity: 'ERROR' as const,
+            message: 'Estimated cost exceeded the hard cap for this run.'
+          }
+        ]
+      : []),
+    ...(hitSoftCap && !hitHardCap
+      ? [
+          {
+            code: 'SOFT_CAP_REACHED',
+            severity: 'WARN' as const,
+            message: 'Estimated cost exceeded the soft cap for this run.'
+          }
+        ]
+      : [])
+  ];
   return {
     schemaVersion: '2.2.0',
     run: {
@@ -280,13 +281,13 @@ function mapScanResults(record: RunRecord, scan: ScanResult): RunEnvelope {
       cost: {
         apiCalls: scan.stageMetrics.counts['downloads_performed'] ?? 0,
         estimatedUnits,
-        softCapUnits: record.limits?.softCapUnits ?? DEFAULT_SOFT_CAP_UNITS,
-        hardCapUnits: record.limits?.hardCapUnits ?? DEFAULT_HARD_CAP_UNITS,
-        hitSoftCap: false,
-        hitHardCap: false
+        softCapUnits,
+        hardCapUnits,
+        hitSoftCap,
+        hitHardCap
       },
       timingMs: totalTimingMs,
-      warnings: []
+      warnings
     },
     results: {
       summary: {
@@ -297,115 +298,6 @@ function mapScanResults(record: RunRecord, scan: ScanResult): RunEnvelope {
       groups,
       skippedItems: [],
       failedItems: []
-    }
-  };
-}
-
-function applySelectionToFixture(
-  fixture: RunEnvelope,
-  selection: PickerItem[]
-): RunEnvelope {
-  if (selection.length === 0) {
-    return {
-      ...fixture,
-      run: {
-        ...fixture.run,
-        selection: {
-          requestedCount: 0,
-          acceptedCount: 0,
-          rejectedCount: 0
-        }
-      },
-      results: buildEmptyResults()
-    };
-  }
-
-  const selectionIds = new Set(selection.map((item) => item.id));
-  const flattenedItems = fixture.results.groups.flatMap((group) => group.items);
-  const selectionByIndex = selection.slice(0, flattenedItems.length);
-  let cursor = 0;
-
-  const updatedGroups = fixture.results.groups
-    .map((group) => {
-      const updatedItems = group.items
-        .map((item) => {
-          const selectionItem = selectionByIndex[cursor];
-          cursor += 1;
-          if (!selectionItem) {
-            return null;
-          }
-          return {
-            ...item,
-            itemId: selectionItem.id,
-            type: selectionItem.type,
-            createTime: selectionItem.createTime,
-            filename: selectionItem.filename,
-            mimeType: selectionItem.mimeType,
-            thumbnail: {
-              ...item.thumbnail,
-              baseUrl: selectionItem.baseUrl
-            },
-            links: {
-              googlePhotos: {
-                url: null,
-                fallbackQuery: `${selectionItem.filename} ${selectionItem.id}`,
-                fallbackUrl: 'https://photos.google.com/'
-              }
-            }
-          };
-        })
-        .filter((item): item is NonNullable<typeof item> => item !== null);
-
-      if (updatedItems.length === 0) {
-        return null;
-      }
-
-      const representativeItemIds = updatedItems
-        .slice(0, 2)
-        .map((item) => item.itemId);
-
-      return {
-        ...group,
-        items: updatedItems,
-        representativeItemIds,
-        itemsCount: updatedItems.length
-      };
-    })
-    .filter((group): group is NonNullable<typeof group> => group !== null);
-
-  const groupedItemIds = new Set(
-    updatedGroups.flatMap((group) => group.items.map((item) => item.itemId))
-  );
-  const ungroupedItemsCount = Math.max(
-    0,
-    selection.length - groupedItemIds.size
-  );
-  const filteredSkippedItems = fixture.results.skippedItems.filter((item) =>
-    selectionIds.has(item.itemId)
-  );
-  const filteredFailedItems = fixture.results.failedItems.filter((item) =>
-    selectionIds.has(item.itemId)
-  );
-
-  return {
-    ...fixture,
-    run: {
-      ...fixture.run,
-      selection: {
-        requestedCount: selection.length,
-        acceptedCount: selection.length,
-        rejectedCount: 0
-      }
-    },
-    results: {
-      summary: {
-        groupsCount: updatedGroups.length,
-        groupedItemsCount: groupedItemIds.size,
-        ungroupedItemsCount
-      },
-      groups: updatedGroups,
-      skippedItems: filteredSkippedItems,
-      failedItems: filteredFailedItems
     }
   };
 }
@@ -514,9 +406,7 @@ export function startRun(
   };
 
   runRegistry.set(runId, record);
-  if (!useFixture) {
-    void executeRun(record);
-  }
+  void executeRun(record);
 
   return { runId };
 }
@@ -578,7 +468,7 @@ export async function pollRun(runId: string): Promise<RunEnvelope> {
   }
 
   if (record.error) {
-    const resultsOverride: RunEnvelope['results'] | undefined = undefined;
+    const resultsOverride = record.envelope?.results;
     return buildFailureEnvelope(
       record.runId,
       record.error,
@@ -592,28 +482,6 @@ export async function pollRun(runId: string): Promise<RunEnvelope> {
 
   if (elapsedMs < totalDurationMs()) {
     return buildRunningEnvelope(record);
-  }
-
-  if (useFixture) {
-    const fixture = await loadFixture();
-    const finalEnvelope = applySelectionToFixture(fixture, record.selection);
-    const completedEnvelope: RunEnvelope = {
-      ...finalEnvelope,
-      run: {
-        ...finalEnvelope.run,
-        runId: record.runId,
-        status: 'COMPLETED',
-        startedAt: record.startedAt,
-        finishedAt: nowIso()
-      }
-    };
-
-    record.envelope = completedEnvelope;
-    record.status = 'COMPLETED';
-    record.finishedAt = completedEnvelope.run.finishedAt;
-    runRegistry.set(record.runId, record);
-
-    return completedEnvelope;
   }
 
   return buildRunningEnvelope(record);

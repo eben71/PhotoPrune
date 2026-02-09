@@ -21,6 +21,7 @@ export default function RunPage() {
     useRunSession();
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isCompleted = state.run?.status === 'COMPLETED';
 
   useEffect(() => {
     if (!hydrated) {
@@ -124,13 +125,17 @@ export default function RunPage() {
         </Banner>
       ) : null}
 
-      <button
-        type="button"
-        onClick={() => void handleStart()}
-        disabled={starting || !hydrated || state.selection.length === 0}
-      >
-        {starting ? 'Starting…' : 'Start analysis'}
-      </button>
+      {isCompleted ? (
+        <p aria-live="polite">Analysis completed</p>
+      ) : (
+        <button
+          type="button"
+          onClick={() => void handleStart()}
+          disabled={starting || !hydrated || state.selection.length === 0}
+        >
+          {starting ? 'Starting…' : 'Start analysis'}
+        </button>
+      )}
       {state.run?.status === 'RUNNING' ? (
         <button type="button" onClick={() => void handleCancel()}>
           Cancel run
@@ -140,8 +145,21 @@ export default function RunPage() {
       <ProgressPanel progress={state.progress} status={state.run?.status} />
       <CostPanel telemetry={state.telemetry} />
 
-      {state.run?.status === 'COMPLETED' ? (
-        <Link href="/results">View results</Link>
+      {isCompleted ? (
+        <Link
+          href="/results"
+          style={{
+            display: 'inline-block',
+            marginTop: '0.5rem',
+            padding: '0.5rem 1rem',
+            backgroundColor: '#111',
+            color: '#fff',
+            textDecoration: 'none',
+            borderRadius: '4px'
+          }}
+        >
+          View results
+        </Link>
       ) : null}
     </section>
   );

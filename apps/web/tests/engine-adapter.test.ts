@@ -50,21 +50,6 @@ describe('engineAdapter', () => {
     vi.useRealTimers();
   });
 
-  it('completes using fixtures in test mode', async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
-    const adapter = await loadAdapter({
-      USE_PHASE2_FIXTURE: '1',
-      NODE_ENV: 'test'
-    });
-    const { runId } = adapter.startRun(selection);
-    const running = await adapter.pollRun(runId);
-    expect(running.run.status).toBe('RUNNING');
-    vi.setSystemTime(new Date('2025-01-01T00:00:10.000Z'));
-    const completed = await adapter.pollRun(runId);
-    expect(completed.run.status).toBe('COMPLETED');
-  });
-
   it('completes using the scan API response', async () => {
     let resolveFetch: (value: {
       ok: boolean;
@@ -81,7 +66,6 @@ describe('engineAdapter', () => {
       ) as unknown as typeof fetch
     );
     const adapter = await loadAdapter({
-      USE_PHASE2_FIXTURE: '0',
       NODE_ENV: 'development'
     });
     const { runId } = adapter.startRun(selection);
@@ -96,6 +80,35 @@ describe('engineAdapter', () => {
     expect(completed.results.groups.length).toBe(1);
   });
 
+  it('flags hard caps while preserving results', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({
+              ...buildScanResult(),
+              costEstimate: { totalCost: 0.5 }
+            })
+        })
+      ) as unknown as typeof fetch
+    );
+    const adapter = await loadAdapter({
+      NODE_ENV: 'development'
+    });
+    const { runId } = adapter.startRun(selection, {
+      softCapUnits: 10,
+      hardCapUnits: 20
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const completed = await adapter.pollRun(runId);
+    expect(completed.run.status).toBe('COMPLETED');
+    expect(completed.telemetry.cost.hitHardCap).toBe(true);
+    expect(completed.results.groups.length).toBe(1);
+  });
+
   it('reports failures when the scan API fails', async () => {
     vi.stubGlobal(
       'fetch',
@@ -104,12 +117,40 @@ describe('engineAdapter', () => {
       ) as unknown as typeof fetch
     );
     const adapter = await loadAdapter({
-      USE_PHASE2_FIXTURE: '0',
       NODE_ENV: 'development'
     });
     const { runId } = adapter.startRun(selection);
     await new Promise((resolve) => setTimeout(resolve, 0));
     const failed = await adapter.pollRun(runId);
+    expect(failed.run.status).toBe('FAILED');
+  });
+
+  it('returns a running envelope while awaiting the scan', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise(() => undefined)) as unknown as typeof fetch
+    );
+    const adapter = await loadAdapter({
+      NODE_ENV: 'development'
+    });
+    const { runId } = adapter.startRun(selection);
+    const running = await adapter.pollRun(runId);
+    expect(running.run.status).toBe('RUNNING');
+  });
+
+  it('returns a failure envelope for unknown runs', async () => {
+    const adapter = await loadAdapter({
+      NODE_ENV: 'development'
+    });
+    const failed = await adapter.pollRun('missing-run');
+    expect(failed.run.status).toBe('FAILED');
+  });
+
+  it('returns a failure envelope when cancelling an unknown run', async () => {
+    const adapter = await loadAdapter({
+      NODE_ENV: 'development'
+    });
+    const failed = await adapter.cancelRun('missing-run');
     expect(failed.run.status).toBe('FAILED');
   });
 });
