@@ -29,9 +29,9 @@ Phase 2.2 delivers a **single-session, review-only** web flow:
 2. **Run** (`/run`) — confirm selection, start analysis, monitor progress + cost, cancel if needed
 3. **Results** (`/results`) — review duplicate groups, expand groups, and open items in Google Photos
 
-The UI consumes a Phase 2.2 envelope schema (version `2.2.0`) and uses a local fixture
-(`apps/web/fixtures/phase2_2_sample_results.json`) via an in-memory adapter to simulate
-engine output until Phase 2.1 is fully wired.
+The UI consumes a Phase 2.2 envelope schema (version `2.2.0`). The run API calls the
+Phase 2.1 `/api/scan` engine and adapts its `ScanResult` payload into the envelope
+shape expected by the UX.
 
 Phase 2.2 runs Next.js images in unoptimized mode to avoid remote host restrictions during
 MVP validation; revisit this in Phase 2.3 when the image pipeline is stabilized.
@@ -90,7 +90,7 @@ fall back to a conservative Google Photos search link by item id to support manu
 ## Repo Structure
 
 - `apps/web` — Next.js app with the Phase 2.2 flow (`/`, `/run`, `/results`) plus a `/health` check
-- `apps/web/fixtures` — Phase 2.2 sample envelope data for the async run simulation
+- `apps/web/fixtures` — Optional Phase 2.2 sample envelope data for local mocks
 - `apps/api` — FastAPI service exposing `/healthz` and loading settings from env
 - `apps/worker` — Celery worker with a demo `ping` task
 - `packages/shared` — Shared Zod schemas/types (e.g., health payload)
