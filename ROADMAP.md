@@ -158,6 +158,17 @@ Finalize thresholds/models in DECISIONS.md after Phase 1b.
 - [ ] Trust-first copy (predictability over hype)
 - [ ] Clear scope boundaries visible in UI
 - [ ] Transparency on limits and known failure modes
+- [x] Checklist A (Selection & Ingestion) verified via automated tests
+
+### Phase 2.3: Phase 2.1 Sanity Checklist Automation
+- [x] Checklist A (Selection & Ingestion) automated
+- [~] Checklist B (Execution & Progress) partially automated
+- [x] Checklist C (Results Correctness) automated
+- [x] Checklist D (Confidence & Reasons) automated
+- [~] Checklist E (Cost & Limits) partially automated
+- [x] Checklist F (Failure Handling) automated
+- [ ] Checklist G (UX & Human Review) remains manual by design
+- [~] Checklist H (Regression Guard) partially automated
 
 ### Phase 2.4: Validation & Stress Testing
 - [ ] Validate with real user-selected sets (1k–5k)

@@ -48,6 +48,35 @@ def test_exact_duplicate_grouping():
     assert [item.id for item in groups[0].items] == ["dup1", "dup2"]
 
 
+def test_exact_duplicate_grouping_empty_without_matches():
+    items = [
+        _photo_item("solo1", datetime(2024, 1, 1, tzinfo=UTC), 120, 80),
+        _photo_item("solo2", datetime(2024, 1, 2, tzinfo=UTC), 120, 80),
+    ]
+    byte_hashes = {"solo1": "hash-a", "solo2": "hash-b"}
+
+    groups = group_exact_duplicates(items, byte_hashes)
+
+    assert groups == []
+
+
+def test_exact_duplicate_grouping_rep_pair_is_deterministic():
+    items = [
+        _photo_item("b", datetime(2024, 1, 1, 12, 0, tzinfo=UTC), 120, 80),
+        _photo_item("a", datetime(2024, 1, 1, 11, 0, tzinfo=UTC), 120, 80),
+        _photo_item("c", datetime(2024, 1, 1, 13, 0, tzinfo=UTC), 120, 80),
+    ]
+    byte_hashes = {item.id: "shared-hash" for item in items}
+
+    groups = group_exact_duplicates(items, byte_hashes)
+
+    assert len(groups) == 1
+    group = groups[0]
+    assert [item.id for item in group.items] == ["a", "b", "c"]
+    assert group.representative_pair.earliest.id == "a"
+    assert group.representative_pair.latest.id == "c"
+
+
 def test_near_duplicate_grouping_is_very_similar(monkeypatch):
     png_bytes = _make_image_bytes()
     jpeg_bytes = _make_image_bytes()
