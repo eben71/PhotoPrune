@@ -181,9 +181,7 @@ def normalize_picker_selection(items: Iterable[Any]) -> dict[str, Any]:
                 ("mediaFile", "mediaFileMetadata", "height"),
             ),
             "baseUrl": _get_first_value(item, ("baseUrl",), ("mediaFile", "baseUrl")),
-            "productUrl": _get_first_value(
-                item, ("productUrl",), ("mediaFile", "productUrl")
-            ),
+            "productUrl": _get_first_value(item, ("productUrl",), ("mediaFile", "productUrl")),
         }
         latitude_raw = _get_first_value(
             item,
