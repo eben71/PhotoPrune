@@ -78,6 +78,8 @@ describe('engineAdapter', () => {
     const completed = await adapter.pollRun(runId);
     expect(completed.run.status).toBe('COMPLETED');
     expect(completed.results.groups.length).toBe(1);
+    expect(completed.results.groups[0].confidence).toBe('HIGH');
+    expect(completed.results.groups[0].reasonCodes.length).toBeGreaterThan(0);
   });
 
   it('flags hard caps while preserving results', async () => {
@@ -109,6 +111,63 @@ describe('engineAdapter', () => {
     expect(completed.results.groups.length).toBe(1);
   });
 
+  it('flags soft caps without failing the run', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({
+              ...buildScanResult(),
+              costEstimate: { totalCost: 0.02 }
+            })
+        })
+      ) as unknown as typeof fetch
+    );
+    const adapter = await loadAdapter({
+      NODE_ENV: 'development'
+    });
+    const { runId } = adapter.startRun(selection, {
+      softCapUnits: 1,
+      hardCapUnits: 5000
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const completed = await adapter.pollRun(runId);
+    expect(completed.run.status).toBe('COMPLETED');
+    expect(completed.telemetry.cost.hitSoftCap).toBe(true);
+    expect(completed.telemetry.cost.hitHardCap).toBe(false);
+  });
+
+  it('advances stages in order and never regresses progress counts', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise(() => undefined)) as unknown as typeof fetch
+    );
+    const adapter = await loadAdapter({
+      NODE_ENV: 'development'
+    });
+    const { runId } = adapter.startRun(selection);
+    const stageOrder = ['INGEST', 'HASH', 'COMPARE', 'GROUP', 'FINALIZE'];
+    const checkpoints = [0, 1300, 3000, 4700, 6000, 7000];
+    let previousStageIndex = -1;
+    let previousProcessed = 0;
+
+    for (const offset of checkpoints) {
+      vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z').getTime() + offset);
+      const running = await adapter.pollRun(runId);
+      const stageIndex = stageOrder.indexOf(running.progress.stage);
+      expect(stageIndex).toBeGreaterThanOrEqual(previousStageIndex);
+      expect(running.progress.counts.processed).toBeGreaterThanOrEqual(
+        previousProcessed
+      );
+      previousStageIndex = stageIndex;
+      previousProcessed = running.progress.counts.processed;
+    }
+  });
   it('reports failures when the scan API fails', async () => {
     vi.stubGlobal(
       'fetch',

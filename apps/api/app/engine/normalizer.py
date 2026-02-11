@@ -28,8 +28,9 @@ def normalize_photo_items(items: Iterable[PhotoItemPayload]) -> list[PhotoItem]:
 
 def normalize_picker_payload(payload: dict[str, Any]) -> list[PhotoItem]:
     raw_items = _extract_picker_items(payload)
+    selection = normalize_picker_selection(raw_items)
     normalized: list[PhotoItem] = []
-    for item in raw_items:
+    for item in selection["acceptedItems"]:
         if not isinstance(item, dict):
             continue
         item_id = _get_first_value(item, ("id",), ("mediaFile", "id"))
@@ -72,6 +73,145 @@ def normalize_picker_payload(payload: dict[str, Any]) -> list[PhotoItem]:
             )
         )
     return normalized
+
+
+def normalize_picker_selection(items: Iterable[Any]) -> dict[str, Any]:
+    supported_mime_types = {"image/jpeg", "image/png"}
+    accepted: list[dict[str, Any]] = []
+    skipped: list[dict[str, Any]] = []
+    warnings: dict[str, dict[str, Any]] = {}
+    summary_counts = {
+        "input": 0,
+        "accepted": 0,
+        "skipped": 0,
+        "duplicates": 0,
+        "unsupported": 0,
+    }
+    seen_ids: set[str] = set()
+
+    iterable_items: Iterable[Any]
+    if isinstance(items, dict) or isinstance(items, (str, bytes)):
+        iterable_items = []
+    else:
+        iterable_items = items
+
+    for item in iterable_items:
+        summary_counts["input"] += 1
+        if not isinstance(item, dict):
+            skipped.append(
+                {
+                    "reasonCode": "MALFORMED_ITEM",
+                    "message": "Picker item is not an object.",
+                    "item": item,
+                }
+            )
+            summary_counts["skipped"] += 1
+            continue
+
+        item_id = _get_first_value(item, ("id",), ("mediaFile", "id"))
+        create_time_raw = _get_first_value(
+            item,
+            ("createTime",),
+            ("mediaFile", "createTime"),
+            ("mediaFile", "mediaFileMetadata", "creationTime"),
+        )
+        if not item_id or not create_time_raw:
+            skipped.append(
+                {
+                    "reasonCode": "MISSING_FIELDS",
+                    "message": "Picker item is missing an id or createTime.",
+                    "item": item,
+                }
+            )
+            summary_counts["skipped"] += 1
+            continue
+
+        if item_id in seen_ids:
+            _add_warning(
+                warnings,
+                "DUPLICATE_ID",
+                "Duplicate picker item id detected; keeping first occurrence.",
+            )
+            skipped.append(
+                {
+                    "reasonCode": "DUPLICATE_ID",
+                    "message": "Duplicate picker item id detected.",
+                    "item": item,
+                }
+            )
+            summary_counts["duplicates"] += 1
+            summary_counts["skipped"] += 1
+            continue
+        seen_ids.add(item_id)
+
+        mime_type = _get_first_value(item, ("mimeType",), ("mediaFile", "mimeType"))
+        normalized_mime = mime_type.lower() if mime_type else None
+        if normalized_mime not in supported_mime_types:
+            _add_warning(
+                warnings,
+                "UNSUPPORTED_MEDIA",
+                "Picker item mime type is not supported.",
+            )
+            skipped.append(
+                {
+                    "reasonCode": "UNSUPPORTED_MEDIA",
+                    "message": "Picker item mime type is not supported.",
+                    "item": item,
+                }
+            )
+            summary_counts["unsupported"] += 1
+            summary_counts["skipped"] += 1
+            continue
+
+        accepted_item: dict[str, Any] = {
+            "id": str(item_id),
+            "createTime": str(create_time_raw),
+            "filename": _get_first_value(item, ("filename",), ("mediaFile", "filename")),
+            "mimeType": mime_type,
+            "width": _get_first_value(
+                item,
+                ("width",),
+                ("mediaFile", "width"),
+                ("mediaFile", "mediaFileMetadata", "width"),
+            ),
+            "height": _get_first_value(
+                item,
+                ("height",),
+                ("mediaFile", "height"),
+                ("mediaFile", "mediaFileMetadata", "height"),
+            ),
+            "baseUrl": _get_first_value(item, ("baseUrl",), ("mediaFile", "baseUrl")),
+            "productUrl": _get_first_value(
+                item, ("productUrl",), ("mediaFile", "productUrl")
+            ),
+        }
+        latitude_raw = _get_first_value(
+            item,
+            ("mediaFile", "mediaFileMetadata", "location", "latitude"),
+            ("location", "latitude"),
+        )
+        longitude_raw = _get_first_value(
+            item,
+            ("mediaFile", "mediaFileMetadata", "location", "longitude"),
+            ("location", "longitude"),
+        )
+        if latitude_raw is not None or longitude_raw is not None:
+            accepted_item["location"] = {
+                "latitude": latitude_raw,
+                "longitude": longitude_raw,
+            }
+
+        accepted.append(accepted_item)
+
+    summary_counts["accepted"] = len(accepted)
+    summary_counts["skipped"] = len(skipped)
+
+    return {
+        "acceptedItems": accepted,
+        "skippedItems": skipped,
+        "warnings": list(warnings.values()),
+        "summaryCounts": summary_counts,
+    }
 
 
 def _extract_picker_items(payload: dict[str, Any]) -> list[Any]:
@@ -137,3 +277,12 @@ def _extract_gps(item: dict[str, Any]) -> GPSLocation | None:
     except ValueError:
         return None
     return _build_gps(latitude, longitude)
+
+
+def _add_warning(
+    warnings: dict[str, dict[str, Any]], code: str, message: str, count: int = 1
+) -> None:
+    if code in warnings:
+        warnings[code]["count"] += count
+        return
+    warnings[code] = {"code": code, "message": message, "count": count}
