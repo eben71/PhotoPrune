@@ -411,7 +411,7 @@ export function startRun(
   return { runId };
 }
 
-export async function pollRun(runId: string): Promise<RunEnvelope> {
+export function pollRun(runId: string): RunEnvelope {
   const record = runRegistry.get(runId);
   if (!record) {
     return buildFailureEnvelope(
@@ -468,13 +468,7 @@ export async function pollRun(runId: string): Promise<RunEnvelope> {
   }
 
   if (record.error) {
-    const resultsOverride = record.envelope?.results;
-    return buildFailureEnvelope(
-      record.runId,
-      record.error,
-      record,
-      resultsOverride
-    );
+    return buildFailureEnvelope(record.runId, record.error, record);
   }
 
   const startedAt = new Date(record.startedAt).getTime();
@@ -487,7 +481,7 @@ export async function pollRun(runId: string): Promise<RunEnvelope> {
   return buildRunningEnvelope(record);
 }
 
-export async function cancelRun(runId: string): Promise<RunEnvelope> {
+export function cancelRun(runId: string): RunEnvelope {
   const record = runRegistry.get(runId);
   if (!record) {
     return buildFailureEnvelope(

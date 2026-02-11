@@ -75,7 +75,7 @@ describe('engineAdapter', () => {
       json: () => Promise.resolve(buildScanResult())
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
-    const completed = await adapter.pollRun(runId);
+    const completed = adapter.pollRun(runId);
     expect(completed.run.status).toBe('COMPLETED');
     expect(completed.results.groups.length).toBe(1);
     expect(completed.results.groups[0].confidence).toBe('HIGH');
@@ -105,7 +105,7 @@ describe('engineAdapter', () => {
       hardCapUnits: 20
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
-    const completed = await adapter.pollRun(runId);
+    const completed = adapter.pollRun(runId);
     expect(completed.run.status).toBe('COMPLETED');
     expect(completed.telemetry.cost.hitHardCap).toBe(true);
     expect(completed.results.groups.length).toBe(1);
@@ -134,7 +134,7 @@ describe('engineAdapter', () => {
       hardCapUnits: 5000
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
-    const completed = await adapter.pollRun(runId);
+    const completed = adapter.pollRun(runId);
     expect(completed.run.status).toBe('COMPLETED');
     expect(completed.telemetry.cost.hitSoftCap).toBe(true);
     expect(completed.telemetry.cost.hitHardCap).toBe(false);
@@ -158,7 +158,7 @@ describe('engineAdapter', () => {
 
     for (const offset of checkpoints) {
       vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z').getTime() + offset);
-      const running = await adapter.pollRun(runId);
+      const running = adapter.pollRun(runId);
       const stageIndex = stageOrder.indexOf(running.progress.stage);
       expect(stageIndex).toBeGreaterThanOrEqual(previousStageIndex);
       expect(running.progress.counts.processed).toBeGreaterThanOrEqual(
@@ -180,7 +180,7 @@ describe('engineAdapter', () => {
     });
     const { runId } = adapter.startRun(selection);
     await new Promise((resolve) => setTimeout(resolve, 0));
-    const failed = await adapter.pollRun(runId);
+    const failed = adapter.pollRun(runId);
     expect(failed.run.status).toBe('FAILED');
   });
 
@@ -193,7 +193,7 @@ describe('engineAdapter', () => {
       NODE_ENV: 'development'
     });
     const { runId } = adapter.startRun(selection);
-    const running = await adapter.pollRun(runId);
+    const running = adapter.pollRun(runId);
     expect(running.run.status).toBe('RUNNING');
   });
 
@@ -201,7 +201,7 @@ describe('engineAdapter', () => {
     const adapter = await loadAdapter({
       NODE_ENV: 'development'
     });
-    const failed = await adapter.pollRun('missing-run');
+    const failed = adapter.pollRun('missing-run');
     expect(failed.run.status).toBe('FAILED');
   });
 
@@ -209,7 +209,7 @@ describe('engineAdapter', () => {
     const adapter = await loadAdapter({
       NODE_ENV: 'development'
     });
-    const failed = await adapter.cancelRun('missing-run');
+    const failed = adapter.cancelRun('missing-run');
     expect(failed.run.status).toBe('FAILED');
   });
 });
