@@ -16,7 +16,9 @@ describe('Phase 2.1 sanity fixtures', () => {
     const parsed = RunEnvelopeSchema.parse(fixture);
     const groups = parsed.results.groups;
     const exactGroup = groups.find((group) => group.groupType === 'EXACT');
-    const burstGroup = groups.find((group) => group.groupType === 'BURST_SERIES');
+    const burstGroup = groups.find(
+      (group) => group.groupType === 'BURST_SERIES'
+    );
 
     expect(exactGroup?.confidence).toBe('HIGH');
     expect(exactGroup?.itemsCount).toBe(3);
