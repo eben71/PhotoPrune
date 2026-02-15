@@ -102,6 +102,8 @@ def test_scan_accepts_picker_payload_alias(monkeypatch):
                         "mediaFile": {
                             "id": "picker-1",
                             "createTime": "2025-01-01T00:00:00Z",
+                            "mimeType": "image/jpeg",
+                            "filename": "picker-1.jpg",
                         }
                     }
                 ]

@@ -150,14 +150,25 @@ Finalize thresholds/models in DECISIONS.md after Phase 1b.
 - ✅ Deterministic, repeatable scan results
 
 ### Phase 2.2: Functional UX
-- [x] Single-session review flow (no background jobs)
-- [x] Grouping + review-only UI (no deletion)
-- [x] Clear match confidence labels + explanations
+- ✅ Single-session review flow (no background jobs)
+- ✅ Grouping + review-only UI (no deletion)
+- ✅ Clear match confidence labels + explanations
 
 ### Phase 2.3: Style & Trust Layer
 - [ ] Trust-first copy (predictability over hype)
 - [ ] Clear scope boundaries visible in UI
 - [ ] Transparency on limits and known failure modes
+- ✅ Checklist A (Selection & Ingestion) verified via automated tests
+
+### Phase 2.3: Phase 2.1 Sanity Checklist Automation
+- ✅ Checklist A (Selection & Ingestion) automated
+- ✅ Checklist B (Execution & Progress) partially automated
+- ✅ Checklist C (Results Correctness) automated
+- ✅ Checklist D (Confidence & Reasons) automated
+- [~] Checklist E (Cost & Limits) partially automated
+- ✅ Checklist F (Failure Handling) automated
+- [ ] Checklist G (UX & Human Review) remains manual by design
+- [~] Checklist H (Regression Guard) partially automated
 
 ### Phase 2.4: Validation & Stress Testing
 - [ ] Validate with real user-selected sets (1k–5k)

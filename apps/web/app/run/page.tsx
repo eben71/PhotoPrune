@@ -17,9 +17,11 @@ const StartRunResponseSchema = z.object({ runId: z.string() });
 
 export default function RunPage() {
   const router = useRouter();
-  const { state, hydrated, applyEnvelope, clearResults } = useRunSession();
+  const { state, hydrated, applyEnvelope, clearResults, clearSelection } =
+    useRunSession();
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isCompleted = state.run?.status === 'COMPLETED';
 
   useEffect(() => {
     if (!hydrated) {
@@ -82,6 +84,11 @@ export default function RunPage() {
     }
   };
 
+  const handleClearSession = () => {
+    clearSelection();
+    router.push('/');
+  };
+
   const handleCancel = async () => {
     if (!state.run?.runId) {
       return;
@@ -97,6 +104,10 @@ export default function RunPage() {
     <section>
       <h1>Run analysis</h1>
       <p>Confirm your selection and start a one-time analysis.</p>
+
+      <button type="button" onClick={handleClearSession}>
+        Clear session
+      </button>
 
       <SelectionSummary selection={state.selection} />
 
@@ -114,13 +125,17 @@ export default function RunPage() {
         </Banner>
       ) : null}
 
-      <button
-        type="button"
-        onClick={() => void handleStart()}
-        disabled={starting || !hydrated || state.selection.length === 0}
-      >
-        {starting ? 'Starting…' : 'Start analysis'}
-      </button>
+      {isCompleted ? (
+        <p aria-live="polite">Analysis completed</p>
+      ) : (
+        <button
+          type="button"
+          onClick={() => void handleStart()}
+          disabled={starting || !hydrated || state.selection.length === 0}
+        >
+          {starting ? 'Starting…' : 'Start analysis'}
+        </button>
+      )}
       {state.run?.status === 'RUNNING' ? (
         <button type="button" onClick={() => void handleCancel()}>
           Cancel run
@@ -130,8 +145,21 @@ export default function RunPage() {
       <ProgressPanel progress={state.progress} status={state.run?.status} />
       <CostPanel telemetry={state.telemetry} />
 
-      {state.run?.status === 'COMPLETED' ? (
-        <Link href="/results">View results</Link>
+      {isCompleted ? (
+        <Link
+          href="/results"
+          style={{
+            display: 'inline-block',
+            marginTop: '0.5rem',
+            padding: '0.5rem 1rem',
+            backgroundColor: '#111',
+            color: '#fff',
+            textDecoration: 'none',
+            borderRadius: '4px'
+          }}
+        >
+          View results
+        </Link>
       ) : null}
     </section>
   );

@@ -7,6 +7,6 @@ export async function GET(
   { params }: { params: Promise<{ runId: string }> }
 ) {
   const { runId } = await params;
-  const envelope = await pollRun(runId);
+  const envelope = pollRun(runId);
   return NextResponse.json(envelope);
 }

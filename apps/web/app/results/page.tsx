@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { Banner } from '../components/Banner';
 import { CostPanel } from '../components/CostPanel';
@@ -9,7 +10,8 @@ import { requireResults } from '../state/sessionGuards';
 import { useRunSession } from '../state/runSessionStore';
 
 export default function ResultsPage() {
-  const { state, hydrated } = useRunSession();
+  const router = useRouter();
+  const { state, hydrated, clearSelection } = useRunSession();
 
   if (!hydrated) {
     return null;
@@ -36,10 +38,19 @@ export default function ResultsPage() {
     results.skippedItems.length > 0 || results.failedItems.length > 0;
   const hitHardCap = telemetry?.cost.hitHardCap ?? false;
 
+  const handleClearSession = () => {
+    clearSelection();
+    router.push('/');
+  };
+
   return (
     <section>
       <h1>Results</h1>
       <p>Potential duplicates grouped by confidence (High/Medium/Low).</p>
+
+      <button type="button" onClick={handleClearSession}>
+        Clear session
+      </button>
 
       {hasIssues || hitHardCap ? (
         <Banner tone="warn" title="Partial results">
