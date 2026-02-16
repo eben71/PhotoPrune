@@ -30,7 +30,7 @@ def test_scan_rejects_disallowed_download_host_returns_422(monkeypatch):
         assert response.status_code == 422
         detail = response.json()["detail"]
         assert "not allowed" in detail
-        assert "downloadUrl host" in detail
+        assert "Download URL host" in detail
     finally:
         config.get_settings.cache_clear()
 
