@@ -121,7 +121,8 @@ function buildFailureEnvelope(
   runId: string,
   message: string,
   record?: RunRecord,
-  resultsOverride?: RunEnvelope['results']
+  resultsOverride?: RunEnvelope['results'],
+  warningCode: 'RUN_NOT_FOUND' | 'RUN_EXECUTION_FAILED' = 'RUN_EXECUTION_FAILED'
 ): RunEnvelope {
   const selectionCount = record?.selection.length ?? 0;
   return {
@@ -156,7 +157,7 @@ function buildFailureEnvelope(
       },
       warnings: [
         {
-          code: 'RUN_NOT_FOUND',
+          code: warningCode,
           severity: 'ERROR',
           message
         }
@@ -164,6 +165,57 @@ function buildFailureEnvelope(
     },
     results: resultsOverride ?? buildEmptyResults()
   };
+}
+
+function formatValidationErrorDetails(detail: unknown): string | null {
+  if (!Array.isArray(detail)) {
+    return null;
+  }
+  const messages = detail
+    .map((entry): string | null => {
+      if (!entry || typeof entry !== 'object') {
+        return null;
+      }
+      const record = entry as Record<string, unknown>;
+      const msg = typeof record.msg === 'string' ? record.msg : null;
+      const loc = Array.isArray(record.loc)
+        ? record.loc
+            .filter(
+              (segment): segment is string | number =>
+                typeof segment === 'string' || typeof segment === 'number'
+            )
+            .map((segment) => String(segment))
+            .join('.')
+        : undefined;
+      if (!msg) {
+        return null;
+      }
+      return loc ? `${loc}: ${msg}` : msg;
+    })
+    .filter((item): item is string => Boolean(item));
+  if (messages.length === 0) {
+    return null;
+  }
+  return messages.join(' | ');
+}
+
+function formatApiErrorMessage(status: number, payload: unknown): string {
+  const prefix = `Phase 2.1 scan failed (${status})`;
+  if (!payload || typeof payload !== 'object') {
+    return `${prefix}.`;
+  }
+  const detail =
+    'detail' in payload
+      ? (payload as Record<string, unknown>).detail
+      : undefined;
+  if (typeof detail === 'string' && detail.trim().length > 0) {
+    return `${prefix}: ${detail}`;
+  }
+  const validationDetails = formatValidationErrorDetails(detail);
+  if (validationDetails) {
+    return `${prefix}: ${validationDetails}`;
+  }
+  return `${prefix}.`;
 }
 
 function mapScanResults(record: RunRecord, scan: ScanResult): RunEnvelope {
@@ -304,27 +356,62 @@ function mapScanResults(record: RunRecord, scan: ScanResult): RunEnvelope {
 
 async function executeRun(record: RunRecord): Promise<void> {
   try {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000';
-    const response = await fetch(`${baseUrl.replace(/\/$/, '')}/api/scan`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        photoItems: record.selection.map((item) => ({
-          id: item.id,
-          createTime: item.createTime,
-          filename: item.filename,
-          mimeType: item.mimeType,
-          downloadUrl: item.baseUrl
-        })),
-        consentConfirmed: true
-      })
+    const baseUrls = Array.from(
+      new Set([
+        process.env.INTERNAL_API_BASE_URL,
+        process.env.NEXT_PUBLIC_API_BASE_URL,
+        'http://localhost:8000'
+      ])
+    ).filter((url): url is string => Boolean(url));
+    const payload = JSON.stringify({
+      photoItems: record.selection.map((item) => ({
+        id: item.id,
+        createTime: item.createTime,
+        filename: item.filename,
+        mimeType: item.mimeType,
+        downloadUrl: item.baseUrl
+      })),
+      consentConfirmed: true
     });
+    let response: Response | undefined;
+    let lastNetworkError: unknown;
+    let lastAttemptedUrl: string | undefined;
+
+    for (const baseUrl of baseUrls) {
+      try {
+        const scanUrl = `${baseUrl.replace(/\/$/, '')}/api/scan`;
+        lastAttemptedUrl = scanUrl;
+        response = await fetch(scanUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: payload
+        });
+        break;
+      } catch (error) {
+        lastNetworkError = error;
+      }
+    }
+
+    if (!response) {
+      const networkMessage =
+        lastNetworkError instanceof Error
+          ? lastNetworkError.message
+          : 'fetch failed';
+      throw new Error(
+        `Unable to reach the scan API (${networkMessage}). Check that the API is running and NEXT_PUBLIC_API_BASE_URL / INTERNAL_API_BASE_URL are correct. Last URL: ${lastAttemptedUrl ?? 'n/a'}`
+      );
+    }
 
     if (!response.ok) {
-      throw new Error(`Phase 2.1 scan failed with status ${response.status}.`);
+      let errorPayload: unknown = null;
+      try {
+        errorPayload = await response.json();
+      } catch {
+        errorPayload = null;
+      }
+      throw new Error(formatApiErrorMessage(response.status, errorPayload));
     }
 
     const scan = (await response.json()) as ScanResult;
@@ -344,6 +431,10 @@ async function executeRun(record: RunRecord): Promise<void> {
     record.status = 'FAILED';
     record.error =
       error instanceof Error ? error.message : 'Unable to run the core engine.';
+    console.error('[run] executeRun failed', {
+      runId: record.runId,
+      message: record.error
+    });
   } finally {
     runRegistry.set(record.runId, record);
   }
@@ -416,7 +507,10 @@ export function pollRun(runId: string): RunEnvelope {
   if (!record) {
     return buildFailureEnvelope(
       runId,
-      'Run not found. The server may have restarted; please start a new session.'
+      'Run not found. The server may have restarted; please start a new session.',
+      undefined,
+      undefined,
+      'RUN_NOT_FOUND'
     );
   }
 
@@ -468,7 +562,13 @@ export function pollRun(runId: string): RunEnvelope {
   }
 
   if (record.error) {
-    return buildFailureEnvelope(record.runId, record.error, record);
+    return buildFailureEnvelope(
+      record.runId,
+      record.error,
+      record,
+      undefined,
+      'RUN_EXECUTION_FAILED'
+    );
   }
 
   const startedAt = new Date(record.startedAt).getTime();
@@ -486,7 +586,10 @@ export function cancelRun(runId: string): RunEnvelope {
   if (!record) {
     return buildFailureEnvelope(
       runId,
-      'Run not found. The server may have restarted; please start a new session.'
+      'Run not found. The server may have restarted; please start a new session.',
+      undefined,
+      undefined,
+      'RUN_NOT_FOUND'
     );
   }
 

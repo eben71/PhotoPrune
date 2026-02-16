@@ -172,7 +172,11 @@ describe('engineAdapter', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(() =>
-        Promise.resolve({ ok: false, status: 500 })
+        Promise.resolve({
+          ok: false,
+          status: 500,
+          json: () => Promise.resolve({ detail: 'Internal server error' })
+        })
       ) as unknown as typeof fetch
     );
     const adapter = await loadAdapter({
@@ -182,6 +186,94 @@ describe('engineAdapter', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     const failed = adapter.pollRun(runId);
     expect(failed.run.status).toBe('FAILED');
+    expect(failed.telemetry.warnings[0]?.code).toBe('RUN_EXECUTION_FAILED');
+    expect(failed.progress.message).toContain('Phase 2.1 scan failed (500)');
+    expect(failed.progress.message).toContain('Internal server error');
+  });
+
+  it('surfaces FastAPI 422 validation details', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ok: false,
+          status: 422,
+          json: () =>
+            Promise.resolve({
+              detail: [
+                {
+                  loc: ['body', 'photoItems', 0, 'downloadUrl'],
+                  msg: 'Field required',
+                  type: 'missing'
+                }
+              ]
+            })
+        })
+      ) as unknown as typeof fetch
+    );
+    const adapter = await loadAdapter({
+      NODE_ENV: 'development'
+    });
+    const { runId } = adapter.startRun(selection);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const failed = adapter.pollRun(runId);
+    expect(failed.run.status).toBe('FAILED');
+    expect(failed.progress.message).toContain('Phase 2.1 scan failed (422)');
+    expect(failed.progress.message).toContain(
+      'body.photoItems.0.downloadUrl: Field required'
+    );
+  });
+
+  it('prefers INTERNAL_API_BASE_URL for server-side scan requests', async () => {
+    const fetchMock = vi.fn(
+      (..._args: Parameters<typeof fetch>) => new Promise(() => undefined)
+    );
+    vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch);
+    const adapter = await loadAdapter({
+      NODE_ENV: 'development',
+      INTERNAL_API_BASE_URL: 'http://api:8000',
+      NEXT_PUBLIC_API_BASE_URL: 'http://localhost:8000'
+    });
+
+    adapter.startRun(selection);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(fetchMock).toHaveBeenCalled();
+    expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
+      'http://api:8000/api/scan'
+    );
+  });
+
+  it('falls back to NEXT_PUBLIC_API_BASE_URL when internal host is unreachable', async () => {
+    const fetchMock = vi
+      .fn(
+        (..._args: Parameters<typeof fetch>): Promise<unknown> =>
+          Promise.resolve({})
+      )
+      .mockRejectedValueOnce(new TypeError('fetch failed'))
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(buildScanResult())
+      });
+    vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch);
+    const adapter = await loadAdapter({
+      NODE_ENV: 'development',
+      INTERNAL_API_BASE_URL: 'http://api:8000',
+      NEXT_PUBLIC_API_BASE_URL: 'http://localhost:8000'
+    });
+
+    const { runId } = adapter.startRun(selection);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const completed = adapter.pollRun(runId);
+
+    expect(completed.run.status).toBe('COMPLETED');
+    expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
+      'http://api:8000/api/scan'
+    );
+    expect(String(fetchMock.mock.calls[1]?.[0])).toBe(
+      'http://localhost:8000/api/scan'
+    );
   });
 
   it('returns a running envelope while awaiting the scan', async () => {
@@ -203,6 +295,7 @@ describe('engineAdapter', () => {
     });
     const failed = adapter.pollRun('missing-run');
     expect(failed.run.status).toBe('FAILED');
+    expect(failed.telemetry.warnings[0]?.code).toBe('RUN_NOT_FOUND');
   });
 
   it('returns a failure envelope when cancelling an unknown run', async () => {

@@ -181,7 +181,7 @@ make agent-<name>
 ENVIRONMENT=local
 SCAN_MAX_PHOTOS=250
 SCAN_CONSENT_THRESHOLD=200
-SCAN_ALLOWED_DOWNLOAD_HOSTS=photos.google.com,lh3.googleusercontent.com,googleusercontent.com
+SCAN_ALLOWED_DOWNLOAD_HOSTS=photos.google.com,lh3.googleusercontent.com,googleusercontent.com,placehold.co
 SCAN_DHASH_THRESHOLD_VERY=5
 SCAN_DHASH_THRESHOLD_POSSIBLE=10
 SCAN_PHASH_THRESHOLD_VERY=6
@@ -202,6 +202,7 @@ include `googleusercontent.com` or `.googleusercontent.com` in the allowlist, wh
 only `lh<N>.googleusercontent.com` (not arbitrary subdomains). URLs are rejected if they
 resolve to non-global addresses to mitigate SSRF risk. Fixtures must not obfuscate hostnames;
 if they do, add the real hostnames to the allowlist in local/dev.
+The sample web selection uses `placehold.co`; include it in local allowlists if enabled.
 
 For small scans where metadata narrowing yields zero candidates, the engine optionally
 falls back to a lightweight near-duplicate pass across the full selection when

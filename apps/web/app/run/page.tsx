@@ -22,6 +22,10 @@ export default function RunPage() {
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isCompleted = state.run?.status === 'COMPLETED';
+  const runStatusMessage =
+    state.run?.status === 'COMPLETED'
+      ? 'Run completed. Review groups on the results page.'
+      : (state.progress?.message ?? 'Run in progress.');
 
   useEffect(() => {
     if (!hydrated) {
@@ -119,9 +123,7 @@ export default function RunPage() {
 
       {state.run ? (
         <Banner tone="info" title={`Run status: ${state.run.status}`}>
-          {state.run.status === 'COMPLETED'
-            ? 'Run completed. Review groups on the results page.'
-            : null}
+          {runStatusMessage}
         </Banner>
       ) : null}
 
@@ -133,7 +135,7 @@ export default function RunPage() {
           onClick={() => void handleStart()}
           disabled={starting || !hydrated || state.selection.length === 0}
         >
-          {starting ? 'Starting…' : 'Start analysis'}
+          {starting ? 'Starting...' : 'Start analysis'}
         </button>
       )}
       {state.run?.status === 'RUNNING' ? (
