@@ -149,7 +149,7 @@ Finalize thresholds/models in DECISIONS.md after Phase 1b.
 - ✅ Configurable max photos per run (cost guardrail)
 - ✅ Deterministic, repeatable scan results
 
-### Phase 2.2: Functional UX
+### Phase 2.2: Functional UX (**DONE**)
 - ✅ Single-session review flow (no background jobs)
 - ✅ Grouping + review-only UI (no deletion)
 - ✅ Clear match confidence labels + explanations
@@ -160,15 +160,19 @@ Finalize thresholds/models in DECISIONS.md after Phase 1b.
 - [ ] Transparency on limits and known failure modes
 - ✅ Checklist A (Selection & Ingestion) verified via automated tests
 
-### Phase 2.3: Phase 2.1 Sanity Checklist Automation
-- ✅ Checklist A (Selection & Ingestion) automated
-- ✅ Checklist B (Execution & Progress) partially automated
-- ✅ Checklist C (Results Correctness) automated
-- ✅ Checklist D (Confidence & Reasons) automated
-- [~] Checklist E (Cost & Limits) partially automated
-- ✅ Checklist F (Failure Handling) automated
-- [ ] Checklist G (UX & Human Review) remains manual by design
-- [~] Checklist H (Regression Guard) partially automated
+### Phase 2.3: Phase 2.1 Validation Checklist Tracker
+- [x] **A — Selection & ingestion**: automated coverage for single-item ingest, mixed filenames, duplicate IDs, and unsupported media warnings.
+- [x] **B — Execution & progress**: automated stage-order and non-regressing progress checks.
+- [x] **C — Results correctness**: automated fixture checks for exact duplicates, burst series, and no duplicate item assignment.
+- [x] **D — Confidence + reasons only**: automated assertions for HIGH/MEDIUM/LOW confidence, populated reason codes, and no similarity percentages.
+- [x] **E — Cost & limits**: automated soft-cap warning and hard-cap behavior checks (behavioral assertions, not exact numeric thresholds).
+- [x] **F — Failure handling**: automated checks that bad items are isolated/skipped while accepted items continue and counts remain correct.
+- [ ] **G — UX & human review**: manual-only validation remains required.
+- [x] **H — Schema contract**: automated run-envelope schema validation + snapshot contract coverage.
+
+Manual-only remaining work:
+- [ ] Checklist G human review pass
+- [ ] Cancel + cap smoke tests in live/manual flows
 
 ### Phase 2.4: Validation & Stress Testing
 - [ ] Validate with real user-selected sets (1k–5k)

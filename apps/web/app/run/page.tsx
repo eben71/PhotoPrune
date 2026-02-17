@@ -12,6 +12,7 @@ import { SelectionSummary } from '../components/SelectionSummary';
 import { requireSelection } from '../state/sessionGuards';
 import { useRunSession } from '../state/runSessionStore';
 import { RunEnvelopeSchema } from '../../src/types/phase2Envelope';
+import { getPhase21RunMode } from '../../src/engine/runMode';
 
 const StartRunResponseSchema = z.object({ runId: z.string() });
 
@@ -22,6 +23,8 @@ export default function RunPage() {
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isCompleted = state.run?.status === 'COMPLETED';
+  const runMode = getPhase21RunMode();
+  const showDevRunModeLabel = process.env.NODE_ENV !== 'production';
   const runStatusMessage =
     state.run?.status === 'COMPLETED'
       ? 'Run completed. Review groups on the results page.'
@@ -108,6 +111,9 @@ export default function RunPage() {
     <section>
       <h1>Run analysis</h1>
       <p>Confirm your selection and start a one-time analysis.</p>
+      {showDevRunModeLabel ? (
+        <p data-testid="dev-run-mode-label">Dev mode: {runMode} backend</p>
+      ) : null}
 
       <button type="button" onClick={handleClearSession}>
         Clear session
