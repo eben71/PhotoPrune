@@ -26,6 +26,11 @@ function getFetchUrl(arg: unknown) {
   return arg instanceof URL ? arg.toString() : String(arg);
 }
 
+function getFetchCallUrl(fetchMock: ReturnType<typeof vi.fn>, index: number) {
+  const calls = fetchMock.mock.calls as unknown[][];
+  return getFetchUrl(calls[index]?.[0]);
+}
+
 function buildScanResult() {
   return {
     runId: 'scan-run',
@@ -244,9 +249,7 @@ describe('engineAdapter', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(fetchMock).toHaveBeenCalled();
-    expect(getFetchUrl(fetchMock.mock.calls[0]?.[0])).toBe(
-      'http://api:8000/api/scan'
-    );
+    expect(getFetchCallUrl(fetchMock, 0)).toBe('http://api:8000/api/scan');
   });
 
   it('falls back to NEXT_PUBLIC_API_BASE_URL when internal host is unreachable', async () => {
@@ -270,10 +273,8 @@ describe('engineAdapter', () => {
     const completed = adapter.pollRun(runId);
 
     expect(completed.run.status).toBe('COMPLETED');
-    expect(getFetchUrl(fetchMock.mock.calls[0]?.[0])).toBe(
-      'http://api:8000/api/scan'
-    );
-    expect(getFetchUrl(fetchMock.mock.calls[1]?.[0])).toBe(
+    expect(getFetchCallUrl(fetchMock, 0)).toBe('http://api:8000/api/scan');
+    expect(getFetchCallUrl(fetchMock, 1)).toBe(
       'http://localhost:8000/api/scan'
     );
   });
