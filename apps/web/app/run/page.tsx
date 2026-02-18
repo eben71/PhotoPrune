@@ -12,14 +12,23 @@ import { SelectionSummary } from '../components/SelectionSummary';
 import { requireSelection } from '../state/sessionGuards';
 import { useRunSession } from '../state/runSessionStore';
 import { RunEnvelopeSchema } from '../../src/types/phase2Envelope';
+import { getPhase21RunMode } from '../../src/engine/runMode';
 
 const StartRunResponseSchema = z.object({ runId: z.string() });
 
 export default function RunPage() {
   const router = useRouter();
-  const { state, hydrated, applyEnvelope, clearResults } = useRunSession();
+  const { state, hydrated, applyEnvelope, clearResults, clearSelection } =
+    useRunSession();
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isCompleted = state.run?.status === 'COMPLETED';
+  const runMode = getPhase21RunMode();
+  const showDevRunModeLabel = process.env.NODE_ENV !== 'production';
+  const runStatusMessage =
+    state.run?.status === 'COMPLETED'
+      ? 'Run completed. Review groups on the results page.'
+      : (state.progress?.message ?? 'Run in progress.');
 
   useEffect(() => {
     if (!hydrated) {
@@ -82,6 +91,11 @@ export default function RunPage() {
     }
   };
 
+  const handleClearSession = () => {
+    clearSelection();
+    router.push('/');
+  };
+
   const handleCancel = async () => {
     if (!state.run?.runId) {
       return;
@@ -97,6 +111,13 @@ export default function RunPage() {
     <section>
       <h1>Run analysis</h1>
       <p>Confirm your selection and start a one-time analysis.</p>
+      {showDevRunModeLabel ? (
+        <p data-testid="dev-run-mode-label">Dev mode: {runMode} backend</p>
+      ) : null}
+
+      <button type="button" onClick={handleClearSession}>
+        Clear session
+      </button>
 
       <SelectionSummary selection={state.selection} />
 
@@ -108,19 +129,21 @@ export default function RunPage() {
 
       {state.run ? (
         <Banner tone="info" title={`Run status: ${state.run.status}`}>
-          {state.run.status === 'COMPLETED'
-            ? 'Run completed. Review groups on the results page.'
-            : null}
+          {runStatusMessage}
         </Banner>
       ) : null}
 
-      <button
-        type="button"
-        onClick={() => void handleStart()}
-        disabled={starting || !hydrated || state.selection.length === 0}
-      >
-        {starting ? 'Starting…' : 'Start analysis'}
-      </button>
+      {isCompleted ? (
+        <p aria-live="polite">Analysis completed</p>
+      ) : (
+        <button
+          type="button"
+          onClick={() => void handleStart()}
+          disabled={starting || !hydrated || state.selection.length === 0}
+        >
+          {starting ? 'Starting...' : 'Start analysis'}
+        </button>
+      )}
       {state.run?.status === 'RUNNING' ? (
         <button type="button" onClick={() => void handleCancel()}>
           Cancel run
@@ -130,8 +153,21 @@ export default function RunPage() {
       <ProgressPanel progress={state.progress} status={state.run?.status} />
       <CostPanel telemetry={state.telemetry} />
 
-      {state.run?.status === 'COMPLETED' ? (
-        <Link href="/results">View results</Link>
+      {isCompleted ? (
+        <Link
+          href="/results"
+          style={{
+            display: 'inline-block',
+            marginTop: '0.5rem',
+            padding: '0.5rem 1rem',
+            backgroundColor: '#111',
+            color: '#fff',
+            textDecoration: 'none',
+            borderRadius: '4px'
+          }}
+        >
+          View results
+        </Link>
       ) : null}
     </section>
   );

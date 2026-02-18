@@ -1,0 +1,8 @@
+**/node_modules
+.git
+.turbo
+.uv-cache
+dist
+build
+coverage
+*.log

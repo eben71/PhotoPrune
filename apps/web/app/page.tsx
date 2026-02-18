@@ -17,6 +17,7 @@ export default function HomePage() {
 
   const handleReset = () => {
     clearSelection();
+    router.push('/');
   };
 
   return (

@@ -80,8 +80,7 @@ def _default_fetcher(
         parsed = urlparse(effective_url)
         hostname = parsed.hostname.lower() if parsed.hostname else "unknown"
         raise ValueError(
-            f"Download failed for host '{hostname}' with status {exc.code}. "
-            f"{_download_guidance()}"
+            f"Download failed for host '{hostname}' with status {exc.code}. {_download_guidance()}"
         ) from exc
     except urllib.error.URLError as exc:
         parsed = urlparse(effective_url)
@@ -101,7 +100,7 @@ def validate_download_url(
     original_hostname = original_parsed.hostname.lower() if original_parsed.hostname else ""
     if original_hostname == "host.docker.internal":
         raise ValueError(
-            "Download URL host 'host.docker.internal' is not allowed. " f"{_download_guidance()}"
+            f"Download URL host 'host.docker.internal' is not allowed. {_download_guidance()}"
         )
     override_applied = _has_host_override(original_hostname, overrides)
     effective_url = _rewrite_download_url(url, overrides)
@@ -166,7 +165,10 @@ def _has_host_override(hostname: str, host_overrides: dict[str, str]) -> bool:
 
 
 def _download_guidance() -> str:
-    return "Regenerate fixtures without obfuscating downloadUrl host."
+    return (
+        "Allow this host via SCAN_ALLOWED_DOWNLOAD_HOSTS or map obfuscated hosts "
+        "with SCAN_DOWNLOAD_HOST_OVERRIDES."
+    )
 
 
 def _reject_private_addresses(hostname: str) -> None:
