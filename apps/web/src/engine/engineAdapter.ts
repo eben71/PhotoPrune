@@ -1,6 +1,9 @@
 import { randomUUID } from 'node:crypto';
 
+import fixtureRunEnvelope from '../../fixtures/phase2_2_sample_results.json';
+
 import type { PickerItem, RunEnvelope } from '../types/phase2Envelope';
+import { shouldUsePhase21FixtureMode } from './runMode';
 
 type RunLimits = {
   softCapUnits?: number;
@@ -354,8 +357,40 @@ function mapScanResults(record: RunRecord, scan: ScanResult): RunEnvelope {
   };
 }
 
+function buildFixtureEnvelope(record: RunRecord): RunEnvelope {
+  const fixture = structuredClone(fixtureRunEnvelope) as RunEnvelope;
+  return {
+    ...fixture,
+    run: {
+      ...fixture.run,
+      runId: record.runId,
+      startedAt: record.startedAt,
+      finishedAt: record.finishedAt ?? nowIso(),
+      selection: {
+        requestedCount: record.selection.length,
+        acceptedCount: record.selection.length,
+        rejectedCount: 0
+      }
+    },
+    progress: {
+      ...fixture.progress,
+      counts: {
+        processed: record.selection.length,
+        total: record.selection.length
+      }
+    }
+  };
+}
+
 async function executeRun(record: RunRecord): Promise<void> {
   try {
+    if (shouldUsePhase21FixtureMode()) {
+      record.finishedAt = nowIso();
+      record.envelope = buildFixtureEnvelope(record);
+      record.status = 'COMPLETED';
+      return;
+    }
+
     const baseUrls = Array.from(
       new Set([
         process.env.INTERNAL_API_BASE_URL,

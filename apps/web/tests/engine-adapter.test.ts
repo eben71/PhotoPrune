@@ -15,8 +15,20 @@ const selection: PickerItem[] = [
 
 async function loadAdapter(env: Record<string, string>) {
   vi.resetModules();
+  delete process.env.NEXT_PUBLIC_PHASE2_RUN_MODE;
+  delete process.env.INTERNAL_API_BASE_URL;
+  delete process.env.NEXT_PUBLIC_API_BASE_URL;
   Object.assign(process.env, env);
   return import('../src/engine/engineAdapter');
+}
+
+function getFetchUrl(arg: unknown) {
+  return arg instanceof URL ? arg.toString() : String(arg);
+}
+
+function getFetchCallUrl(fetchMock: ReturnType<typeof vi.fn>, index: number) {
+  const calls = fetchMock.mock.calls as unknown[][];
+  return getFetchUrl(calls[index]?.[0]);
 }
 
 function buildScanResult() {
@@ -225,9 +237,7 @@ describe('engineAdapter', () => {
   });
 
   it('prefers INTERNAL_API_BASE_URL for server-side scan requests', async () => {
-    const fetchMock = vi.fn(
-      (..._args: Parameters<typeof fetch>) => new Promise(() => undefined)
-    );
+    const fetchMock = vi.fn(() => new Promise(() => undefined));
     vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch);
     const adapter = await loadAdapter({
       NODE_ENV: 'development',
@@ -239,17 +249,12 @@ describe('engineAdapter', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(fetchMock).toHaveBeenCalled();
-    expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
-      'http://api:8000/api/scan'
-    );
+    expect(getFetchCallUrl(fetchMock, 0)).toBe('http://api:8000/api/scan');
   });
 
   it('falls back to NEXT_PUBLIC_API_BASE_URL when internal host is unreachable', async () => {
     const fetchMock = vi
-      .fn(
-        (..._args: Parameters<typeof fetch>): Promise<unknown> =>
-          Promise.resolve({})
-      )
+      .fn((): Promise<unknown> => Promise.resolve({}))
       .mockRejectedValueOnce(new TypeError('fetch failed'))
       .mockResolvedValueOnce({
         ok: true,
@@ -268,12 +273,35 @@ describe('engineAdapter', () => {
     const completed = adapter.pollRun(runId);
 
     expect(completed.run.status).toBe('COMPLETED');
-    expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
-      'http://api:8000/api/scan'
-    );
-    expect(String(fetchMock.mock.calls[1]?.[0])).toBe(
+    expect(getFetchCallUrl(fetchMock, 0)).toBe('http://api:8000/api/scan');
+    expect(getFetchCallUrl(fetchMock, 1)).toBe(
       'http://localhost:8000/api/scan'
     );
+  });
+
+  it('uses fixture mode in development when explicitly enabled', async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(buildScanResult())
+      })
+    );
+    vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch);
+    const adapter = await loadAdapter({
+      NODE_ENV: 'development',
+      NEXT_PUBLIC_PHASE2_RUN_MODE: 'fixture'
+    });
+
+    const { runId } = adapter.startRun(selection);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const completed = adapter.pollRun(runId);
+
+    expect(completed.run.status).toBe('COMPLETED');
+    expect(completed.run.runId).toBe(runId);
+    expect(completed.run.selection.requestedCount).toBe(selection.length);
+    expect(completed.telemetry.warnings[0]?.code).toBe('FIXTURE_DATA');
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('returns a running envelope while awaiting the scan', async () => {

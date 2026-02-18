@@ -170,3 +170,57 @@ def test_parse_datetime_handles_invalid_and_naive_values():
 def test_coerce_int_handles_bad_values():
     assert normalizer._coerce_int(None) is None
     assert normalizer._coerce_int("bad") is None
+
+
+def test_normalize_picker_selection_phase21_checklist_a_and_f_behavior():
+    items = [
+        {
+            "id": "keep-1",
+            "createTime": "2024-01-01T10:00:00Z",
+            "mediaFile": {
+                "filename": "Vacation 2024 (東京).JPG",
+                "mimeType": "image/jpeg",
+            },
+        },
+        {
+            "id": "keep-1",
+            "createTime": "2024-01-01T10:00:05Z",
+            "mediaFile": {
+                "filename": "duplicate-id.jpg",
+                "mimeType": "image/jpeg",
+            },
+        },
+        {
+            "id": "skip-heic",
+            "createTime": "2024-01-01T10:00:10Z",
+            "mediaFile": {
+                "filename": "IMG.HEIC",
+                "mimeType": "image/heic",
+            },
+        },
+        {
+            "id": "missing-time",
+            "mediaFile": {
+                "filename": "broken.jpg",
+                "mimeType": "image/jpeg",
+            },
+        },
+    ]
+
+    result = normalizer.normalize_picker_selection(items)
+
+    assert result["summaryCounts"]["input"] == 4
+    assert result["summaryCounts"]["accepted"] == 1
+    assert result["summaryCounts"]["skipped"] == 3
+    assert result["summaryCounts"]["duplicates"] == 1
+    assert result["summaryCounts"]["unsupported"] == 1
+    assert result["acceptedItems"][0]["filename"] == "Vacation 2024 (東京).JPG"
+
+    warning_codes = {warning["code"] for warning in result["warnings"]}
+    assert "DUPLICATE_ID" in warning_codes
+    assert "UNSUPPORTED_MEDIA" in warning_codes
+
+    skipped_reason_codes = [entry["reasonCode"] for entry in result["skippedItems"]]
+    assert "DUPLICATE_ID" in skipped_reason_codes
+    assert "UNSUPPORTED_MEDIA" in skipped_reason_codes
+    assert "MISSING_FIELDS" in skipped_reason_codes

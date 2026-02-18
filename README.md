@@ -220,6 +220,17 @@ servers. Example:
 SCAN_DOWNLOAD_HOST_OVERRIDES=example.test:http://127.0.0.1:8001
 ```
 
+
+### Web dev run mode (Phase 2.2)
+
+```
+NEXT_PUBLIC_PHASE2_RUN_MODE=engine
+```
+
+- Default behavior is explicit: in development, web runs use the real scan engine adapter (`engine`) unless you set `NEXT_PUBLIC_PHASE2_RUN_MODE=fixture`.
+- Fixture mode is dev-only; production always uses the real engine path.
+- When enabled in development, the run page displays a small mode label so engineers can verify whether they are on fixture or engine mode.
+
 ### Fixture Hygiene (Local Dev)
 
 Do not commit live or expiring `downloadUrl` values in fixtures. Keep fixture payloads
