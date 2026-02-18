@@ -17,7 +17,7 @@
     "report:phase1b": "node tools/phase1b-report/cli.js"
   },
   "devDependencies": {
-    "lefthook": "^2.1.0",
+    "lefthook": "^2.1.1",
     "turbo": "^2.8.9",
     "typescript": "^5.9.3"
   },
