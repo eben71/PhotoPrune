@@ -1,6 +1,6 @@
 # PhotoPrune — MVP Roadmap (LLM-Resistant, MVP-First)
 
-> **Purpose**  
+> **Purpose**
 > This roadmap defines the minimum phases required to validate PhotoPrune as a product.
 > It prioritises **early validation of Google Photos constraints**, **user trust**, and **speed to MVP** over architectural elegance.
 >
@@ -13,6 +13,7 @@
 > **Goal:** Create a clean, disciplined workspace so MVP work can start without rework.
 
 ### Repository & Project Scaffolding
+
 - ✅ Initialise mono-repo (frontend + backend, clear separation)
 - ✅ Define top-level folder structure
 - ✅ Add `.gitignore`, `.editorconfig`
@@ -24,16 +25,19 @@
   - ✅ `build`
 
 ### Documentation Skeleton (Minimal but Real)
+
 - ✅ `README.md` (what it is, what it is not, MVP scope boundaries)
 - ✅ `ROADMAP.md` (this file)
 
 ### Code Quality Baseline (Local)
+
 - ✅ Linting configured (language-appropriate)
 - ✅ Formatting rules enforced
 - ✅ Type checking enabled (if applicable)
 - ✅ Pre-commit hooks (lint + format only)
 
 ### CI/CD Baseline (Starts Now)
+
 - ✅ CI pipeline runs on every PR and on main branch updates
 - ✅ CI steps (PR gate):
   - ✅ Install dependencies
@@ -47,12 +51,14 @@
   - ✅ No direct pushes to main
 
 ### Guardrails (Prevent Roadmap Drift)
+
 - ✅ MVP scope explicitly written in README
 - ✅ “Out of scope” list included to prevent drift
 - ✅ No infrastructure provisioning in this phase
 - ✅ No product logic implemented in this phase
 
 **Exit Criteria**
+
 - Repo can be cloned and skeleton can run/build locally
 - CI is green and required for merge
 - Docs exist and clearly constrain scope
@@ -64,6 +70,7 @@
 > **Goal:** Prove Google Photos is viable **before** building the product.
 
 ### Google Photos API Validation (Critical)
+
 - ✅ OAuth flow works end-to-end
 - ✅ Fetch full library (pagination, large accounts)
 - ✅ Measure under realistic conditions:
@@ -75,16 +82,19 @@
 - ✅ Identify hard blockers or unacceptable constraints
 
 ### Feasibility Decision Outcomes
+
 - ✅ **GO:** API limits acceptable → proceed
 - ✅ **ADAPT:** limits tight → adjust scan strategy and retry
 - ✅ **STOP:** limits kill viability → reassess product direction
 
 ### Phase 1 Conclusion (Library API)
+
 - **Library API whole-library enumeration: STOP / not viable**
   - Evidence: [PHASE1_REPORT.md](PHASE1_REPORT.md) and sample runs under `experiments/phase1/runs/*.json`
   - App-created-only scope returns 0 items for typical users
 
 ### CI Additions (Feasibility)
+
 - ✅ Add smoke tests to CI:
   - ✅ App boots in CI (headless)
   - ✅ Minimal health endpoint returns OK (even stubbed)
@@ -98,6 +108,7 @@
 > **Goal:** Validate Picker session flow + ability to retrieve user-selected items at meaningful scale.
 
 ### What We Must Measure
+
 - ✅ Selection friction & practical selection size (10, 200, 1k–5k or album-based)
 - ✅ Ability to list selected media items reliably
 - ✅ Content access works (Picker `baseUrl` fetch with Authorization header + required URL params)
@@ -107,21 +118,24 @@
   - ✅ Near matches via pHash/embeddings on downloaded renditions
 
 ### Red / Amber / Green Gates
+
 - **GREEN:** user can select/retrieve ≥1k items (or album), high content fetch success, metadata gaps <5%
 - **AMBER:** limited selection size or requires re-selection; URL refresh complexities; metadata gaps 5–20%
 - **RED:** can’t reliably retrieve content/metadata; selection too limited; metadata gaps >20%
 
 ### Phase 1b Output
+
 - ✅ Update [DECISIONS.md](DECISIONS.md) and [RISK_REGISTER.md](RISK_REGISTER.md) with findings
 - ✅ Produce a short Phase 1b report (see `experiments/phase1b/` runs + notes)
 - ✅ Clustering + static HTML report for review/calibration (developer-facing)
 
 ### Similarity Pipeline (Tiered Decision)
-1) Candidate narrowing via metadata (mimeType, dimensions, createTime, filename heuristic; GPS only as negative filter when both present)
-2) Near-duplicate scoring via content features (pHash/dHash and/or embeddings) → 0–100 similarity score
-3) Optional exact duplicate confirmation by downloading bytes and hashing (SHA-256)
-Outputs: candidate reduction ratio; cost/time per 1k images; false-positive/false-negative sampling plan.
-Finalize thresholds/models in DECISIONS.md after Phase 1b.
+
+1. Candidate narrowing via metadata (mimeType, dimensions, createTime, filename heuristic; GPS only as negative filter when both present)
+2. Near-duplicate scoring via content features (pHash/dHash and/or embeddings) → 0–100 similarity score
+3. Optional exact duplicate confirmation by downloading bytes and hashing (SHA-256)
+   Outputs: candidate reduction ratio; cost/time per 1k images; false-positive/false-negative sampling plan.
+   Finalize thresholds/models in DECISIONS.md after Phase 1b.
 
 ---
 
@@ -139,52 +153,65 @@ Finalize thresholds/models in DECISIONS.md after Phase 1b.
 > Accuracy perfection is explicitly **not** a goal for Phase 2.
 
 ### Phase 2.0: Documentation & Guardrails
+
 - ✅ Align all docs to Phase 2 validation MVP scope
 - ✅ Record locked decisions + deferred decisions (with TODOs for Phase 3)
 - ✅ Establish cost, trust, and scope guardrails
 
-### Phase 2.1: Core Engine
+### Phase 2.1: Core Engine (**DONE**)
+
 - ✅ Picker API session + selected-item ingestion only
 - ✅ Tiered similarity pipeline (metadata → perceptual hash → optional byte hash)
 - ✅ Configurable max photos per run (cost guardrail)
 - ✅ Deterministic, repeatable scan results
+- ✅ Full automated validation coverage (Checklist A–F, H)
 
 ### Phase 2.2: Functional UX (**DONE**)
+
 - ✅ Single-session review flow (no background jobs)
 - ✅ Grouping + review-only UI (no deletion)
 - ✅ Clear match confidence labels + explanations
+- ✅ Cost summary surfaced in UI
+- ✅ Cancel + cap smoke tests (manual)
+- ✅ End-to-end local validation (engine + UI wired)
+
+### Phase 2.1 & 2.2 Validation Checklist Tracker
+
+- ✅ **A — Selection & ingestion**: automated coverage for single-item ingest, mixed filenames, duplicate IDs, and unsupported media warnings.
+- ✅ **B — Execution & progress**: automated stage-order and non-regressing progress checks.
+- ✅ **C — Results correctness**: automated fixture checks for exact duplicates, burst series, and no duplicate item assignment.
+- ✅ **D — Confidence + reasons only**: automated assertions for HIGH/MEDIUM/LOW confidence, populated reason codes, and no similarity percentages.
+- ✅ **E — Cost & limits**: automated soft-cap warning and hard-cap behavior checks (behavioral assertions, not exact numeric thresholds).
+- ✅ **F — Failure handling**: automated checks that bad items are isolated/skipped while accepted items continue and counts remain correct.
+- ✅ **G — UX & human review**: manual-only validation remains required.
+- ✅ **H — Schema contract**: automated run-envelope schema validation + snapshot contract coverage.
+
+Manual-only remaining work:
+
+- ✅ Checklist G human review pass
+- ✅ Cancel + cap smoke tests in live/manual flows
 
 ### Phase 2.3: Style & Trust Layer
+
 - [ ] Trust-first copy (predictability over hype)
 - [ ] Clear scope boundaries visible in UI
 - [ ] Transparency on limits and known failure modes
 - ✅ Checklist A (Selection & Ingestion) verified via automated tests
 
-### Phase 2.3: Phase 2.1 Validation Checklist Tracker
-- [x] **A — Selection & ingestion**: automated coverage for single-item ingest, mixed filenames, duplicate IDs, and unsupported media warnings.
-- [x] **B — Execution & progress**: automated stage-order and non-regressing progress checks.
-- [x] **C — Results correctness**: automated fixture checks for exact duplicates, burst series, and no duplicate item assignment.
-- [x] **D — Confidence + reasons only**: automated assertions for HIGH/MEDIUM/LOW confidence, populated reason codes, and no similarity percentages.
-- [x] **E — Cost & limits**: automated soft-cap warning and hard-cap behavior checks (behavioral assertions, not exact numeric thresholds).
-- [x] **F — Failure handling**: automated checks that bad items are isolated/skipped while accepted items continue and counts remain correct.
-- [ ] **G — UX & human review**: manual-only validation remains required.
-- [x] **H — Schema contract**: automated run-envelope schema validation + snapshot contract coverage.
-
-Manual-only remaining work:
-- [ ] Checklist G human review pass
-- [ ] Cancel + cap smoke tests in live/manual flows
-
 ### Phase 2.4: Validation & Stress Testing
+
 - [ ] Validate with real user-selected sets (1k–5k)
 - [ ] Stress test cost + time per run
 - [ ] Capture feedback on confidence labels + review flow
 
 ### Phase 2 Guardrails (Cost, Trust, Scope)
+
 - **Cost:** enforce per-run item caps; no library-wide scanning.
 - **Trust:** review-only output; no automated deletion.
 - **Scope:** single-session only; no background sync, no accounts history.
 
 ### Out of Scope for Phase 2
+
 - Library-wide scanning (Library API enumeration)
 - Automatic deletion or bulk destructive actions
 - Embeddings/semantic similarity in the MVP
@@ -193,6 +220,7 @@ Manual-only remaining work:
 - Hosted production deployment guarantees
 
 **Exit Criteria**
+
 - Phase 2 scope is clearly documented and enforced
 - Trust and predictability validated with real users
 - Cost guardrails respected in realistic runs
@@ -204,12 +232,14 @@ Manual-only remaining work:
 > **Goal:** Expand beyond validation MVP if Phase 2 signals are positive.
 
 ### Authentication & Identity
+
 - [ ] Google sign-in (OAuth)
 - [ ] Secure token storage
 - [ ] Token refresh handling
 - [ ] Re-auth flow when tokens are revoked/expired
 
 ### Ingestion Pipeline
+
 - [ ] Fetch media items (paginated)
 - [ ] Store canonical photo reference:
   - [ ] Google Media Item ID
@@ -220,6 +250,7 @@ Manual-only remaining work:
 - [ ] Failure isolation (partial progress survives; job can resume)
 
 **Exit Criteria**
+
 - Can ingest 50k photos without failure
 - Re-scan only processes new/changed items (no full work repeat)
 - No duplicate records created on retry
@@ -231,10 +262,12 @@ Manual-only remaining work:
 > **Goal:** Define how photos, scans, and results are represented (cloud-first, not filesystem-first).
 
 ### Core Entities (Conceptual)
+
 - [ ] **MediaAsset** (cloud-based, no local file paths)
 - [ ] **ScanJob** (status, progress, timestamps, errors)
 - [ ] **DuplicateGroup** (exact / near, representative, members, confidence)
 
 ### Indexing Rules
+
 - [ ] Idempotent ingestion
 - [ ] Stable internal IDs
