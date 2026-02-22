@@ -64,6 +64,10 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+      # minimatch >=10.2.1 is required for GHSA-f8q6-p94x-37v3, but eslint 9.x pins minimatch 3.x.
+      - dependency-name: "minimatch"
+        # Temporary until upstream eslint stack supports a non-vulnerable minimatch major.
+        versions: [">=10"]
     commit-message:
       prefix: "deps"
       include: "scope"

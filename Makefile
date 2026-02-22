@@ -39,9 +39,10 @@ ifeq ($(UV),)
 $(error uv is required. Install via "brew install uv" or "curl -LsSf https://astral.sh/uv/install.sh | sh", ensure it is on PATH, or set UV=/full/path/to/uv)
 endif
 
-.PHONY: setup dev lint format format-check typecheck test build hooks fixture-server agent-%
+.PHONY: setup dev dev-web lint format format-check typecheck test build hooks fixture-server agent-%
 
 _dev_compose := $(DOCKER_RUN) compose -f docker-compose.yml -p photoprune
+_dev_compose_dev := $(DOCKER_RUN) compose -f docker-compose.yml -f docker-compose.dev.yml -p photoprune
 
 setup:
 	$(PNPM) install
@@ -57,7 +58,10 @@ dev:
 	@$(DOCKER_RUN) image inspect redis:7-alpine >/dev/null 2>&1 || $(DOCKER_RUN) pull redis:7-alpine
 	@$(DOCKER_RUN) image inspect python:3.12-slim >/dev/null 2>&1 || $(DOCKER_RUN) pull python:3.12-slim
 	@$(DOCKER_RUN) image inspect node:20-slim >/dev/null 2>&1 || $(DOCKER_RUN) pull node:20-slim
-	$(_dev_compose) up --build --pull never
+	$(_dev_compose_dev) up --build --pull never
+
+dev-web:
+	$(_dev_compose_dev) up --build --pull never --no-deps web
 
 lint:
 	$(PNPM) lint

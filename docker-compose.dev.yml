@@ -1,0 +1,49 @@
+services:
+  api:
+    command:
+      [
+        "uv",
+        "run",
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload",
+        "--reload-dir",
+        "/app/app"
+      ]
+    volumes:
+      - ./apps/api/app:/app/app
+
+  worker:
+    command:
+      [
+        "/bin/bash",
+        "-lc",
+        "uv run celery -A app.celery_app.app worker -l info --pool=solo --autoreload || uv run celery -A app.celery_app.app worker -l info --pool=solo"
+      ]
+    volumes:
+      - ./apps/worker/app:/app/app
+
+  web:
+    environment:
+      CHOKIDAR_USEPOLLING: "1"
+      WATCHPACK_POLLING: "1"
+    command:
+      [
+        "/bin/bash",
+        "-lc",
+        "pnpm --filter web... install --frozen-lockfile && cd /app/apps/web && ./node_modules/.bin/next dev -H 0.0.0.0 -p 3000"
+      ]
+    volumes:
+      - ./package.json:/app/package.json:ro
+      - ./pnpm-lock.yaml:/app/pnpm-lock.yaml:ro
+      - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml:ro
+      - ./turbo.json:/app/turbo.json:ro
+      - ./tsconfig.base.json:/app/tsconfig.base.json:ro
+      - ./scripts/prepare-lefthook.cjs:/app/scripts/prepare-lefthook.cjs:ro
+      - ./apps/web:/app/apps/web
+      - /app/apps/web/node_modules
+      - ./packages/shared:/app/packages/shared

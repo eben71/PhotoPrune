@@ -2,3 +2,9 @@ packages:
   - apps/*
   - packages/*
   - docs
+
+onlyBuiltDependencies:
+  - esbuild
+  - lefthook
+  - sharp
+  - unrs-resolver

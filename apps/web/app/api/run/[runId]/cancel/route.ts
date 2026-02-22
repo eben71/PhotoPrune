@@ -7,6 +7,6 @@ export async function POST(
   { params }: { params: Promise<{ runId: string }> }
 ) {
   const { runId } = await params;
-  const envelope = await cancelRun(runId);
+  const envelope = cancelRun(runId);
   return NextResponse.json(envelope);
 }

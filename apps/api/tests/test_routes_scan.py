@@ -30,7 +30,7 @@ def test_scan_rejects_disallowed_download_host_returns_422(monkeypatch):
         assert response.status_code == 422
         detail = response.json()["detail"]
         assert "not allowed" in detail
-        assert "downloadUrl host" in detail
+        assert "Download URL host" in detail
     finally:
         config.get_settings.cache_clear()
 
@@ -102,6 +102,8 @@ def test_scan_accepts_picker_payload_alias(monkeypatch):
                         "mediaFile": {
                             "id": "picker-1",
                             "createTime": "2025-01-01T00:00:00Z",
+                            "mimeType": "image/jpeg",
+                            "filename": "picker-1.jpg",
                         }
                     }
                 ]
@@ -189,7 +191,8 @@ def test_scan_network_failure_returns_422_without_url(monkeypatch):
         detail = response.json()["detail"]
         expected_detail = (
             "Download failed for host 'photos.google.com' with status 404. "
-            "Regenerate fixtures without obfuscating downloadUrl host."
+            "Allow this host via SCAN_ALLOWED_DOWNLOAD_HOSTS or map obfuscated hosts "
+            "with SCAN_DOWNLOAD_HOST_OVERRIDES."
         )
         assert detail == expected_detail
         assert "https://photos.google.com/file.jpg" not in detail
