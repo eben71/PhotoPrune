@@ -29,9 +29,12 @@ Phase 2.2 delivers a **single-session, review-only** web flow:
 2. **Run** (`/run`) — confirm selection, start analysis, monitor progress + cost, cancel if needed
 3. **Results** (`/results`) — review duplicate groups, expand groups, and open items in Google Photos
 
-The UI consumes a Phase 2.2 envelope schema (version `2.2.0`) and uses a local fixture
-(`apps/web/fixtures/phase2_2_sample_results.json`) via an in-memory adapter to simulate
-engine output until Phase 2.1 is fully wired.
+The UI consumes a Phase 2.2 envelope schema (version `2.2.0`). The run API calls the
+Phase 2.1 `/api/scan` engine and adapts its `ScanResult` payload into the envelope
+shape expected by the UX.
+
+Phase 2.2 runs Next.js images in unoptimized mode to avoid remote host restrictions during
+MVP validation; revisit this in Phase 2.3 when the image pipeline is stabilized.
 
 ## Tech stack (current)
 
@@ -87,7 +90,7 @@ fall back to a conservative Google Photos search link by item id to support manu
 ## Repo Structure
 
 - `apps/web` — Next.js app with the Phase 2.2 flow (`/`, `/run`, `/results`) plus a `/health` check
-- `apps/web/fixtures` — Phase 2.2 sample envelope data for the async run simulation
+- `apps/web/fixtures` — Optional Phase 2.2 sample envelope data for local mocks
 - `apps/api` — FastAPI service exposing `/healthz` and loading settings from env
 - `apps/worker` — Celery worker with a demo `ping` task
 - `packages/shared` — Shared Zod schemas/types (e.g., health payload)
@@ -178,7 +181,7 @@ make agent-<name>
 ENVIRONMENT=local
 SCAN_MAX_PHOTOS=250
 SCAN_CONSENT_THRESHOLD=200
-SCAN_ALLOWED_DOWNLOAD_HOSTS=photos.google.com,lh3.googleusercontent.com,googleusercontent.com
+SCAN_ALLOWED_DOWNLOAD_HOSTS=photos.google.com,lh3.googleusercontent.com,googleusercontent.com,placehold.co
 SCAN_DHASH_THRESHOLD_VERY=5
 SCAN_DHASH_THRESHOLD_POSSIBLE=10
 SCAN_PHASH_THRESHOLD_VERY=6
@@ -199,6 +202,7 @@ include `googleusercontent.com` or `.googleusercontent.com` in the allowlist, wh
 only `lh<N>.googleusercontent.com` (not arbitrary subdomains). URLs are rejected if they
 resolve to non-global addresses to mitigate SSRF risk. Fixtures must not obfuscate hostnames;
 if they do, add the real hostnames to the allowlist in local/dev.
+The sample web selection uses `placehold.co`; include it in local allowlists if enabled.
 
 For small scans where metadata narrowing yields zero candidates, the engine optionally
 falls back to a lightweight near-duplicate pass across the full selection when
@@ -215,6 +219,17 @@ servers. Example:
 ```
 SCAN_DOWNLOAD_HOST_OVERRIDES=example.test:http://127.0.0.1:8001
 ```
+
+
+### Web dev run mode (Phase 2.2)
+
+```
+NEXT_PUBLIC_PHASE2_RUN_MODE=engine
+```
+
+- Default behavior is explicit: in development, web runs use the real scan engine adapter (`engine`) unless you set `NEXT_PUBLIC_PHASE2_RUN_MODE=fixture`.
+- Fixture mode is dev-only; production always uses the real engine path.
+- When enabled in development, the run page displays a small mode label so engineers can verify whether they are on fixture or engine mode.
 
 ### Fixture Hygiene (Local Dev)
 
