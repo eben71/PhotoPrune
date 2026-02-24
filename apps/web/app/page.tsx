@@ -2,9 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 
-import { InlineDisclosure } from './components/InlineDisclosure';
 import { sampleSelection } from './data/sampleSelection';
 import { useRunSession } from './state/runSessionStore';
+import { trustCopy } from './copy/trustCopy';
 
 export default function HomePage() {
   const router = useRouter();
@@ -22,25 +22,48 @@ export default function HomePage() {
 
   return (
     <section>
-      <h1>PhotoPrune</h1>
-      <p>PhotoPrune does not delete anything.</p>
-      <p>
-        You’ll review groups here and open items in Google Photos to manage
-        them.
-      </p>
-      <p>This uses Google Photos API calls for this session.</p>
+      <h1>{trustCopy.landing.header}</h1>
+      <p>{trustCopy.landing.subheader}</p>
+      {trustCopy.landing.safetyLines.map((line) => (
+        <p key={line}>{line}</p>
+      ))}
+
+      <section>
+        <h2>{trustCopy.landing.doesTitle}</h2>
+        <ul>
+          {trustCopy.landing.doesBullets.map((bullet) => (
+            <li key={bullet}>{bullet}</li>
+          ))}
+        </ul>
+      </section>
+
+      <section>
+        <h2>{trustCopy.landing.doesNotTitle}</h2>
+        <ul>
+          {trustCopy.landing.doesNotBullets.map((bullet) => (
+            <li key={bullet}>{bullet}</li>
+          ))}
+        </ul>
+      </section>
+
+      <section>
+        {trustCopy.landing.sessionWarning.map((line) => (
+          <p key={line}>{line}</p>
+        ))}
+      </section>
+
+      <section>
+        {trustCopy.landing.capNotice.map((line) => (
+          <p key={line}>{line}</p>
+        ))}
+      </section>
 
       <button type="button" onClick={handleStart}>
-        Select photos
+        {trustCopy.landing.primaryButton}
       </button>
       <button type="button" onClick={handleReset}>
-        Clear session
+        {trustCopy.landing.secondaryButton}
       </button>
-
-      <InlineDisclosure summary="Why only selected photos?">
-        The MVP only works with items you explicitly pick in Google Photos. No
-        library-wide scanning or background sync happens in this phase.
-      </InlineDisclosure>
     </section>
   );
 }

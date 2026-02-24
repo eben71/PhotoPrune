@@ -13,7 +13,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body>
         <RunSessionProvider>
-          <main>{children}</main>
+          <main className="app-shell">{children}</main>
         </RunSessionProvider>
       </body>
     </html>

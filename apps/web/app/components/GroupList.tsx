@@ -1,4 +1,5 @@
 import type { Group } from '../../src/types/phase2Envelope';
+import { trustCopy } from '../copy/trustCopy';
 import { GroupCard } from './GroupCard';
 
 type GroupListProps = {
@@ -7,15 +8,22 @@ type GroupListProps = {
 
 export function GroupList({ groups }: GroupListProps) {
   if (groups.length === 0) {
-    return <p>No duplicate groups found in your selection.</p>;
+    return (
+      <section>
+        <h2>{trustCopy.results.emptyHeader}</h2>
+        {trustCopy.results.emptyDescription.map((line) => (
+          <p key={line}>{line}</p>
+        ))}
+      </section>
+    );
   }
 
   return (
     <section>
       <h2>Groups</h2>
       <div>
-        {groups.map((group) => (
-          <GroupCard key={group.groupId} group={group} />
+        {groups.map((group, index) => (
+          <GroupCard key={group.groupId} group={group} index={index} />
         ))}
       </div>
     </section>

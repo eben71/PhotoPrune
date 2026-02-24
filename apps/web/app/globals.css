@@ -1,14 +1,107 @@
 :root {
   font-family:
+    Inter,
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
+  color: #1f2937;
+  background: #eef2ff;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 60%, #ffffff 100%);
+}
+
+.app-shell {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   padding: 1rem;
-  background-color: #f6f6f6;
+  margin-bottom: 1rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+h1,
+h2,
+h3 {
+  margin-top: 0;
+  color: #0f172a;
+}
+
+p,
+li {
+  line-height: 1.45;
+}
+
+ul {
+  padding-left: 1.2rem;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+button {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0.55rem 0.9rem;
+  margin-right: 0.5rem;
+  margin-top: 0.4rem;
+  background: #ffffff;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #f8fafc;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+a {
+  color: #1d4ed8;
+}
+
+section[aria-label='Info'] {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+section[aria-label='Warning'] {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+section[aria-label='Error'] {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+img {
+  border-radius: 8px;
+  margin-right: 0.5rem;
+}
+
+@media (min-width: 900px) {
+  .app-shell > section {
+    padding: 1.3rem 1.4rem;
+  }
 }

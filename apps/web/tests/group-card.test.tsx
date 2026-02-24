@@ -87,15 +87,42 @@ const group: Group = {
 };
 
 describe('GroupCard', () => {
-  it('shows +N more and expands to reveal all items', () => {
-    render(<GroupCard group={group} />);
+  it('shows reason panel, Google Photos actions, and expanded items', () => {
+    render(<GroupCard group={group} index={0} />);
 
+    expect(screen.getByText('Confidence: HIGH')).toBeInTheDocument();
     expect(screen.getByText('+2 more')).toBeInTheDocument();
-    expect(screen.queryByText('IMG_0001_ALT.JPG')).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Reason: Strong visual match across structure and content'
+      )
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /show all items/i }));
 
     expect(screen.getByText('IMG_0001_ALT.JPG')).toBeInTheDocument();
-    expect(screen.getByText('IMG_0001_EDIT.JPG')).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('button', { name: /open in google photos/i }).length
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(/mark for potential removal \(review externally\)/i)
+        .length
+    ).toBeGreaterThan(0);
+  });
+
+  it('uses confidence-aware fallback reason text when reason code is unknown', () => {
+    const lowConfidenceGroup: Group = {
+      ...group,
+      confidence: 'LOW',
+      reasonCodes: ['UNKNOWN_REASON']
+    };
+
+    render(<GroupCard group={lowConfidenceGroup} index={1} />);
+
+    expect(
+      screen.getByText(
+        'Reason: Shared visual traits with weaker overall similarity'
+      )
+    ).toBeInTheDocument();
   });
 });

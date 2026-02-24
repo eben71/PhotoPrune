@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Banner } from '../components/Banner';
 import { CostPanel } from '../components/CostPanel';
 import { GroupList } from '../components/GroupList';
+import { trustCopy } from '../copy/trustCopy';
 import { requireResults } from '../state/sessionGuards';
 import { useRunSession } from '../state/runSessionStore';
 
@@ -23,7 +24,8 @@ export default function ResultsPage() {
     return (
       <section>
         <h1>Session expired</h1>
-        <p>Your results are no longer available in this session.</p>
+        <p>{trustCopy.sessionBanner[0]}</p>
+        <p>{trustCopy.sessionBanner[1]}</p>
         <Link href="/">Return to start</Link>
       </section>
     );
@@ -45,20 +47,42 @@ export default function ResultsPage() {
 
   return (
     <section>
-      <h1>Results</h1>
-      <p>Potential duplicates grouped by confidence (High/Medium/Low).</p>
+      <h1>{trustCopy.results.header}</h1>
+      {trustCopy.results.intro.map((line) => (
+        <p key={line}>{line}</p>
+      ))}
+
+      <Banner tone="info" title={trustCopy.sessionBanner[0]}>
+        <p>{trustCopy.sessionBanner[1]}</p>
+      </Banner>
 
       <button type="button" onClick={handleClearSession}>
-        Clear session
+        End Session
       </button>
 
-      {hasIssues || hitHardCap ? (
-        <Banner tone="warn" title="Partial results">
-          {hitHardCap
-            ? 'Hard cap reached; results may be partial.'
-            : 'Some items were skipped or failed during analysis.'}
+      {hitHardCap ? (
+        <Banner tone="warn" title={trustCopy.capReached.header}>
+          {trustCopy.capReached.explanation.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
         </Banner>
       ) : null}
+
+      <section>
+        <h2>{trustCopy.results.confidenceTitle}</h2>
+        <ul>
+          <li>
+            <strong>HIGH:</strong> {trustCopy.results.confidenceBands.HIGH}
+          </li>
+          <li>
+            <strong>MEDIUM:</strong> {trustCopy.results.confidenceBands.MEDIUM}
+          </li>
+          <li>
+            <strong>LOW:</strong> {trustCopy.results.confidenceBands.LOW}
+          </li>
+        </ul>
+        <p>{trustCopy.results.confidenceFooter}</p>
+      </section>
 
       <section>
         <h2>Run summary</h2>
@@ -71,30 +95,12 @@ export default function ResultsPage() {
 
       <GroupList groups={results.groups} />
 
-      {results.skippedItems.length > 0 ? (
-        <section>
-          <h2>Skipped items</h2>
-          <ul>
-            {results.skippedItems.map((item) => (
-              <li key={`${item.itemId}-${item.reasonCode}`}>
-                {item.itemId}: {item.message}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {results.failedItems.length > 0 ? (
-        <section>
-          <h2>Failed items</h2>
-          <ul>
-            {results.failedItems.map((item) => (
-              <li key={`${item.itemId}-${item.reasonCode}`}>
-                {item.itemId}: {item.message}
-              </li>
-            ))}
-          </ul>
-        </section>
+      {hasIssues ? (
+        <Banner tone="warn" title={trustCopy.errors.processing.title}>
+          {trustCopy.errors.processing.body.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </Banner>
       ) : null}
 
       <CostPanel telemetry={telemetry} />

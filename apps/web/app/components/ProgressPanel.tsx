@@ -17,21 +17,21 @@ export function ProgressPanel({ progress, status }: ProgressPanelProps) {
   if (!progress) {
     return (
       <section>
-        <h2>Progress</h2>
-        <p>No run started yet.</p>
+        <h2>Scan progress</h2>
+        <p>This may take a moment.</p>
       </section>
     );
   }
 
   return (
     <section>
-      <h2>Progress</h2>
+      <h2>Scan progress</h2>
       <p>
         Stage: {stageLabels[progress.stage]} ({progress.counts.processed} of{' '}
         {progress.counts.total})
       </p>
       <p>{progress.message}</p>
-      {status === 'RUNNING' ? <p>Working…</p> : null}
+      {status === 'RUNNING' ? <p>Scanning in progress…</p> : null}
     </section>
   );
 }
