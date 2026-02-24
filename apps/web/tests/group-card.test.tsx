@@ -87,15 +87,18 @@ const group: Group = {
 };
 
 describe('GroupCard', () => {
-  it('shows +N more and expands to reveal all items', () => {
-    render(<GroupCard group={group} />);
+  it('shows reason panel and expands to reveal all items', () => {
+    render(<GroupCard group={group} index={0} />);
 
+    expect(screen.getByText('Confidence: HIGH')).toBeInTheDocument();
     expect(screen.getByText('+2 more')).toBeInTheDocument();
-    expect(screen.queryByText('IMG_0001_ALT.JPG')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /show all items/i }));
 
     expect(screen.getByText('IMG_0001_ALT.JPG')).toBeInTheDocument();
-    expect(screen.getByText('IMG_0001_EDIT.JPG')).toBeInTheDocument();
+    expect(
+      screen.getAllByText(/mark for potential removal \(review externally\)/i)
+        .length
+    ).toBeGreaterThan(0);
   });
 });

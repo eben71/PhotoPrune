@@ -13,6 +13,7 @@ import { requireSelection } from '../state/sessionGuards';
 import { useRunSession } from '../state/runSessionStore';
 import { RunEnvelopeSchema } from '../../src/types/phase2Envelope';
 import { getPhase21RunMode } from '../../src/engine/runMode';
+import { trustCopy } from '../copy/trustCopy';
 
 const StartRunResponseSchema = z.object({ runId: z.string() });
 
@@ -22,13 +23,10 @@ export default function RunPage() {
     useRunSession();
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
   const isCompleted = state.run?.status === 'COMPLETED';
   const runMode = getPhase21RunMode();
   const showDevRunModeLabel = process.env.NODE_ENV !== 'production';
-  const runStatusMessage =
-    state.run?.status === 'COMPLETED'
-      ? 'Run completed. Review groups on the results page.'
-      : (state.progress?.message ?? 'Run in progress.');
 
   useEffect(() => {
     if (!hydrated) {
@@ -54,9 +52,14 @@ export default function RunPage() {
 
     const interval = setInterval(() => {
       void (async () => {
-        const response = await fetch(`/api/run/${state.run?.runId}`);
-        const envelope = RunEnvelopeSchema.parse(await response.json());
-        applyEnvelope(envelope);
+        try {
+          const response = await fetch(`/api/run/${state.run?.runId}`);
+          const envelope = RunEnvelopeSchema.parse(await response.json());
+          applyEnvelope(envelope);
+          setError(null);
+        } catch {
+          setError(trustCopy.errors.network.title);
+        }
       })();
     }, 1500);
 
@@ -65,7 +68,7 @@ export default function RunPage() {
 
   const handleStart = async () => {
     if (!hydrated || state.selection.length === 0) {
-      setError('Selection is not ready yet. Please wait a moment.');
+      setError(trustCopy.errors.generic.title);
       return;
     }
     setError(null);
@@ -85,7 +88,7 @@ export default function RunPage() {
       const envelope = RunEnvelopeSchema.parse(await pollResponse.json());
       applyEnvelope(envelope);
     } catch {
-      setError('Unable to start the run. Please try again.');
+      setError(trustCopy.errors.generic.title);
     } finally {
       setStarting(false);
     }
@@ -105,31 +108,54 @@ export default function RunPage() {
     });
     const envelope = RunEnvelopeSchema.parse(await response.json());
     applyEnvelope(envelope);
+    setShowEndSessionConfirm(false);
   };
+
+  const hitHardCap = state.telemetry?.cost.hitHardCap ?? false;
 
   return (
     <section>
-      <h1>Run analysis</h1>
-      <p>Confirm your selection and start a one-time analysis.</p>
+      <h1>{trustCopy.run.header}</h1>
+      {trustCopy.run.subtext.map((line) => (
+        <p key={line}>{line}</p>
+      ))}
+      <p>{trustCopy.run.transparency}</p>
+
       {showDevRunModeLabel ? (
         <p data-testid="dev-run-mode-label">Dev mode: {runMode} backend</p>
       ) : null}
 
-      <button type="button" onClick={handleClearSession}>
-        Clear session
-      </button>
-
       <SelectionSummary selection={state.selection} />
 
       {error ? (
-        <Banner tone="error" title="Run error">
-          {error}
+        <Banner tone="error" title={error}>
+          {error === trustCopy.errors.network.title
+            ? trustCopy.errors.network.body.map((line) => (
+                <p key={line}>{line}</p>
+              ))
+            : trustCopy.errors.generic.body.map((line) => (
+                <p key={line}>{line}</p>
+              ))}
         </Banner>
       ) : null}
 
-      {state.run ? (
-        <Banner tone="info" title={`Run status: ${state.run.status}`}>
-          {runStatusMessage}
+      {state.run?.status === 'FAILED' ? (
+        <Banner tone="error" title={trustCopy.errors.processing.title}>
+          {trustCopy.errors.processing.body.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </Banner>
+      ) : null}
+
+      {hitHardCap ? (
+        <Banner tone="warn" title={trustCopy.capReached.header}>
+          {trustCopy.capReached.explanation.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+          <Link href="/results">{trustCopy.capReached.primaryAction}</Link>
+          <button type="button" onClick={() => setShowEndSessionConfirm(true)}>
+            {trustCopy.capReached.secondaryAction}
+          </button>
         </Banner>
       ) : null}
 
@@ -141,13 +167,40 @@ export default function RunPage() {
           onClick={() => void handleStart()}
           disabled={starting || !hydrated || state.selection.length === 0}
         >
-          {starting ? 'Starting...' : 'Start analysis'}
+          {starting ? 'Starting...' : trustCopy.landing.primaryButton}
         </button>
       )}
+
       {state.run?.status === 'RUNNING' ? (
-        <button type="button" onClick={() => void handleCancel()}>
-          Cancel run
-        </button>
+        <>
+          <button type="button" onClick={() => setShowEndSessionConfirm(true)}>
+            {trustCopy.run.cancelButton}
+          </button>
+          <p>{trustCopy.run.cancelMicrocopy}</p>
+        </>
+      ) : null}
+
+      {showEndSessionConfirm ? (
+        <section role="dialog" aria-modal="true">
+          <h2>{trustCopy.cancelModal.title}</h2>
+          <ul>
+            {trustCopy.cancelModal.bullets.map((bullet) => (
+              <li key={bullet}>{bullet}</li>
+            ))}
+          </ul>
+          {state.run?.status === 'RUNNING' ? (
+            <button type="button" onClick={() => void handleCancel()}>
+              {trustCopy.cancelModal.primaryAction}
+            </button>
+          ) : (
+            <button type="button" onClick={handleClearSession}>
+              {trustCopy.cancelModal.primaryAction}
+            </button>
+          )}
+          <button type="button" onClick={() => setShowEndSessionConfirm(false)}>
+            {trustCopy.cancelModal.secondaryAction}
+          </button>
+        </section>
       ) : null}
 
       <ProgressPanel progress={state.progress} status={state.run?.status} />
@@ -156,17 +209,9 @@ export default function RunPage() {
       {isCompleted ? (
         <Link
           href="/results"
-          style={{
-            display: 'inline-block',
-            marginTop: '0.5rem',
-            padding: '0.5rem 1rem',
-            backgroundColor: '#111',
-            color: '#fff',
-            textDecoration: 'none',
-            borderRadius: '4px'
-          }}
+          style={{ display: 'inline-block', marginTop: '0.5rem' }}
         >
-          View results
+          Review Current Results
         </Link>
       ) : null}
     </section>

@@ -21,13 +21,16 @@
 - Clear confidence labels and known limitations are shown to users.
 - Cost guardrails prevent unexpected usage spikes.
 
-## Phase 2.2 Functional UX (Current)
+## Phase 2.3 Style & Trust Layer (Current)
 
-Phase 2.2 delivers a **single-session, review-only** web flow:
+Phase 2.3 refines the **single-session, review-only** web flow with trust-first copy and transparent state messaging:
 
 1. **Start** (`/`) — expectations + “Select photos” CTA
 2. **Run** (`/run`) — confirm selection, start analysis, monitor progress + cost, cancel if needed
 3. **Results** (`/results`) — review duplicate groups, expand groups, and open items in Google Photos
+
+
+Trust copy is centralized in `apps/web/app/copy/trustCopy.ts`; update guidance lives in `docs/trust-copy.md`.
 
 The UI consumes a Phase 2.2 envelope schema (version `2.2.0`). The run API calls the
 Phase 2.1 `/api/scan` engine and adapts its `ScanResult` payload into the envelope

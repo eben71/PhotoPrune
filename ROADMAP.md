@@ -193,10 +193,11 @@ Manual-only remaining work:
 
 ### Phase 2.3: Style & Trust Layer
 
-- [ ] Trust-first copy (predictability over hype)
-- [ ] Clear scope boundaries visible in UI
-- [ ] Transparency on limits and known failure modes
+- ✅ Trust-first copy (predictability over hype)
+- ✅ Clear scope boundaries visible in UI
+- ✅ Transparency on limits and known failure modes
 - ✅ Checklist A (Selection & Ingestion) verified via automated tests
+- ✅ Trust copy source and update guidance documented (`docs/trust-copy.md`)
 
 ### Phase 2.4: Validation & Stress Testing
 

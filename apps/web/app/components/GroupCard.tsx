@@ -4,15 +4,15 @@ import Image from 'next/image';
 import { useMemo, useState } from 'react';
 
 import type { Group } from '../../src/types/phase2Envelope';
-import { OpenInGooglePhotosButton } from './OpenInGooglePhotosButton';
+import { trustCopy } from '../copy/trustCopy';
 
 const confidenceDescriptions: Record<Group['confidence'], string> = {
-  HIGH: 'Likely duplicates based on strong signals.',
-  MEDIUM: 'Possible duplicates based on partial signals.',
-  LOW: 'Weak match signals; review carefully.'
+  HIGH: trustCopy.results.confidenceBands.HIGH,
+  MEDIUM: trustCopy.results.confidenceBands.MEDIUM,
+  LOW: trustCopy.results.confidenceBands.LOW
 };
 
-export function GroupCard({ group }: { group: Group }) {
+export function GroupCard({ group, index }: { group: Group; index: number }) {
   const [expanded, setExpanded] = useState(false);
 
   const representativeItems = useMemo(() => {
@@ -30,12 +30,24 @@ export function GroupCard({ group }: { group: Group }) {
   return (
     <article>
       <header>
-        <h3>
-          {group.groupType.replace('_', ' ')} · {group.confidence}
-        </h3>
-        <p>{confidenceDescriptions[group.confidence]}</p>
-        <p>Reasons: {group.reasonCodes.join(', ') || 'None listed'}</p>
+        <h3>{`Group ${index + 1} — ${group.confidence} Confidence`}</h3>
+        <p>{`Confidence: ${group.confidence}`}</p>
+        <p>{trustCopy.results.reasonSummary}</p>
       </header>
+
+      <p>{confidenceDescriptions[group.confidence]}</p>
+      <p>{trustCopy.groupDetail.reviewLines[0]}</p>
+      <p>{trustCopy.groupDetail.reviewLines[1]}</p>
+
+      <details>
+        <summary>{trustCopy.results.reasonTitle}</summary>
+        <ul>
+          {trustCopy.results.reasonBullets.map((bullet) => (
+            <li key={bullet}>{bullet}</li>
+          ))}
+        </ul>
+        <p>{trustCopy.results.footnote}</p>
+      </details>
 
       {!expanded ? (
         <div>
@@ -64,7 +76,13 @@ export function GroupCard({ group }: { group: Group }) {
               />
               <p>{item.filename}</p>
               <p>{new Date(item.createTime).toLocaleString()}</p>
-              <OpenInGooglePhotosButton item={item} />
+              <label>
+                <input
+                  type="checkbox"
+                  name={`potential-removal-${item.itemId}`}
+                />
+                {trustCopy.groupDetail.neutralSelection}
+              </label>
             </div>
           ))}
         </div>
