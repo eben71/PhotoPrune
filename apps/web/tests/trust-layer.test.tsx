@@ -2,16 +2,20 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import { GroupList } from '../app/components/GroupList';
-import RunPage from '../app/run/page';
 import ResultsPage from '../app/results/page';
+import RunPage from '../app/run/page';
+import { useRunSession } from '../app/state/runSessionStore';
 
 const mockPush = vi.fn();
 const mockReplace = vi.fn();
 const mockApplyEnvelope = vi.fn();
 const mockClearResults = vi.fn();
 const mockClearSelection = vi.fn();
+const mockSetSelection = vi.fn();
 
-const createSession = () => ({
+type RunSessionContextValue = ReturnType<typeof useRunSession>;
+
+const createSession = (): RunSessionContextValue => ({
   state: {
     selection: [
       {
@@ -20,7 +24,7 @@ const createSession = () => ({
         filename: 'IMG_1.jpg',
         mimeType: 'image/jpeg',
         createTime: '2024-01-01T00:00:00.000Z',
-        type: 'PHOTO' as const
+        type: 'PHOTO'
       }
     ],
     run: null,
@@ -81,12 +85,13 @@ const createSession = () => ({
     }
   },
   hydrated: true,
+  setSelection: mockSetSelection,
   applyEnvelope: mockApplyEnvelope,
   clearResults: mockClearResults,
   clearSelection: mockClearSelection
 });
 
-let currentSession = createSession();
+let currentSession: RunSessionContextValue = createSession();
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush, replace: mockReplace })
@@ -98,15 +103,18 @@ vi.mock('../app/state/runSessionStore', () => ({
 
 beforeEach(() => {
   currentSession = createSession();
-  currentSession.applyEnvelope = mockApplyEnvelope;
-  currentSession.clearResults = mockClearResults;
-  currentSession.clearSelection = mockClearSelection;
   vi.clearAllMocks();
 });
 
 describe('Trust layer states', () => {
   it('shows cancel confirmation trust copy', () => {
-    currentSession.state.run = { runId: 'run-1', status: 'RUNNING' };
+    currentSession.state.run = {
+      runId: 'run-1',
+      status: 'RUNNING',
+      startedAt: '2024-01-01T00:00:00.000Z',
+      finishedAt: null,
+      selection: { requestedCount: 1, acceptedCount: 1, rejectedCount: 0 }
+    };
     currentSession.state.progress = {
       stage: 'COMPARE',
       message: 'Comparing',
@@ -179,7 +187,13 @@ describe('Trust layer states', () => {
   });
 
   it('shows cap reached copy', () => {
-    currentSession.state.run = { runId: 'run-1', status: 'RUNNING' };
+    currentSession.state.run = {
+      runId: 'run-1',
+      status: 'RUNNING',
+      startedAt: '2024-01-01T00:00:00.000Z',
+      finishedAt: null,
+      selection: { requestedCount: 1, acceptedCount: 1, rejectedCount: 0 }
+    };
     currentSession.state.telemetry = {
       cost: {
         apiCalls: 2,
