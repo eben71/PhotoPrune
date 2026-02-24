@@ -5,12 +5,42 @@ import { useMemo, useState } from 'react';
 
 import type { Group } from '../../src/types/phase2Envelope';
 import { trustCopy } from '../copy/trustCopy';
+import { OpenInGooglePhotosButton } from './OpenInGooglePhotosButton';
 
 const confidenceDescriptions: Record<Group['confidence'], string> = {
   HIGH: trustCopy.results.confidenceBands.HIGH,
   MEDIUM: trustCopy.results.confidenceBands.MEDIUM,
   LOW: trustCopy.results.confidenceBands.LOW
 };
+
+const reasonCodeSummary: Record<string, string> = {
+  HASH_MATCH: 'Reason: Strong visual match across structure and content',
+  PHASH_CLOSE:
+    'Reason: Matching dominant features with small visual variations',
+  DHASH_CLOSE: 'Reason: Shared visual composition and similar framing',
+  BURST_SEQUENCE:
+    'Reason: Similar framing or perspective across nearby captures',
+  EDIT_VARIANT: 'Reason: Shared structure with likely edit differences'
+};
+
+function getReasonSummary(group: Group) {
+  const firstKnownReason = group.reasonCodes.find(
+    (code) => reasonCodeSummary[code]
+  );
+  if (firstKnownReason) {
+    return reasonCodeSummary[firstKnownReason];
+  }
+
+  if (group.confidence === 'HIGH') {
+    return 'Reason: Strong visual match across structure and content';
+  }
+
+  if (group.confidence === 'MEDIUM') {
+    return 'Reason: Matching dominant features with moderate visual differences';
+  }
+
+  return 'Reason: Shared visual traits with weaker overall similarity';
+}
 
 export function GroupCard({ group, index }: { group: Group; index: number }) {
   const [expanded, setExpanded] = useState(false);
@@ -32,7 +62,7 @@ export function GroupCard({ group, index }: { group: Group; index: number }) {
       <header>
         <h3>{`Group ${index + 1} — ${group.confidence} Confidence`}</h3>
         <p>{`Confidence: ${group.confidence}`}</p>
-        <p>{trustCopy.results.reasonSummary}</p>
+        <p>{getReasonSummary(group)}</p>
       </header>
 
       <p>{confidenceDescriptions[group.confidence]}</p>
@@ -76,6 +106,7 @@ export function GroupCard({ group, index }: { group: Group; index: number }) {
               />
               <p>{item.filename}</p>
               <p>{new Date(item.createTime).toLocaleString()}</p>
+              <OpenInGooglePhotosButton item={item} />
               <label>
                 <input
                   type="checkbox"
