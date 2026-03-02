@@ -201,9 +201,9 @@ Manual-only remaining work:
 
 ### Phase 2.4: Validation & Stress Testing
 
-- [ ] Validate with real user-selected sets (1k–5k)
-- [ ] Stress test cost + time per run
-- [ ] Capture feedback on confidence labels + review flow
+- ✅ Validate with real user-selected sets (1k–5k)
+- ✅ Stress test cost + time per run
+- ✅ Capture feedback on confidence labels + review flow
 
 ### Phase 2 Guardrails (Cost, Trust, Scope)
 
