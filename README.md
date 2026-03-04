@@ -132,7 +132,7 @@ Use `tools/picker-harness.html` to run the Google Photos Picker flow locally and
    ```bash
    py -m http.server --directory tools 42813
    ```
-2. Open `http://localhost:8001/picker-harness.html`.
+2. Open `http://localhost:42813/picker-harness.html`.
 3. Use a **Web application** OAuth client and ensure the **Authorized JavaScript origin** matches the page’s origin (shown at the top of the page).
 4. Click **Authorize**, then **Open Picker**, select items, and wait for polling to finish.
 5. Copy or download the JSON payload, then save it as a fixture (for example, in `apps/web/fixtures/`).
