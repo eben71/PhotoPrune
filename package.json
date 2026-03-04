@@ -13,8 +13,7 @@
     "build": "turbo build",
     "agent:fix:ci": "node skills/agent-fix-ci/agent-fix-ci.mjs",
     "check:docs": "node scripts/check-docs.js",
-    "prepare": "node scripts/prepare-lefthook.cjs",
-    "report:phase1b": "node tools/phase1b-report/cli.js"
+    "prepare": "node scripts/prepare-lefthook.cjs"
   },
   "devDependencies": {
     "lefthook": "^2.1.2",
