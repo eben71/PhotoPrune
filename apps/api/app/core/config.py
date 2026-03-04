@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     scan_cost_per_comparison: float = 0.00001
     scan_small_input_fallback_max: int = 20
     scan_explain: bool = False
+    project_db_path: str = "/tmp/photoprune_projects.db"
 
     @field_validator("cors_origins", mode="before")
     @classmethod

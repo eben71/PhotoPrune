@@ -233,9 +233,9 @@ Manual-only remaining work:
 
 ### Projects & Persistence
 
-- [ ] Introduce Projects (cleanup campaigns) so users can return to the same effort over time.
-- [ ] Persist review state across sessions using metadata only (no image bytes stored).
-- [ ] Support resume flow with clear progress tracking per project.
+- ✅ Introduce Projects (cleanup campaigns) so users can return to the same effort over time.
+- ✅ Persist review state across sessions using metadata only (no image bytes stored).
+- ✅ Support resume flow with clear progress tracking per project.
 
 ### Scoped Ingestion (Read-Only)
 
@@ -247,9 +247,9 @@ Manual-only remaining work:
 
 ### Manual Action Guidance
 
-- [ ] Provide per-group checklists to guide manual cleanup in Google Photos.
-- [ ] Offer CSV/JSON exports and copyable item lists for manual execution.
-- [ ] Include deep links to Google Photos when available.
+- ✅ Provide per-group checklists to guide manual cleanup in Google Photos.
+- ✅ Offer CSV/JSON exports and copyable item lists for manual execution.
+- ✅ Include deep links to Google Photos when available (fallback to item-id search links when needed).
 - [ ] Keep actions manual-only: no write scopes and no automated delete/move/archive actions.
 
 **Exit Criteria**
