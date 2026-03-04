@@ -29,7 +29,6 @@ Phase 2.3 refines the **single-session, review-only** web flow with trust-first 
 2. **Run** (`/run`) — confirm selection, start analysis, monitor progress + cost, cancel if needed
 3. **Results** (`/results`) — review duplicate groups, expand groups, and open items in Google Photos
 
-
 Trust copy is centralized in `apps/web/app/copy/trustCopy.ts`; update guidance lives in `docs/trust-copy.md`.
 
 The UI consumes a Phase 2.2 envelope schema (version `2.2.0`). The run API calls the
@@ -223,7 +222,6 @@ servers. Example:
 SCAN_DOWNLOAD_HOST_OVERRIDES=example.test:http://127.0.0.1:8001
 ```
 
-
 ### Web dev run mode (Phase 2.2)
 
 ```
@@ -256,54 +254,18 @@ tests/fixtures/results/*
 - Pricing plans, billing systems, or free-tier enforcement
 - Hosted production deployment guarantees
 
+## Upcoming Phase 3: Recurring Workflow & Scoped Ingestion (Planned)
+
+- **Projects & Persistence:** Multi-session cleanup projects with persisted metadata + review decisions only (no image bytes stored).
+- **Scoped Ingestion:** Google sign-in with read-only access and user-selected albums/sets only (no full-library scans); persist identifiers/fingerprints to reduce reprocessing.
+- **Manual Action Guidance:** Per-group checklists plus CSV/JSON exports for user-led cleanup; PhotoPrune never deletes or modifies photos automatically.
+
+## Phase 1 Feasibility Summary
+
+Phase 1 established two key outcomes: whole-library enumeration through the Google Photos Library API is not viable for this product direction, while Picker-based user-selected ingestion is viable for Phase 2 review workflows. Those findings informed the locked Phase 2 scope and the planned Phase 3 direction above.
+
 ## Notes
 
 - No secrets are committed. Use `.env.example` as a template and provide values locally.
 - CI enforces linting, formatting, type checking, tests, coverage (>=80%), doc guard, and audits.
 - The checked-in `pnpm-lock.yaml` is a placeholder due to offline bootstrapping; regenerate with `pnpm install` when network access is available and commit the result.
-
-## Reports (Phase 1b)
-
-Generate a static HTML report from Phase 1b artifacts (developer-facing only). This is also
-automatically generated after a successful Phase 1b similarity probe.
-
-```bash
-pnpm report:phase1b -- \
-  --run /mnt/data/2026-01-11T13-24-14-332Z-test-run.json \
-  --items /mnt/data/2026-01-11T13-24-14-332Z-test-items.ndjson \
-  --similarity /mnt/data/2026-01-11T13-24-14-332Z-test-similarity.ndjson \
-  --out experiments/phase1b/reports \
-  --threshold 70 \
-  --topPairs 100
-```
-
-By default the report generator downloads thumbnails when `PHASE1B_REPORT_ACCESS_TOKEN`
-is available. To explicitly cache images for offline viewing:
-
-```bash
-PHASE1B_REPORT_ACCESS_TOKEN=... pnpm report:phase1b -- \
-  --run /mnt/data/2026-01-11T13-24-14-332Z-test-run.json \
-  --items /mnt/data/2026-01-11T13-24-14-332Z-test-items.ndjson \
-  --similarity /mnt/data/2026-01-11T13-24-14-332Z-test-similarity.ndjson \
-  --out experiments/phase1b/reports \
-  --topPairs 100
-```
-
-To skip caching and use remote `baseUrl` images only:
-
-```bash
-pnpm report:phase1b -- \
-  --run /mnt/data/2026-01-11T13-24-14-332Z-test-run.json \
-  --items /mnt/data/2026-01-11T13-24-14-332Z-test-items.ndjson \
-  --similarity /mnt/data/2026-01-11T13-24-14-332Z-test-similarity.ndjson \
-  --out experiments/phase1b/reports \
-  --noDownloadImages
-```
-
-Open the report at:
-
-```bash
-open experiments/phase1b/reports/2026-01-11T13-24-14-332Z-test/report/index.html
-```
-
-Note: images use remote `baseUrl` links and may require a valid auth session in the browser.

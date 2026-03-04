@@ -18,9 +18,21 @@
       }
       body {
         margin: 0;
-        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-          Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-        background: radial-gradient(1200px 800px at 15% 10%, #182147, var(--bg));
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Helvetica,
+          Arial,
+          "Apple Color Emoji",
+          "Segoe UI Emoji";
+        background: radial-gradient(
+          1200px 800px at 15% 10%,
+          #182147,
+          var(--bg)
+        );
         color: var(--text);
       }
       main {
@@ -39,7 +51,8 @@
         line-height: 1.4;
       }
       code {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
           "Liberation Mono", "Courier New", monospace;
       }
       .grid {
@@ -140,21 +153,25 @@
     <main>
       <h1>PhotoPrune Picker Harness</h1>
       <p>
-        Runs the same Google Photos Picker API flow used by
-        <code>experiments/phase1b</code>: get OAuth access token ➜ create picker
-        session ➜ open <code>pickerUri</code> ➜ poll until selected ➜ list
+        Runs the same Google Photos Picker API flow used by PhotoPrune Phase 2/3
+        ingestion: get OAuth access token ➜ create picker session ➜ open
+        <code>pickerUri</code> ➜ poll until selected ➜ list
         <code>mediaItems</code>.
       </p>
       <p class="hint">
-        Note: This must be served over <code>http://localhost</code> / <code>http://127.0.0.1</code> (not
-        <code>file://</code>) for Google Identity Services to work. Your OAuth client must allow this
-        exact JavaScript origin: <code id="origin">(loading…)</code>
+        Note: This must be served over <code>http://localhost</code> /
+        <code>http://127.0.0.1</code> (not <code>file://</code>) for Google
+        Identity Services to work. Your OAuth client must allow this exact
+        JavaScript origin: <code id="origin">(loading…)</code>
       </p>
       <p class="hint">
-        Important: This page uses the browser token flow (GIS <code>initTokenClient</code>). It requires a
-        <strong>Web application</strong> OAuth client with an <strong>Authorized JavaScript origin</strong> matching the
-        value above. It does <strong>not</strong> use <code>CLIENT_SECRET</code> or a redirect URI.
-        The <code>REDIRECT_URI</code> in <code>.env</code> is for the Node/CLI callback flow.
+        Important: This page uses the browser token flow (GIS
+        <code>initTokenClient</code>). It requires a
+        <strong>Web application</strong> OAuth client with an
+        <strong>Authorized JavaScript origin</strong> matching the value above.
+        It does <strong>not</strong> use <code>CLIENT_SECRET</code> or a
+        redirect URI. The <code>REDIRECT_URI</code> in <code>.env</code> is for
+        the Node/CLI callback flow.
       </p>
 
       <div class="grid">
@@ -178,7 +195,12 @@
             </div>
             <div>
               <label for="maxItemCount">Picker max item count (optional)</label>
-              <input id="maxItemCount" type="number" min="1" placeholder="e.g. 100" />
+              <input
+                id="maxItemCount"
+                type="number"
+                min="1"
+                placeholder="e.g. 100"
+              />
             </div>
             <div>
               <label for="fetchLimit">Fetch limit (for fixture size)</label>
@@ -195,9 +217,7 @@
 
           <div style="height: 12px"></div>
 
-          <div class="status" id="status">
-            <strong>Status:</strong> idle
-          </div>
+          <div class="status" id="status"><strong>Status:</strong> idle</div>
 
           <p class="hint">
             The output intentionally excludes the access token.
@@ -248,7 +268,11 @@
       };
 
       function setStatus(message, { ok = false, bad = false } = {}) {
-        const prefix = ok ? '<span class="ok">ok</span>' : bad ? '<span class="bad">error</span>' : "";
+        const prefix = ok
+          ? '<span class="ok">ok</span>'
+          : bad
+            ? '<span class="bad">error</span>'
+            : "";
         elements.status.innerHTML = `<strong>Status:</strong> ${prefix ? prefix + " — " : ""}${escapeHtml(message)}`;
       }
 
@@ -288,7 +312,9 @@
 
         if (!response.ok) {
           const message = await response.text();
-          throw new Error(`Picker API request failed (${response.status}): ${message}`);
+          throw new Error(
+            `Picker API request failed (${response.status}): ${message}`,
+          );
         }
         return response.json();
       }
@@ -306,7 +332,11 @@
         return fetchJson(`/sessions/${encodeURIComponent(sessionId)}`);
       }
 
-      async function listMediaItems({ sessionId, pageSize = 100, pageToken = null }) {
+      async function listMediaItems({
+        sessionId,
+        pageSize = 100,
+        pageToken = null,
+      }) {
         const params = new URLSearchParams({ sessionId });
         if (pageSize) params.set("pageSize", String(pageSize));
         if (pageToken) params.set("pageToken", String(pageToken));
@@ -329,7 +359,10 @@
       }
 
       function isTokenValid() {
-        return Boolean(state.accessToken) && Date.now() < state.accessTokenExpiresAtMs - 15000;
+        return (
+          Boolean(state.accessToken) &&
+          Date.now() < state.accessTokenExpiresAtMs - 15000
+        );
       }
 
       async function authorize() {
@@ -353,7 +386,11 @@
             prompt: "consent",
             callback: (resp) => {
               if (!resp || resp.error) {
-                reject(new Error(resp?.error_description || resp?.error || "OAuth failed"));
+                reject(
+                  new Error(
+                    resp?.error_description || resp?.error || "OAuth failed",
+                  ),
+                );
                 return;
               }
               resolve(resp);
@@ -365,7 +402,10 @@
         state.accessToken = tokenResponse.access_token;
         const expiresInSeconds = Number(tokenResponse.expires_in || 3600);
         state.accessTokenExpiresAtMs = Date.now() + expiresInSeconds * 1000;
-        setStatus(`authorized (expires in ~${Math.round(expiresInSeconds / 60)} min)`, { ok: true });
+        setStatus(
+          `authorized (expires in ~${Math.round(expiresInSeconds / 60)} min)`,
+          { ok: true },
+        );
         elements.btnPick.disabled = false;
       }
 
@@ -386,14 +426,18 @@
 
       async function startPicker() {
         if (!isTokenValid()) {
-          throw new Error("Access token missing/expired. Click Authorize again.");
+          throw new Error(
+            "Access token missing/expired. Click Authorize again.",
+          );
         }
         setStatus("creating session...");
         const session = await createSession();
         state.session = session;
         elements.btnPoll.disabled = false;
 
-        setStatus(`session created (${session.id}). opening picker UI...`, { ok: true });
+        setStatus(`session created (${session.id}). opening picker UI...`, {
+          ok: true,
+        });
         openPickerWindow(session.pickerUri);
 
         // Start background polling automatically.
@@ -408,7 +452,9 @@
         return Math.min(max, base * 2 ** (attempt - 1));
       }
 
-      async function pollUntilSelectionComplete({ timeoutMs = 10 * 60 * 1000 } = {}) {
+      async function pollUntilSelectionComplete({
+        timeoutMs = 10 * 60 * 1000,
+      } = {}) {
         if (state.polling) {
           return;
         }
@@ -428,17 +474,23 @@
             state.session = session;
 
             if (session.mediaItemsSet) {
-              setStatus("selection complete. fetching media items...", { ok: true });
+              setStatus("selection complete. fetching media items...", {
+                ok: true,
+              });
               const payload = await fetchSelectionPayload();
               writeOutput(payload);
-              setStatus("done — payload written to textarea + console", { ok: true });
+              setStatus("done — payload written to textarea + console", {
+                ok: true,
+              });
               return;
             }
 
             const delay = nextPollDelayMs(attempt);
             await new Promise((r) => setTimeout(r, delay));
           }
-          throw new Error("Timed out waiting for picker selection. Use Poll Now after you finish selecting.");
+          throw new Error(
+            "Timed out waiting for picker selection. Use Poll Now after you finish selecting.",
+          );
         } finally {
           state.polling = false;
         }
