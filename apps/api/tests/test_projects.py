@@ -4,7 +4,14 @@ from fastapi.testclient import TestClient
 
 from app.api import routes
 from app.core import config
-from app.engine.schemas import CostEstimate, GroupRepresentativePair, GroupResult, PhotoItemSummary, ScanResult, StageMetrics
+from app.engine.schemas import (
+    CostEstimate,
+    GroupRepresentativePair,
+    GroupResult,
+    PhotoItemSummary,
+    ScanResult,
+    StageMetrics,
+)
 from app.main import create_app
 
 
@@ -31,7 +38,9 @@ def _fake_scan_result() -> ScanResult:
         runId="run-1",
         inputCount=2,
         stageMetrics=StageMetrics(timingsMs={"group": 1.0}, counts={"downloads": 2}),
-        costEstimate=CostEstimate(totalCost=0.01, downloadCost=0.0, hashCost=0.0, comparisonCost=0.0),
+        costEstimate=CostEstimate(
+            totalCost=0.01, downloadCost=0.0, hashCost=0.0, comparisonCost=0.0
+        ),
         groupsExact=[
             GroupResult(
                 groupId="group-1",

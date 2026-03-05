@@ -5,13 +5,14 @@ import hashlib
 import io
 import json
 import sqlite3
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 from uuid import uuid4
 
-from app.engine.schemas import GroupResult, ScanResult
+from app.engine.schemas import ScanResult
 from app.projects.schemas import ProjectGroupReviewPatch
 
 
@@ -116,9 +117,7 @@ class ProjectRepository:
 
     def list_projects(self) -> list[dict[str, Any]]:
         with self._conn() as conn:
-            rows = conn.execute(
-                "SELECT * FROM projects ORDER BY updated_at DESC"
-            ).fetchall()
+            rows = conn.execute("SELECT * FROM projects ORDER BY updated_at DESC").fetchall()
         return [dict(row) for row in rows]
 
     def get_project(self, project_id: str) -> dict[str, Any] | None:
@@ -166,8 +165,18 @@ class ProjectRepository:
                     conn.execute(
                         """
                         INSERT INTO project_items (
-                            id, project_id, google_media_item_id, product_url, deep_link, create_time,
-                            filename, mime_type, width, height, fingerprints, first_seen_at
+                            id,
+                            project_id,
+                            google_media_item_id,
+                            product_url,
+                            deep_link,
+                            create_time,
+                            filename,
+                            mime_type,
+                            width,
+                            height,
+                            fingerprints,
+                            first_seen_at
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         ON CONFLICT(project_id, google_media_item_id) DO UPDATE SET
                             product_url=excluded.product_url,
@@ -215,7 +224,14 @@ class ProjectRepository:
                 conn.execute(
                     """
                     INSERT INTO project_group_reviews (
-                        id, project_id, group_fingerprint, state, keep_media_item_id, notes, updated_at, resolved_at
+                        id,
+                        project_id,
+                        group_fingerprint,
+                        state,
+                        keep_media_item_id,
+                        notes,
+                        updated_at,
+                        resolved_at
                     ) VALUES (?, ?, ?, 'UNREVIEWED', NULL, NULL, ?, NULL)
                     ON CONFLICT(project_id, group_fingerprint) DO NOTHING
                     """,
@@ -226,7 +242,10 @@ class ProjectRepository:
     def list_scans(self, project_id: str) -> list[dict[str, Any]]:
         with self._conn() as conn:
             rows = conn.execute(
-                "SELECT id, project_id, created_at, source_type, source_ref FROM project_scans WHERE project_id = ? ORDER BY created_at DESC",
+                (
+                    "SELECT id, project_id, created_at, source_type, source_ref "
+                    "FROM project_scans WHERE project_id = ? ORDER BY created_at DESC"
+                ),
                 (project_id,),
             ).fetchall()
         return [
@@ -240,16 +259,25 @@ class ProjectRepository:
             for row in rows
         ]
 
-    def get_scan_results(self, project_id: str, scan_id: str) -> tuple[dict[str, Any], dict[str, Any]] | None:
+    def get_scan_results(
+        self, project_id: str, scan_id: str
+    ) -> tuple[dict[str, Any], dict[str, Any]] | None:
         with self._conn() as conn:
             scan_row = conn.execute(
-                "SELECT metrics, scan_envelope_version FROM project_scans WHERE id = ? AND project_id = ?",
+                (
+                    "SELECT metrics, scan_envelope_version FROM project_scans "
+                    "WHERE id = ? AND project_id = ?"
+                ),
                 (scan_id, project_id),
             ).fetchone()
             if not scan_row:
                 return None
             groups = conn.execute(
-                "SELECT group_fingerprint, confidence_band, reason_codes, representative_media_item_id, member_media_item_ids FROM project_groups WHERE project_scan_id = ?",
+                (
+                    "SELECT group_fingerprint, confidence_band, reason_codes, "
+                    "representative_media_item_id, member_media_item_ids "
+                    "FROM project_groups WHERE project_scan_id = ?"
+                ),
                 (scan_id,),
             ).fetchall()
             review_rows = conn.execute(
@@ -257,7 +285,10 @@ class ProjectRepository:
                 (project_id,),
             ).fetchall()
             item_rows = conn.execute(
-                "SELECT google_media_item_id, deep_link, filename, mime_type, create_time, width, height FROM project_items WHERE project_id = ?",
+                (
+                    "SELECT google_media_item_id, deep_link, filename, mime_type, "
+                    "create_time, width, height FROM project_items WHERE project_id = ?"
+                ),
                 (project_id,),
             ).fetchall()
 
@@ -287,8 +318,7 @@ class ProjectRepository:
                             "googlePhotos": {
                                 "url": item.get("deep_link"),
                                 "fallbackQuery": f"{member_id}",
-                                "fallbackUrl": "https://photos.google.com/search/"
-                                f"{member_id}",
+                                "fallbackUrl": "https://photos.google.com/search/" f"{member_id}",
                             }
                         },
                     }
@@ -325,7 +355,11 @@ class ProjectRepository:
                 "status": "COMPLETED",
                 "startedAt": _now_iso(),
                 "finishedAt": _now_iso(),
-                "selection": {"requestedCount": len(item_rows), "acceptedCount": len(item_rows), "rejectedCount": 0},
+                "selection": {
+                    "requestedCount": len(item_rows),
+                    "acceptedCount": len(item_rows),
+                    "rejectedCount": 0,
+                },
             },
             "progress": {
                 "stage": "FINALIZE",
@@ -387,7 +421,10 @@ class ProjectRepository:
     def _get_review(self, project_id: str, group_fingerprint: str) -> dict[str, Any] | None:
         with self._conn() as conn:
             row = conn.execute(
-                "SELECT * FROM project_group_reviews WHERE project_id = ? AND group_fingerprint = ?",
+                (
+                    "SELECT * FROM project_group_reviews WHERE project_id = ? "
+                    "AND group_fingerprint = ?"
+                ),
                 (project_id, group_fingerprint),
             ).fetchone()
         return dict(row) if row else None
