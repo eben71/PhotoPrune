@@ -107,9 +107,7 @@ def set_project_scope(project_id: str, request: ProjectScopeRequest) -> dict[str
     project = get_project_repo().get_project(project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    resolved = resolve_scope(
-        ScopeDefinition(type=request.type, album_ids=request.album_ids or [])
-    )
+    resolved = resolve_scope(ScopeDefinition(type=request.type, album_ids=request.album_ids or []))
     return {"projectId": project_id, "scope": resolved}
 
 

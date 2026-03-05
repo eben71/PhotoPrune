@@ -62,9 +62,7 @@ class ProjectScopeRequest(BaseModel):
 
 
 class ProjectScanRequest(ScanRequest):
-    source_type: Literal["picker", "album_set_stub"] = Field(
-        default="picker", alias="sourceType"
-    )
+    source_type: Literal["picker", "album_set_stub"] = Field(default="picker", alias="sourceType")
     source_ref: dict[str, Any] | None = Field(default=None, alias="sourceRef")
 
 
