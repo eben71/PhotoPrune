@@ -5,8 +5,13 @@ import { useEffect, useState } from 'react';
 
 import { GroupList } from '../../../components/GroupList';
 import type { Group } from '../../../../src/types/phase2Envelope';
+import { ProjectScanResultsResponseSchema } from '../../../../src/types/projects';
 
-type Review = { state: string; keep_media_item_id: string | null; notes: string | null };
+type Review = {
+  state: 'UNREVIEWED' | 'IN_PROGRESS' | 'DONE' | 'SNOOZED';
+  keep_media_item_id?: string | null;
+  notes?: string | null;
+};
 
 export default function ProjectResultsPage({
   params
@@ -17,18 +22,19 @@ export default function ProjectResultsPage({
   useEffect(() => {
     void params.then((value) => setId(value.id));
   }, [params]);
+
   const searchParams = useSearchParams();
   const [groups, setGroups] = useState<Group[]>([]);
   const [reviews, setReviews] = useState<Record<string, Review>>({});
   const scanId = searchParams.get('scanId');
 
   useEffect(() => {
-    if (!scanId) return;
+    if (!id || !scanId) return;
     void (async () => {
       const response = await fetch(`/api/projects/${id}/scans/${scanId}/results`);
-      const payload = await response.json();
+      const payload = ProjectScanResultsResponseSchema.parse(await response.json());
       setGroups(payload.envelope.results.groups);
-      setReviews(payload.reviews ?? {});
+      setReviews(payload.reviews);
     })();
   }, [id, scanId]);
 
@@ -45,8 +51,11 @@ export default function ProjectResultsPage({
   };
 
   const copyChecklist = async (group: Group) => {
-    const keepId = reviews[group.groupId]?.keep_media_item_id ?? group.representativeItemIds[0];
-    const remove = group.items.map((item) => item.itemId).filter((itemId) => itemId !== keepId);
+    const keepId =
+      reviews[group.groupId]?.keep_media_item_id ?? group.representativeItemIds[0];
+    const remove = group.items
+      .map((item) => item.itemId)
+      .filter((itemId) => itemId !== keepId);
     const text = `Keep: ${keepId}\nRemove candidates: ${remove.join(', ')}`;
     await navigator.clipboard.writeText(text);
   };
@@ -69,7 +78,9 @@ export default function ProjectResultsPage({
       </button>
       <GroupList groups={groups} />
       {groups.map((group) => {
-        const keepId = reviews[group.groupId]?.keep_media_item_id ?? group.representativeItemIds[0];
+        const keepId =
+          reviews[group.groupId]?.keep_media_item_id ??
+          group.representativeItemIds[0];
         const removeCandidates = group.items
           .map((item) => item.itemId)
           .filter((itemId) => itemId !== keepId);
@@ -86,7 +97,12 @@ export default function ProjectResultsPage({
               Mark DONE
             </button>
             {group.items.map((item) => (
-              <a key={item.itemId} href={item.links.googlePhotos.url ?? item.links.googlePhotos.fallbackUrl} target="_blank" rel="noreferrer">
+              <a
+                key={item.itemId}
+                href={item.links.googlePhotos.url ?? item.links.googlePhotos.fallbackUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
                 Open {item.itemId}
               </a>
             ))}

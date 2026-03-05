@@ -3,7 +3,12 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-type Scan = { id: string; createdAt: string; sourceType: string };
+import {
+  type ProjectScanRecord,
+  ProjectSchema,
+  ProjectScanRecordSchema,
+  ProjectScanResultsResponseSchema
+} from '../../../src/types/projects';
 
 export default function ProjectDetailPage({
   params
@@ -11,7 +16,7 @@ export default function ProjectDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const [projectName, setProjectName] = useState('');
-  const [scans, setScans] = useState<Scan[]>([]);
+  const [scans, setScans] = useState<ProjectScanRecord[]>([]);
   const [doneCount, setDoneCount] = useState(0);
   const [unreviewedCount, setUnreviewedCount] = useState(0);
 
@@ -19,20 +24,31 @@ export default function ProjectDetailPage({
     void (async () => {
       const { id } = await params;
       const projectResponse = await fetch(`/api/projects/${id}`);
-      const project = await projectResponse.json();
+      const project = ProjectSchema.parse(await projectResponse.json());
       setProjectName(project.name);
+
       const scansResponse = await fetch(`/api/projects/${id}/scans`);
-      const scansPayload = await scansResponse.json();
+      const scansPayload = ProjectScanRecordSchema.array().parse(
+        await scansResponse.json()
+      );
       setScans(scansPayload);
-      if (scansPayload[0]) {
-        const resultsResponse = await fetch(
-          `/api/projects/${id}/scans/${scansPayload[0].id}/results`
-        );
-        const results = await resultsResponse.json();
-        const reviews = Object.values(results.reviews ?? {}) as Array<{ state: string }>;
-        setDoneCount(reviews.filter((review) => review.state === 'DONE').length);
-        setUnreviewedCount(reviews.filter((review) => review.state === 'UNREVIEWED').length);
+
+      const latestScan = scansPayload[0];
+      if (!latestScan) {
+        return;
       }
+
+      const resultsResponse = await fetch(
+        `/api/projects/${id}/scans/${latestScan.id}/results`
+      );
+      const results = ProjectScanResultsResponseSchema.parse(
+        await resultsResponse.json()
+      );
+      const reviews = Object.values(results.reviews);
+      setDoneCount(reviews.filter((review) => review.state === 'DONE').length);
+      setUnreviewedCount(
+        reviews.filter((review) => review.state === 'UNREVIEWED').length
+      );
     })();
   }, [params]);
 
@@ -42,7 +58,9 @@ export default function ProjectDetailPage({
       <p>Done: {doneCount}</p>
       <p>Unreviewed: {unreviewedCount}</p>
       <Link href="./run">New scan</Link>
-      {scans[0] ? <Link href={`./results?scanId=${scans[0].id}`}>Resume latest results</Link> : null}
+      {scans[0] ? (
+        <Link href={`./results?scanId=${scans[0].id}`}>Resume latest results</Link>
+      ) : null}
       <h2>Scans</h2>
       <ul>
         {scans.map((scan) => (

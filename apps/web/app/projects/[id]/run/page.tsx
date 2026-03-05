@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { sampleSelection } from '../../../data/sampleSelection';
+import { ProjectScanResponseSchema } from '../../../../src/types/projects';
 
 export default function ProjectRunPage({
   params
@@ -32,7 +33,7 @@ export default function ProjectRunPage({
         }))
       })
     });
-    const payload = await response.json();
+    const payload = ProjectScanResponseSchema.parse(await response.json());
     router.push(`/projects/${id}/results?scanId=${payload.projectScanId}`);
   };
 
@@ -40,7 +41,7 @@ export default function ProjectRunPage({
     <section>
       <h1>Project scan</h1>
       <p>Manual-only guidance. No deletion API calls are performed.</p>
-      <button type="button" onClick={() => void handleStart()}>
+      <button type="button" onClick={() => void handleStart()} disabled={!id}>
         Start project scan
       </button>
     </section>

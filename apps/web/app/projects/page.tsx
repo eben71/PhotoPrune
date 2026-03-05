@@ -3,7 +3,10 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-type Project = { id: string; name: string; status: string };
+import {
+  type Project,
+  ProjectListResponseSchema
+} from '../../src/types/projects';
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -11,8 +14,8 @@ export default function ProjectsPage() {
 
   const loadProjects = async () => {
     const response = await fetch('/api/projects');
-    const payload = await response.json();
-    setProjects(payload.projects ?? []);
+    const parsed = ProjectListResponseSchema.parse(await response.json());
+    setProjects(parsed.projects);
   };
 
   useEffect(() => {
@@ -33,7 +36,11 @@ export default function ProjectsPage() {
     <section>
       <h1>Projects</h1>
       <p>Create a recurring cleanup campaign. Manual-only, no auto-delete.</p>
-      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Project name" />
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Project name"
+      />
       <button type="button" onClick={() => void createProject()} disabled={!name.trim()}>
         Create project
       </button>
