@@ -15,6 +15,7 @@ export default function ProjectDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const [projectId, setProjectId] = useState('');
   const [projectName, setProjectName] = useState('');
   const [scans, setScans] = useState<ProjectScanRecord[]>([]);
   const [doneCount, setDoneCount] = useState(0);
@@ -23,6 +24,7 @@ export default function ProjectDetailPage({
   useEffect(() => {
     void (async () => {
       const { id } = await params;
+      setProjectId(id);
       const projectResponse = await fetch(`/api/projects/${id}`);
       const project = ProjectSchema.parse(await projectResponse.json());
       setProjectName(project.name);
@@ -57,9 +59,11 @@ export default function ProjectDetailPage({
       <h1>{projectName || 'Project'}</h1>
       <p>Done: {doneCount}</p>
       <p>Unreviewed: {unreviewedCount}</p>
-      <Link href="./run">New scan</Link>
-      {scans[0] ? (
-        <Link href={`./results?scanId=${scans[0].id}`}>
+      {projectId ? (
+        <Link href={`/projects/${projectId}/run`}>New scan</Link>
+      ) : null}
+      {projectId && scans[0] ? (
+        <Link href={`/projects/${projectId}/results?scanId=${scans[0].id}`}>
           Resume latest results
         </Link>
       ) : null}
