@@ -13,6 +13,8 @@ class ProjectCreateRequest(BaseModel):
 
 
 class ProjectResponse(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     id: str
     user_id: str = Field(alias="userId")
     name: str
@@ -22,11 +24,15 @@ class ProjectResponse(BaseModel):
 
 
 class ProjectScanResponse(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     project_scan_id: str = Field(alias="projectScanId")
     envelope: dict[str, Any]
 
 
 class ProjectScanRecord(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     id: str
     project_id: str = Field(alias="projectId")
     created_at: datetime = Field(alias="createdAt")
@@ -46,6 +52,8 @@ class ProjectGroupReviewPatch(BaseModel):
 
 
 class ProjectGroupReviewResponse(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     id: str
     project_id: str = Field(alias="projectId")
     group_fingerprint: str = Field(alias="groupFingerprint")
