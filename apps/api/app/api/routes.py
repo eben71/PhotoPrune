@@ -1,6 +1,7 @@
 import json
 import logging
 from functools import lru_cache
+from typing import Any
 
 from fastapi import APIRouter, Header, HTTPException, Query, Response, status
 
@@ -169,7 +170,7 @@ def export_project(project_id: str, format: str = Query(default="json")) -> Resp
 
 
 def _to_envelope(scan_result: ScanResult) -> dict[str, object]:
-    groups: list[dict[str, object]] = []
+    groups: list[dict[str, Any]] = []
     for bucket, confidence, reason, group_type in [
         (scan_result.groups_exact, "HIGH", ["HASH_MATCH"], "EXACT"),
         (scan_result.groups_very_similar, "MEDIUM", ["PHASH_CLOSE"], "NEAR_DUPLICATE"),
