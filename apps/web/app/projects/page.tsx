@@ -41,13 +41,18 @@ export default function ProjectsPage() {
         onChange={(e) => setName(e.target.value)}
         placeholder="Project name"
       />
-      <button type="button" onClick={() => void createProject()} disabled={!name.trim()}>
+      <button
+        type="button"
+        onClick={() => void createProject()}
+        disabled={!name.trim()}
+      >
         Create project
       </button>
       <ul>
         {projects.map((project) => (
           <li key={project.id}>
-            <Link href={`/projects/${project.id}`}>{project.name}</Link> ({project.status})
+            <Link href={`/projects/${project.id}`}>{project.name}</Link> (
+            {project.status})
           </li>
         ))}
       </ul>

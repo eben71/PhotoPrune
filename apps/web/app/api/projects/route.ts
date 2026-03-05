@@ -5,5 +5,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  return forward('/api/projects', { method: 'POST', body: await request.text() });
+  return forward('/api/projects', {
+    method: 'POST',
+    body: await request.text()
+  });
 }

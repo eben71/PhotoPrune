@@ -19,14 +19,16 @@ describe('phase 3 projects pages', () => {
           return Promise.resolve(
             new Response(
               JSON.stringify({
-                projects: [{
-                  id: 'p1',
-                  userId: 'local-user',
-                  name: 'Trip',
-                  status: 'active',
-                  createdAt: '2025-01-01T00:00:00Z',
-                  updatedAt: '2025-01-01T00:00:00Z'
-                }]
+                projects: [
+                  {
+                    id: 'p1',
+                    userId: 'local-user',
+                    name: 'Trip',
+                    status: 'active',
+                    createdAt: '2025-01-01T00:00:00Z',
+                    updatedAt: '2025-01-01T00:00:00Z'
+                  }
+                ]
               })
             )
           );
@@ -43,7 +45,11 @@ describe('phase 3 projects pages', () => {
                     status: 'COMPLETED',
                     startedAt: '2025-01-01T00:00:00Z',
                     finishedAt: '2025-01-01T00:00:01Z',
-                    selection: { requestedCount: 2, acceptedCount: 2, rejectedCount: 0 }
+                    selection: {
+                      requestedCount: 2,
+                      acceptedCount: 2,
+                      rejectedCount: 0
+                    }
                   },
                   progress: {
                     stage: 'FINALIZE',
@@ -62,7 +68,11 @@ describe('phase 3 projects pages', () => {
                     warnings: []
                   },
                   results: {
-                    summary: { groupsCount: 1, groupedItemsCount: 2, ungroupedItemsCount: 0 },
+                    summary: {
+                      groupsCount: 1,
+                      groupedItemsCount: 2,
+                      ungroupedItemsCount: 0
+                    },
                     groups: [
                       {
                         groupId: 'g1',
@@ -116,12 +126,20 @@ describe('phase 3 projects pages', () => {
                     failedItems: []
                   }
                 },
-                reviews: { g1: { state: 'UNREVIEWED', keep_media_item_id: null, notes: null } }
+                reviews: {
+                  g1: {
+                    state: 'UNREVIEWED',
+                    keep_media_item_id: null,
+                    notes: null
+                  }
+                }
               })
             )
           );
         }
-        return Promise.resolve(new Response(JSON.stringify({ projectScanId: 'scan-1' })));
+        return Promise.resolve(
+          new Response(JSON.stringify({ projectScanId: 'scan-1' }))
+        );
       }) as unknown as typeof fetch
     );
   });
@@ -148,7 +166,9 @@ describe('phase 3 projects pages', () => {
   it('results page loads state and marks done', async () => {
     const fetchSpy = vi.spyOn(global, 'fetch');
     render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
-    await waitFor(() => expect(screen.getByText('Checklist for g1')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText('Checklist for g1')).toBeInTheDocument()
+    );
     fireEvent.click(screen.getByText('Mark DONE'));
     await waitFor(() =>
       expect(fetchSpy).toHaveBeenCalledWith(

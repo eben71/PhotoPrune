@@ -59,7 +59,9 @@ export default function ProjectDetailPage({
       <p>Unreviewed: {unreviewedCount}</p>
       <Link href="./run">New scan</Link>
       {scans[0] ? (
-        <Link href={`./results?scanId=${scans[0].id}`}>Resume latest results</Link>
+        <Link href={`./results?scanId=${scans[0].id}`}>
+          Resume latest results
+        </Link>
       ) : null}
       <h2>Scans</h2>
       <ul>

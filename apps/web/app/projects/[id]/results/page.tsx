@@ -31,8 +31,12 @@ export default function ProjectResultsPage({
   useEffect(() => {
     if (!id || !scanId) return;
     void (async () => {
-      const response = await fetch(`/api/projects/${id}/scans/${scanId}/results`);
-      const payload = ProjectScanResultsResponseSchema.parse(await response.json());
+      const response = await fetch(
+        `/api/projects/${id}/scans/${scanId}/results`
+      );
+      const payload = ProjectScanResultsResponseSchema.parse(
+        await response.json()
+      );
       setGroups(payload.envelope.results.groups);
       setReviews(payload.reviews);
     })();
@@ -46,13 +50,18 @@ export default function ProjectResultsPage({
     });
     setReviews((current) => ({
       ...current,
-      [groupId]: { ...current[groupId], state: 'DONE', keep_media_item_id: keepMediaItemId }
+      [groupId]: {
+        ...current[groupId],
+        state: 'DONE',
+        keep_media_item_id: keepMediaItemId
+      }
     }));
   };
 
   const copyChecklist = async (group: Group) => {
     const keepId =
-      reviews[group.groupId]?.keep_media_item_id ?? group.representativeItemIds[0];
+      reviews[group.groupId]?.keep_media_item_id ??
+      group.representativeItemIds[0];
     const remove = group.items
       .map((item) => item.itemId)
       .filter((itemId) => itemId !== keepId);
@@ -93,13 +102,19 @@ export default function ProjectResultsPage({
             <button type="button" onClick={() => void copyChecklist(group)}>
               Copy checklist text
             </button>
-            <button type="button" onClick={() => void markDone(group.groupId, keepId)}>
+            <button
+              type="button"
+              onClick={() => void markDone(group.groupId, keepId)}
+            >
               Mark DONE
             </button>
             {group.items.map((item) => (
               <a
                 key={item.itemId}
-                href={item.links.googlePhotos.url ?? item.links.googlePhotos.fallbackUrl}
+                href={
+                  item.links.googlePhotos.url ??
+                  item.links.googlePhotos.fallbackUrl
+                }
                 target="_blank"
                 rel="noreferrer"
               >

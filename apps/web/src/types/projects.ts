@@ -45,4 +45,6 @@ export const ProjectScanResultsResponseSchema = z.object({
 
 export type Project = z.infer<typeof ProjectSchema>;
 export type ProjectScanRecord = z.infer<typeof ProjectScanRecordSchema>;
-export type ProjectScanResultsResponse = z.infer<typeof ProjectScanResultsResponseSchema>;
+export type ProjectScanResultsResponse = z.infer<
+  typeof ProjectScanResultsResponseSchema
+>;
