@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { sampleSelection } from './data/sampleSelection';
@@ -64,6 +65,9 @@ export default function HomePage() {
       <button type="button" onClick={handleReset}>
         {trustCopy.landing.secondaryButton}
       </button>
+      <p>
+        <Link href="/projects">Go to Projects (Phase 3)</Link>
+      </p>
     </section>
   );
 }

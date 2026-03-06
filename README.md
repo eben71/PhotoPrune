@@ -89,6 +89,11 @@ fields or `mediaFile.*`. No photo bytes or URLs are persisted. Google Photos dee
 propagated when provided (`googlePhotosDeepLink` or picker `productUrl`) and otherwise
 fall back to a conservative Google Photos search link by item id to support manual review.
 
+## Phase 3 Implementation Notes
+
+- Projects are now stored in the API database as metadata-only records and scan snapshots; **no image bytes are stored**.
+- Manual-only cleanup guidance is available through per-group checklists, CSV/JSON export, and Google Photos deep links (or safe item-id search fallbacks).
+
 ## Repo Structure
 
 - `apps/web` — Next.js app with the Phase 2.2 flow (`/`, `/run`, `/results`) plus a `/health` check

@@ -1,0 +1,9 @@
+import { forward } from '../../../_lib/backend';
+
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ projectId: string }> }
+) {
+  const { projectId } = await params;
+  return forward(`/api/projects/${projectId}/scans`);
+}
