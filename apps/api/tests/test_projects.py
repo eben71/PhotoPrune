@@ -16,23 +16,27 @@ from app.main import create_app
 
 
 def _fake_scan_result() -> ScanResult:
-    item = PhotoItemSummary(
-        id="item-1",
+    return _fake_scan_result_with_ids("item-1", "item-2")
+
+
+def _fake_scan_result_with_ids(first_id: str, second_id: str) -> ScanResult:
+    first = PhotoItemSummary(
+        id=first_id,
         createTime="2025-01-01T00:00:00Z",
-        filename="IMG_1.jpg",
+        filename=f"{first_id}.jpg",
         mimeType="image/jpeg",
         width=100,
         height=100,
-        googlePhotosDeepLink="https://photos.google.com/photo/item-1",
+        googlePhotosDeepLink=f"https://photos.google.com/photo/{first_id}",
     )
-    item2 = PhotoItemSummary(
-        id="item-2",
+    second = PhotoItemSummary(
+        id=second_id,
         createTime="2025-01-01T00:00:01Z",
-        filename="IMG_2.jpg",
+        filename=f"{second_id}.jpg",
         mimeType="image/jpeg",
         width=100,
         height=100,
-        googlePhotosDeepLink="https://photos.google.com/photo/item-2",
+        googlePhotosDeepLink=f"https://photos.google.com/photo/{second_id}",
     )
     return ScanResult(
         runId="run-1",
@@ -45,11 +49,11 @@ def _fake_scan_result() -> ScanResult:
             GroupResult(
                 groupId="group-1",
                 category="EXACT",
-                items=[item, item2],
-                representativePair=GroupRepresentativePair(earliest=item, latest=item2),
+                items=[first, second],
+                representativePair=GroupRepresentativePair(earliest=first, latest=second),
                 moreCount=0,
                 explanation="exact",
-                googlePhotosDeepLinks=["https://photos.google.com/photo/item-1"],
+                googlePhotosDeepLinks=[f"https://photos.google.com/photo/{first_id}"],
             )
         ],
         groupsVerySimilar=[],
@@ -97,6 +101,39 @@ def test_project_scan_persists_groups_and_reviews(monkeypatch, tmp_path):
     assert results.status_code == 200
     assert results.json()["envelope"]["results"]["summary"]["groupsCount"] == 1
     assert len(results.json()["reviews"]) == 1
+
+
+def test_project_scan_results_are_scoped_to_requested_scan(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    scans = [
+        _fake_scan_result_with_ids("item-a", "item-b"),
+        _fake_scan_result_with_ids("item-c", "item-d"),
+    ]
+
+    def _next_scan(*_):
+        return scans.pop(0)
+
+    monkeypatch.setattr("app.api.routes.scan", _next_scan)
+    project_id = client.post("/api/projects", json={"name": "Campaign"}).json()["id"]
+
+    first_scan_id = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={"photoItems": [{"id": "item-a", "createTime": "2025-01-01T00:00:00Z"}]},
+    ).json()["projectScanId"]
+    client.post(
+        f"/api/projects/{project_id}/scan",
+        json={"photoItems": [{"id": "item-c", "createTime": "2025-01-01T00:00:00Z"}]},
+    )
+
+    first_results = client.get(f"/api/projects/{project_id}/scans/{first_scan_id}/results").json()
+    first_item_ids = {
+        item["itemId"]
+        for group in first_results["envelope"]["results"]["groups"]
+        for item in group["items"]
+    }
+
+    assert first_item_ids == {"item-a", "item-b"}
+    assert first_results["envelope"]["run"]["selection"]["requestedCount"] == 2
 
 
 def test_review_patch_and_export(monkeypatch, tmp_path):

@@ -284,13 +284,25 @@ class ProjectRepository:
                 "SELECT * FROM project_group_reviews WHERE project_id = ?",
                 (project_id,),
             ).fetchall()
-            item_rows = conn.execute(
-                (
-                    "SELECT google_media_item_id, deep_link, filename, mime_type, "
-                    "create_time, width, height FROM project_items WHERE project_id = ?"
-                ),
-                (project_id,),
-            ).fetchall()
+
+            member_ids = sorted(
+                {
+                    member_id
+                    for row in groups
+                    for member_id in json.loads(row["member_media_item_ids"])
+                }
+            )
+            item_rows: list[sqlite3.Row] = []
+            if member_ids:
+                placeholders = ",".join("?" for _ in member_ids)
+                item_rows = conn.execute(
+                    (
+                        "SELECT google_media_item_id, deep_link, filename, mime_type, "
+                        "create_time, width, height FROM project_items "
+                        f"WHERE project_id = ? AND google_media_item_id IN ({placeholders})"
+                    ),
+                    (project_id, *member_ids),
+                ).fetchall()
 
         item_map = {row["google_media_item_id"]: dict(row) for row in item_rows}
         envelope_groups = []
