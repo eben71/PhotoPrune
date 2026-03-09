@@ -149,6 +149,77 @@ describe('phase 3 projects pages', () => {
     await waitFor(() => expect(screen.getByText('Trip')).toBeInTheDocument());
   });
 
+  it('handles empty projects response body without throwing', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string) => {
+        if (input === '/api/projects') {
+          return Promise.resolve(new Response(null, { status: 200 }));
+        }
+        return Promise.resolve(
+          new Response(JSON.stringify({ projectScanId: 'scan-1' }))
+        );
+      }) as unknown as typeof fetch
+    );
+
+    render(<ProjectsPage />);
+    await waitFor(() =>
+      expect(screen.queryByRole('listitem')).not.toBeInTheDocument()
+    );
+  });
+
+  it('shows create errors and preserves the entered name', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string, init?: RequestInit) => {
+        if (input === '/api/projects' && init?.method === 'POST') {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                error:
+                  'PhotoPrune API is unavailable. Start the API service and retry.'
+              }),
+              {
+                status: 503,
+                headers: { 'Content-Type': 'application/json' }
+              }
+            )
+          );
+        }
+
+        if (input === '/api/projects') {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                projects: []
+              })
+            )
+          );
+        }
+
+        return Promise.resolve(
+          new Response(JSON.stringify({ projectScanId: 'scan-1' }))
+        );
+      }) as unknown as typeof fetch
+    );
+
+    render(<ProjectsPage />);
+
+    fireEvent.change(screen.getByPlaceholderText('Project name'), {
+      target: { value: 'Trip cleanup' }
+    });
+    fireEvent.click(screen.getByText('Create project'));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          'PhotoPrune API is unavailable. Start the API service and retry.'
+        )
+      ).toBeInTheDocument()
+    );
+    expect(screen.getByDisplayValue('Trip cleanup')).toBeInTheDocument();
+  });
+
   it('project run posts to project scan endpoint', async () => {
     const fetchSpy = vi.spyOn(global, 'fetch');
     render(<ProjectRunPage params={Promise.resolve({ id: 'p1' })} />);

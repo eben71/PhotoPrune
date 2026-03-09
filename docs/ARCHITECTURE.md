@@ -2,7 +2,7 @@
 
 ## Services
 
-- **Web (`apps/web`)**: Next.js app serving the UI. Uses shared Zod schemas for cross-service contracts. Browser-side checks use `NEXT_PUBLIC_API_BASE_URL` (for example `/healthz`), while server-side run execution prefers `INTERNAL_API_BASE_URL` and falls back to `NEXT_PUBLIC_API_BASE_URL`.
+- **Web (`apps/web`)**: Next.js app serving the UI. Uses shared Zod schemas for cross-service contracts. Browser-side checks use `PHOTOPRUNE_API_BASE_URL` (for example `/healthz`), while server-side run execution prefers `INTERNAL_API_BASE_URL` and falls back to `PHOTOPRUNE_API_BASE_URL`.
 - **API (`apps/api`)**: FastAPI application exposing `/healthz`. Configuration uses Pydantic Settings to read environment variables for database, Redis, and CORS origins. CORS is permissive for local development only.
 - **Worker (`apps/worker`)**: Celery worker connected to Redis. Includes a demo `ping` task to validate wiring.
 

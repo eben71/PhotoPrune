@@ -3,18 +3,28 @@ export function apiBaseUrl() {
 }
 
 export async function forward(path: string, init?: RequestInit) {
-  const response = await fetch(`${apiBaseUrl()}${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init?.headers ?? {})
-    }
-  });
-  const text = await response.text();
-  return new Response(text, {
-    status: response.status,
-    headers: {
-      'Content-Type': response.headers.get('Content-Type') ?? 'application/json'
-    }
-  });
+  try {
+    const response = await fetch(`${apiBaseUrl()}${path}`, {
+      ...init,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(init?.headers ?? {})
+      }
+    });
+    const text = await response.text();
+    return new Response(text, {
+      status: response.status,
+      headers: {
+        'Content-Type':
+          response.headers.get('Content-Type') ?? 'application/json'
+      }
+    });
+  } catch {
+    return Response.json(
+      {
+        error: 'PhotoPrune API is unavailable. Start the API service and retry.'
+      },
+      { status: 503 }
+    );
+  }
 }

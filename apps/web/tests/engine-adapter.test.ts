@@ -17,7 +17,7 @@ async function loadAdapter(env: Record<string, string>) {
   vi.resetModules();
   delete process.env.NEXT_PUBLIC_PHASE2_RUN_MODE;
   delete process.env.INTERNAL_API_BASE_URL;
-  delete process.env.NEXT_PUBLIC_API_BASE_URL;
+  delete process.env.PHOTOPRUNE_API_BASE_URL;
   Object.assign(process.env, env);
   return import('../src/engine/engineAdapter');
 }
@@ -242,7 +242,7 @@ describe('engineAdapter', () => {
     const adapter = await loadAdapter({
       NODE_ENV: 'development',
       INTERNAL_API_BASE_URL: 'http://api:8000',
-      NEXT_PUBLIC_API_BASE_URL: 'http://localhost:8000'
+      PHOTOPRUNE_API_BASE_URL: 'http://localhost:8000'
     });
 
     adapter.startRun(selection);
@@ -252,7 +252,7 @@ describe('engineAdapter', () => {
     expect(getFetchCallUrl(fetchMock, 0)).toBe('http://api:8000/api/scan');
   });
 
-  it('falls back to NEXT_PUBLIC_API_BASE_URL when internal host is unreachable', async () => {
+  it('falls back to PHOTOPRUNE_API_BASE_URL when internal host is unreachable', async () => {
     const fetchMock = vi
       .fn((): Promise<unknown> => Promise.resolve({}))
       .mockRejectedValueOnce(new TypeError('fetch failed'))
@@ -265,7 +265,7 @@ describe('engineAdapter', () => {
     const adapter = await loadAdapter({
       NODE_ENV: 'development',
       INTERNAL_API_BASE_URL: 'http://api:8000',
-      NEXT_PUBLIC_API_BASE_URL: 'http://localhost:8000'
+      PHOTOPRUNE_API_BASE_URL: 'http://localhost:8000'
     });
 
     const { runId } = adapter.startRun(selection);
