@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import ProjectDetailPage from '../app/projects/[id]/page';
 import ProjectResultsPage from '../app/projects/[id]/results/page';
 import ProjectRunPage from '../app/projects/[id]/run/page';
 import ProjectsPage from '../app/projects/page';
@@ -269,5 +270,58 @@ describe('phase 3 projects pages', () => {
         expect.objectContaining({ method: 'PATCH' })
       )
     );
+  });
+
+  it('does not continue project polling after unmount during async bootstrap', async () => {
+    vi.useFakeTimers();
+
+    const calls: string[] = [];
+    let resolveProject: (value: Response) => void = () => undefined;
+    const projectPromise = new Promise<Response>((resolve) => {
+      resolveProject = resolve;
+    });
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string) => {
+        calls.push(input);
+
+        if (input === '/api/projects/p1') {
+          return projectPromise;
+        }
+
+        if (input === '/api/projects/p1/scans') {
+          return Promise.resolve(new Response(JSON.stringify([])));
+        }
+
+        return Promise.resolve(new Response(JSON.stringify({})));
+      }) as unknown as typeof fetch
+    );
+
+    const { unmount } = render(
+      <ProjectDetailPage params={Promise.resolve({ id: 'p1' })} />
+    );
+
+    unmount();
+
+    resolveProject(
+      new Response(
+        JSON.stringify({
+          id: 'p1',
+          userId: 'local-user',
+          name: 'Trip',
+          status: 'active',
+          createdAt: '2025-01-01T00:00:00Z',
+          updatedAt: '2025-01-01T00:00:00Z'
+        })
+      )
+    );
+
+    await Promise.resolve();
+    await vi.advanceTimersByTimeAsync(5000);
+
+    expect(calls).not.toContain('/api/projects/p1/scans');
+
+    vi.useRealTimers();
   });
 });

@@ -33,13 +33,23 @@ export default function ProjectDetailPage({
   );
 
   useEffect(() => {
+    let cancelled = false;
     let interval: ReturnType<typeof setInterval> | null = null;
 
     void (async () => {
       const { id } = await params;
+      if (cancelled) {
+        return;
+      }
+
       setProjectId(id);
       const projectResponse = await fetch(`/api/projects/${id}`);
       const project = ProjectSchema.parse(await projectResponse.json());
+
+      if (cancelled) {
+        return;
+      }
+
       setProjectName(project.name);
 
       const loadScans = async () => {
@@ -47,6 +57,11 @@ export default function ProjectDetailPage({
         const scansPayload = ProjectScanRecordSchema.array().parse(
           await scansResponse.json()
         );
+
+        if (cancelled) {
+          return;
+        }
+
         setScans(scansPayload);
 
         const latestScan = scansPayload[0];
@@ -62,6 +77,11 @@ export default function ProjectDetailPage({
         const results = ProjectScanResultsResponseSchema.parse(
           await resultsResponse.json()
         );
+
+        if (cancelled) {
+          return;
+        }
+
         const reviews = Object.values(results.reviews);
         setDoneCount(
           reviews.filter((review) => review.state === 'DONE').length
@@ -72,12 +92,20 @@ export default function ProjectDetailPage({
       };
 
       await loadScans();
+
+      if (cancelled) {
+        return;
+      }
+
       interval = setInterval(() => {
-        void loadScans();
+        if (!cancelled) {
+          void loadScans();
+        }
       }, 4000);
     })();
 
     return () => {
+      cancelled = true;
       if (interval) {
         clearInterval(interval);
       }
