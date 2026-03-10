@@ -40,10 +40,16 @@ export function PickerPayloadImporter({ onApplySelection }: Props) {
         .map((item): PickerItem | null => {
           const id = item.id ?? '';
           const baseUrl = item.baseUrl ?? item.mediaFile?.baseUrl ?? '';
-          const filename = item.filename ?? item.mediaFile?.filename ?? 'untitled';
-          const mimeType = item.mimeType ?? item.mediaFile?.mimeType ?? 'image/jpeg';
-          const createTime = item.createTime ?? item.mediaMetadata?.creationTime ?? new Date().toISOString();
-          const type = item.type ?? (mimeType.startsWith('video/') ? 'VIDEO' : 'PHOTO');
+          const filename =
+            item.filename ?? item.mediaFile?.filename ?? 'untitled';
+          const mimeType =
+            item.mimeType ?? item.mediaFile?.mimeType ?? 'image/jpeg';
+          const createTime =
+            item.createTime ??
+            item.mediaMetadata?.creationTime ??
+            new Date().toISOString();
+          const type =
+            item.type ?? (mimeType.startsWith('video/') ? 'VIDEO' : 'PHOTO');
 
           if (!id || !baseUrl) {
             return null;
@@ -61,7 +67,9 @@ export function PickerPayloadImporter({ onApplySelection }: Props) {
         .filter((item): item is PickerItem => item !== null);
 
       if (selection.length === 0) {
-        setError('No valid media items found. Paste a Picker payload containing mediaItems.');
+        setError(
+          'No valid media items found. Paste a Picker payload containing mediaItems.'
+        );
         return;
       }
 
@@ -76,7 +84,10 @@ export function PickerPayloadImporter({ onApplySelection }: Props) {
   return (
     <section>
       <h2>Import Picker payload</h2>
-      <p>Paste JSON exported from the Picker harness or your live picker callback payload.</p>
+      <p>
+        Paste JSON exported from the Picker harness or your live picker callback
+        payload.
+      </p>
       <textarea
         aria-label="Picker payload"
         value={payload}

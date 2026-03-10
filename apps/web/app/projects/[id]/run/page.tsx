@@ -41,7 +41,9 @@ export default function ProjectRunPage({
     });
 
     if (!response.ok) {
-      setError('Unable to start project scan. Verify API connectivity and try again.');
+      setError(
+        'Unable to start project scan. Verify API connectivity and try again.'
+      );
       return;
     }
 

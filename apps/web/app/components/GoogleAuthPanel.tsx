@@ -56,7 +56,9 @@ export function GoogleAuthPanel() {
     script.defer = true;
     script.onload = () => setScriptReady(true);
     script.onerror = () => {
-      setError('Unable to load Google auth script. Check your network and retry.');
+      setError(
+        'Unable to load Google auth script. Check your network and retry.'
+      );
     };
     document.head.appendChild(script);
   }, []);
@@ -87,7 +89,9 @@ export function GoogleAuthPanel() {
 
   const signIn = useCallback(() => {
     if (!tokenClient) {
-      setError('Google auth is not ready. Add NEXT_PUBLIC_GOOGLE_CLIENT_ID and retry.');
+      setError(
+        'Google auth is not ready. Add NEXT_PUBLIC_GOOGLE_CLIENT_ID and retry.'
+      );
       return;
     }
     tokenClient.requestAccessToken({ prompt: 'consent' });
@@ -107,7 +111,10 @@ export function GoogleAuthPanel() {
   return (
     <section>
       <h2>Google auth (read-only)</h2>
-      <p>Connect with read-only scopes to use live Google Photos Picker selections.</p>
+      <p>
+        Connect with read-only scopes to use live Google Photos Picker
+        selections.
+      </p>
       {!clientId ? (
         <p role="alert">Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID.</p>
       ) : null}
@@ -120,7 +127,11 @@ export function GoogleAuthPanel() {
           </button>
         </>
       ) : (
-        <button type="button" onClick={signIn} disabled={!clientId || !scriptReady}>
+        <button
+          type="button"
+          onClick={signIn}
+          disabled={!clientId || !scriptReady}
+        >
           Connect Google
         </button>
       )}

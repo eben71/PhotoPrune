@@ -21,7 +21,11 @@ function loadAuthState(): GoogleAuthState | null {
 
   try {
     const parsed = JSON.parse(raw) as GoogleAuthState;
-    if (!parsed.accessToken || !parsed.expiresAt || parsed.expiresAt <= Date.now()) {
+    if (
+      !parsed.accessToken ||
+      !parsed.expiresAt ||
+      parsed.expiresAt <= Date.now()
+    ) {
       sessionStorage.removeItem(AUTH_KEY);
       return null;
     }
@@ -41,14 +45,17 @@ export function useGoogleAuthState() {
     setHydrated(true);
   }, []);
 
-  const setAuthenticated = useCallback((accessToken: string, expiresInSeconds: number) => {
-    const nextState: GoogleAuthState = {
-      accessToken,
-      expiresAt: Date.now() + expiresInSeconds * 1000
-    };
-    setAuth(nextState);
-    sessionStorage.setItem(AUTH_KEY, JSON.stringify(nextState));
-  }, []);
+  const setAuthenticated = useCallback(
+    (accessToken: string, expiresInSeconds: number) => {
+      const nextState: GoogleAuthState = {
+        accessToken,
+        expiresAt: Date.now() + expiresInSeconds * 1000
+      };
+      setAuth(nextState);
+      sessionStorage.setItem(AUTH_KEY, JSON.stringify(nextState));
+    },
+    []
+  );
 
   const clearAuth = useCallback(() => {
     setAuth(null);

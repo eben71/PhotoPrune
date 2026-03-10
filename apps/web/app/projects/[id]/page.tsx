@@ -89,7 +89,9 @@ export default function ProjectDetailPage({
       <h1>{projectName || 'Project'}</h1>
       <p>Done: {doneCount}</p>
       <p>Unreviewed: {unreviewedCount}</p>
-      {projectId ? <Link href={`/projects/${projectId}/run`}>New scan</Link> : null}
+      {projectId ? (
+        <Link href={`/projects/${projectId}/run`}>New scan</Link>
+      ) : null}
       {projectId && scans[0] ? (
         <Link href={`/projects/${projectId}/results?scanId=${scans[0].id}`}>
           Resume latest results
