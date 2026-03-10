@@ -272,6 +272,152 @@ describe('phase 3 projects pages', () => {
     );
   });
 
+  it('project detail page loads project, scans, and review counts', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string) => {
+        if (input === '/api/projects/p1') {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                id: 'p1',
+                userId: 'local-user',
+                name: 'Trip',
+                status: 'active',
+                createdAt: '2025-01-01T00:00:00Z',
+                updatedAt: '2025-01-01T00:00:00Z'
+              })
+            )
+          );
+        }
+
+        if (input === '/api/projects/p1/scans') {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify([
+                {
+                  id: 'scan-1',
+                  projectId: 'p1',
+                  createdAt: '2025-01-01T00:00:00Z',
+                  sourceType: 'picker',
+                  sourceRef: {}
+                }
+              ])
+            )
+          );
+        }
+
+        if (input === '/api/projects/p1/scans/scan-1/results') {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                projectScanId: 'scan-1',
+                envelope: {
+                  schemaVersion: '2.2.0',
+                  run: {
+                    runId: 'scan-1',
+                    status: 'COMPLETED',
+                    startedAt: '2025-01-01T00:00:00Z',
+                    finishedAt: '2025-01-01T00:00:01Z',
+                    selection: {
+                      requestedCount: 2,
+                      acceptedCount: 2,
+                      rejectedCount: 0
+                    }
+                  },
+                  progress: {
+                    stage: 'FINALIZE',
+                    message: 'done',
+                    counts: { processed: 2, total: 2 }
+                  },
+                  telemetry: {
+                    cost: {
+                      apiCalls: 0,
+                      estimatedUnits: 1,
+                      softCapUnits: 1200,
+                      hardCapUnits: 2000,
+                      hitSoftCap: false,
+                      hitHardCap: false
+                    },
+                    warnings: []
+                  },
+                  results: {
+                    summary: {
+                      groupsCount: 1,
+                      groupedItemsCount: 2,
+                      ungroupedItemsCount: 0
+                    },
+                    groups: [],
+                    skippedItems: [],
+                    failedItems: []
+                  }
+                },
+                reviews: {
+                  g1: { state: 'DONE' },
+                  g2: { state: 'UNREVIEWED' }
+                }
+              })
+            )
+          );
+        }
+
+        return Promise.resolve(new Response(JSON.stringify({})));
+      }) as unknown as typeof fetch
+    );
+
+    render(<ProjectDetailPage params={Promise.resolve({ id: 'p1' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Trip' })).toBeInTheDocument();
+    });
+    expect(screen.getByText('Done: 1')).toBeInTheDocument();
+    expect(screen.getByText('Unreviewed: 1')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'New scan' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Resume latest results' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('scan-1')).toBeInTheDocument();
+  });
+
+  it('project detail handles no scans by resetting review counters', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string) => {
+        if (input === '/api/projects/p1') {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                id: 'p1',
+                userId: 'local-user',
+                name: 'Trip',
+                status: 'active',
+                createdAt: '2025-01-01T00:00:00Z',
+                updatedAt: '2025-01-01T00:00:00Z'
+              })
+            )
+          );
+        }
+
+        if (input === '/api/projects/p1/scans') {
+          return Promise.resolve(new Response(JSON.stringify([])));
+        }
+
+        return Promise.resolve(new Response(JSON.stringify({})));
+      }) as unknown as typeof fetch
+    );
+
+    render(<ProjectDetailPage params={Promise.resolve({ id: 'p1' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Trip' })).toBeInTheDocument();
+    });
+    expect(screen.getByText('Done: 0')).toBeInTheDocument();
+    expect(screen.getByText('Unreviewed: 0')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'Resume latest results' })
+    ).not.toBeInTheDocument();
+  });
+
   it('does not continue project polling after unmount during async bootstrap', async () => {
     vi.useFakeTimers();
 
