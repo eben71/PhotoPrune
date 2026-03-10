@@ -239,7 +239,7 @@ Manual-only remaining work:
 
 ### Scoped Ingestion (Read-Only)
 
-- [ ] Add Google auth using read-only permissions only.
+- ✅ Add Google auth using read-only permissions only.
 - [ ] Fetch media items only from user-selected albums/sets (no library-wide enumeration).
 - [ ] Persist stable identifiers and derived fingerprints to improve matching across sessions.
 - [ ] Run incremental re-scans inside a project that surface only new/changed groups while preserving prior decisions.
@@ -250,7 +250,7 @@ Manual-only remaining work:
 - ✅ Provide per-group checklists to guide manual cleanup in Google Photos.
 - ✅ Offer CSV/JSON exports and copyable item lists for manual execution.
 - ✅ Include deep links to Google Photos when available (fallback to item-id search links when needed).
-- [ ] Keep actions manual-only: no write scopes and no automated delete/move/archive actions.
+- ✅ Keep actions manual-only: no write scopes and no automated delete/move/archive actions.
 
 **Exit Criteria**
 

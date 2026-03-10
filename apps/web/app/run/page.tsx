@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
@@ -9,6 +9,7 @@ import { Banner } from '../components/Banner';
 import { CostPanel } from '../components/CostPanel';
 import { ProgressPanel } from '../components/ProgressPanel';
 import { SelectionSummary } from '../components/SelectionSummary';
+import { LiveFeed, type FeedEvent } from '../components/LiveFeed';
 import { requireSelection } from '../state/sessionGuards';
 import { useRunSession } from '../state/runSessionStore';
 import { RunEnvelopeSchema } from '../../src/types/phase2Envelope';
@@ -113,6 +114,20 @@ export default function RunPage() {
 
   const hitHardCap = state.telemetry?.cost.hitHardCap ?? false;
 
+  const liveEvents = useMemo<FeedEvent[]>(() => {
+    if (!state.run || !state.progress) {
+      return [];
+    }
+
+    return [
+      {
+        id: `${state.run.runId}-${state.progress.stage}-${state.progress.counts.processed}`,
+        timestamp: new Date().toISOString(),
+        label: `${state.progress.stage}: ${state.progress.message} (${state.progress.counts.processed}/${state.progress.counts.total})`
+      }
+    ];
+  }, [state.run, state.progress]);
+
   return (
     <section>
       <h1>{trustCopy.run.header}</h1>
@@ -205,6 +220,7 @@ export default function RunPage() {
 
       <ProgressPanel progress={state.progress} status={state.run?.status} />
       <CostPanel telemetry={state.telemetry} />
+      <LiveFeed title="Live run feed" events={liveEvents} />
 
       {isCompleted ? (
         <Link

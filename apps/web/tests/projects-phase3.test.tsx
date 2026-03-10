@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ProjectResultsPage from '../app/projects/[id]/results/page';
 import ProjectRunPage from '../app/projects/[id]/run/page';
 import ProjectsPage from '../app/projects/page';
+import { RunSessionProvider } from '../app/state/runSessionStore';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -222,7 +223,28 @@ describe('phase 3 projects pages', () => {
 
   it('project run posts to project scan endpoint', async () => {
     const fetchSpy = vi.spyOn(global, 'fetch');
-    render(<ProjectRunPage params={Promise.resolve({ id: 'p1' })} />);
+    render(
+      <RunSessionProvider>
+        <ProjectRunPage params={Promise.resolve({ id: 'p1' })} />
+      </RunSessionProvider>
+    );
+    fireEvent.change(screen.getByLabelText('Picker payload'), {
+      target: {
+        value: JSON.stringify({
+          mediaItems: [
+            {
+              id: 'i1',
+              baseUrl: 'https://placehold.co/300',
+              filename: 'a.jpg',
+              mimeType: 'image/jpeg',
+              createTime: '2025-01-01T00:00:00Z',
+              type: 'PHOTO'
+            }
+          ]
+        })
+      }
+    });
+    fireEvent.click(screen.getByText('Use selection'));
     const startButton = screen.getByText('Start project scan');
     await waitFor(() => expect(startButton).not.toBeDisabled());
     fireEvent.click(startButton);
