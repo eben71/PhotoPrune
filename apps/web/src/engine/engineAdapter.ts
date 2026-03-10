@@ -394,7 +394,7 @@ async function executeRun(record: RunRecord): Promise<void> {
     const baseUrls = Array.from(
       new Set([
         process.env.INTERNAL_API_BASE_URL,
-        process.env.NEXT_PUBLIC_API_BASE_URL,
+        process.env.PHOTOPRUNE_API_BASE_URL,
         'http://localhost:8000'
       ])
     ).filter((url): url is string => Boolean(url));
@@ -435,7 +435,7 @@ async function executeRun(record: RunRecord): Promise<void> {
           ? lastNetworkError.message
           : 'fetch failed';
       throw new Error(
-        `Unable to reach the scan API (${networkMessage}). Check that the API is running and NEXT_PUBLIC_API_BASE_URL / INTERNAL_API_BASE_URL are correct. Last URL: ${lastAttemptedUrl ?? 'n/a'}`
+        `Unable to reach the scan API (${networkMessage}). Check that the API is running and PHOTOPRUNE_API_BASE_URL / INTERNAL_API_BASE_URL are correct. Last URL: ${lastAttemptedUrl ?? 'n/a'}`
       );
     }
 

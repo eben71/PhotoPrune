@@ -2,7 +2,7 @@
   "name": "photoprune",
   "version": "0.0.0",
   "private": true,
-  "packageManager": "pnpm@10.28.2",
+  "packageManager": "pnpm@10.30.3+sha512.c961d1e0a2d8e354ecaa5166b822516668b7f44cb5bd95122d590dd81922f606f5473b6d23ec4a5be05e7fcd18e8488d47d978bbe981872f1145d06e9a740017",
   "scripts": {
     "dev": "turbo dev",
     "lint": "turbo lint",
@@ -13,8 +13,7 @@
     "build": "turbo build",
     "agent:fix:ci": "node skills/agent-fix-ci/agent-fix-ci.mjs",
     "check:docs": "node scripts/check-docs.js",
-    "prepare": "node scripts/prepare-lefthook.cjs",
-    "report:phase1b": "node tools/phase1b-report/cli.js"
+    "prepare": "node scripts/prepare-lefthook.cjs"
   },
   "devDependencies": {
     "lefthook": "^2.1.2",

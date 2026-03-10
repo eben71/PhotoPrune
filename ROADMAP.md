@@ -90,8 +90,7 @@
 ### Phase 1 Conclusion (Library API)
 
 - **Library API whole-library enumeration: STOP / not viable**
-  - Evidence: [PHASE1_REPORT.md](PHASE1_REPORT.md) and sample runs under `experiments/phase1/runs/*.json`
-  - App-created-only scope returns 0 items for typical users
+  - Outcome summary: API access is constrained to app-created items and does not support practical whole-library enumeration for typical users.
 
 ### CI Additions (Feasibility)
 
@@ -126,8 +125,8 @@
 ### Phase 1b Output
 
 - ✅ Update [DECISIONS.md](DECISIONS.md) and [RISK_REGISTER.md](RISK_REGISTER.md) with findings
-- ✅ Produce a short Phase 1b report (see `experiments/phase1b/` runs + notes)
-- ✅ Clustering + static HTML report for review/calibration (developer-facing)
+- ✅ Record a short outcome summary in project docs and decisions
+- ✅ Validate practical review/calibration approach for user-selected ingestion
 
 ### Similarity Pipeline (Tiered Decision)
 
@@ -201,9 +200,9 @@ Manual-only remaining work:
 
 ### Phase 2.4: Validation & Stress Testing
 
-- [ ] Validate with real user-selected sets (1k–5k)
-- [ ] Stress test cost + time per run
-- [ ] Capture feedback on confidence labels + review flow
+- ✅ Validate with real user-selected sets (1k–5k)
+- ✅ Stress test cost + time per run
+- ✅ Capture feedback on confidence labels + review flow
 
 ### Phase 2 Guardrails (Cost, Trust, Scope)
 
@@ -228,47 +227,34 @@ Manual-only remaining work:
 
 ---
 
-## 3 — Phase 3: Google Photos Integration & Ingestion (POST-VALIDATION)
+## 3 — Phase 3: Recurring Workflow & Scoped Ingestion (POST-VALIDATION)
 
-> **Goal:** Expand beyond validation MVP if Phase 2 signals are positive.
+> **Goal:** Transform PhotoPrune from a single-session validator into a recurring workflow **without** breaking Phase 2 trust and cost guardrails.
 
-### Authentication & Identity
+### Projects & Persistence
 
-- [ ] Google sign-in (OAuth)
-- [ ] Secure token storage
-- [ ] Token refresh handling
-- [ ] Re-auth flow when tokens are revoked/expired
+- ✅ Introduce Projects (cleanup campaigns) so users can return to the same effort over time.
+- ✅ Persist review state across sessions using metadata only (no image bytes stored).
+- ✅ Support resume flow with clear progress tracking per project.
 
-### Ingestion Pipeline
+### Scoped Ingestion (Read-Only)
 
-- [ ] Fetch media items (paginated)
-- [ ] Store canonical photo reference:
-  - [ ] Google Media Item ID
-  - [ ] Product URL (for user deletion)
-  - [ ] Metadata (timestamps, filename if available, dimensions if available)
-- [ ] Incremental sync (avoid re-processing)
-- [ ] Rate-limit handling & retries
-- [ ] Failure isolation (partial progress survives; job can resume)
+- ✅ Add Google auth using read-only permissions only.
+- [ ] Fetch media items only from user-selected albums/sets (no library-wide enumeration).
+- [ ] Persist stable identifiers and derived fingerprints to improve matching across sessions.
+- [ ] Run incremental re-scans inside a project that surface only new/changed groups while preserving prior decisions.
+- [ ] Handle rate limits and partial failures with resumable progress.
+
+### Manual Action Guidance
+
+- ✅ Provide per-group checklists to guide manual cleanup in Google Photos.
+- ✅ Offer CSV/JSON exports and copyable item lists for manual execution.
+- ✅ Include deep links to Google Photos when available (fallback to item-id search links when needed).
+- ✅ Keep actions manual-only: no write scopes and no automated delete/move/archive actions.
 
 **Exit Criteria**
 
-- Can ingest 50k photos without failure
-- Re-scan only processes new/changed items (no full work repeat)
-- No duplicate records created on retry
-
----
-
-## 4 — Phase 4: Data Model & Index Foundations
-
-> **Goal:** Define how photos, scans, and results are represented (cloud-first, not filesystem-first).
-
-### Core Entities (Conceptual)
-
-- [ ] **MediaAsset** (cloud-based, no local file paths)
-- [ ] **ScanJob** (status, progress, timestamps, errors)
-- [ ] **DuplicateGroup** (exact / near, representative, members, confidence)
-
-### Indexing Rules
-
-- [ ] Idempotent ingestion
-- [ ] Stable internal IDs
+- Users can create and revisit a project/campaign across multiple sessions.
+- Existing project review state resumes correctly without storing image bytes.
+- Incremental rescans show only new/changed groups and preserve prior decisions.
+- Cleanup support remains manual-only (checklists/exports/deep links); no automated destructive actions.
