@@ -3,32 +3,36 @@
 PhotoPrune helps users review duplicate or near-duplicate photos selected from Google Photos.
 It never deletes photos automatically.
 
-## Stack
-
-- `apps/web`: Next.js frontend
-- `apps/api`: FastAPI API
-- `apps/worker`: Celery worker
-- Redis broker + PostgreSQL for background processing and persistence
-
-## Local development
+## Local Development
 
 ```bash
 make setup
 make dev
 ```
 
-## Quality gates
+## Quality Gates
 
 Run before opening a PR:
 
 ```bash
 make lint
+make format
 make typecheck
 make test
 make build
 ```
 
-## Key environment variables
+## Repo Structure
+
+- `apps/web` — Next.js frontend
+- `apps/api` — FastAPI API
+- `apps/worker` — Celery worker
+- `packages/shared` — shared TypeScript types/utilities
+- `infra/docker` — Dockerfiles for local/containerized services
+- `docs` — product, architecture, and trust-copy documentation
+- `.github/workflows` — CI pipeline definitions
+
+## Key Environment Variables
 
 ### Frontend (`apps/web`)
 
@@ -47,7 +51,7 @@ make build
 
 Copy `.env.example` and provide local values. Do not commit secrets.
 
-## Product behavior
+## Product Behavior
 
 1. User selects photos via Google Photos Picker.
 2. Selection is normalized and scanned for duplicate groups.
