@@ -22,7 +22,6 @@ describe('GoogleAuthPanel', () => {
     state.setAuthenticated = vi.fn();
     state.clearAuth = vi.fn();
     document.head.innerHTML = '';
-    // @ts-expect-error test-only override
     window.google = undefined;
     process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID = 'test-client';
   });
@@ -52,7 +51,6 @@ describe('GoogleAuthPanel', () => {
       }
     );
 
-    // @ts-expect-error test-only override
     window.google = {
       accounts: {
         oauth2: {
@@ -84,7 +82,6 @@ describe('GoogleAuthPanel', () => {
 
     state.auth = { accessToken: 'active-token', expiresAt: Date.now() + 99999 };
 
-    // @ts-expect-error test-only override
     window.google = {
       accounts: {
         oauth2: {
