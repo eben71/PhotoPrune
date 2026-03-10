@@ -262,7 +262,9 @@ tests/fixtures/results/*
 ## Upcoming Phase 3: Recurring Workflow & Scoped Ingestion (Planned)
 
 - **Projects & Persistence:** Multi-session cleanup projects with persisted metadata + review decisions only (no image bytes stored).
-- **Scoped Ingestion:** Google sign-in with read-only access and user-selected albums/sets only (no full-library scans); persist identifiers/fingerprints to reduce reprocessing.
+- **Scoped Ingestion:** Google sign-in with read-only access is available in the web app; users import Picker payload selections to run scans without full-library enumeration.
+- **Live Visibility:** Run and project pages include live activity feeds that auto-refresh progress and recent scan activity for safer monitoring.
+- **Persistence Next:** Persisting stable identifiers/fingerprints and incremental-only re-scan diffing remains in progress for the next phase.
 - **Manual Action Guidance:** Per-group checklists plus CSV/JSON exports for user-led cleanup; PhotoPrune never deletes or modifies photos automatically.
 
 ## Phase 1 Feasibility Summary

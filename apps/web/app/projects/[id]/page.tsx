@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
+import { LiveFeed, type FeedEvent } from '../../components/LiveFeed';
 import {
   type ProjectScanRecord,
   ProjectSchema,
@@ -21,37 +22,94 @@ export default function ProjectDetailPage({
   const [doneCount, setDoneCount] = useState(0);
   const [unreviewedCount, setUnreviewedCount] = useState(0);
 
+  const liveEvents = useMemo<FeedEvent[]>(
+    () =>
+      scans.slice(0, 8).map((scan) => ({
+        id: scan.id,
+        timestamp: scan.createdAt,
+        label: `Scan ${scan.id} captured from ${scan.sourceType}`
+      })),
+    [scans]
+  );
+
   useEffect(() => {
+    let cancelled = false;
+    let interval: ReturnType<typeof setInterval> | null = null;
+
     void (async () => {
       const { id } = await params;
-      setProjectId(id);
-      const projectResponse = await fetch(`/api/projects/${id}`);
-      const project = ProjectSchema.parse(await projectResponse.json());
-      setProjectName(project.name);
-
-      const scansResponse = await fetch(`/api/projects/${id}/scans`);
-      const scansPayload = ProjectScanRecordSchema.array().parse(
-        await scansResponse.json()
-      );
-      setScans(scansPayload);
-
-      const latestScan = scansPayload[0];
-      if (!latestScan) {
+      if (cancelled) {
         return;
       }
 
-      const resultsResponse = await fetch(
-        `/api/projects/${id}/scans/${latestScan.id}/results`
-      );
-      const results = ProjectScanResultsResponseSchema.parse(
-        await resultsResponse.json()
-      );
-      const reviews = Object.values(results.reviews);
-      setDoneCount(reviews.filter((review) => review.state === 'DONE').length);
-      setUnreviewedCount(
-        reviews.filter((review) => review.state === 'UNREVIEWED').length
-      );
+      setProjectId(id);
+      const projectResponse = await fetch(`/api/projects/${id}`);
+      const project = ProjectSchema.parse(await projectResponse.json());
+
+      if (cancelled) {
+        return;
+      }
+
+      setProjectName(project.name);
+
+      const loadScans = async () => {
+        const scansResponse = await fetch(`/api/projects/${id}/scans`);
+        const scansPayload = ProjectScanRecordSchema.array().parse(
+          await scansResponse.json()
+        );
+
+        if (cancelled) {
+          return;
+        }
+
+        setScans(scansPayload);
+
+        const latestScan = scansPayload[0];
+        if (!latestScan) {
+          setDoneCount(0);
+          setUnreviewedCount(0);
+          return;
+        }
+
+        const resultsResponse = await fetch(
+          `/api/projects/${id}/scans/${latestScan.id}/results`
+        );
+        const results = ProjectScanResultsResponseSchema.parse(
+          await resultsResponse.json()
+        );
+
+        if (cancelled) {
+          return;
+        }
+
+        const reviews = Object.values(results.reviews);
+        setDoneCount(
+          reviews.filter((review) => review.state === 'DONE').length
+        );
+        setUnreviewedCount(
+          reviews.filter((review) => review.state === 'UNREVIEWED').length
+        );
+      };
+
+      await loadScans();
+
+      if (cancelled) {
+        return;
+      }
+
+      interval = setInterval(() => {
+        if (!cancelled) {
+          void loadScans();
+        }
+      }, 4000);
     })();
+
+    return () => {
+      cancelled = true;
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
   }, [params]);
 
   return (
@@ -73,6 +131,7 @@ export default function ProjectDetailPage({
           <li key={scan.id}>{scan.id}</li>
         ))}
       </ul>
+      <LiveFeed title="Live project feed" events={liveEvents} />
     </section>
   );
 }
