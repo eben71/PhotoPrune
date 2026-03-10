@@ -5,7 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { Banner } from './components/Banner';
-import { useGooglePhotosPicker, normalizePickerSelection } from './hooks/useGooglePhotosPicker';
+import {
+  useGooglePhotosPicker,
+  normalizePickerSelection
+} from './hooks/useGooglePhotosPicker';
 import { useRunSession } from './state/runSessionStore';
 import { trustCopy } from './copy/trustCopy';
 
@@ -60,7 +63,11 @@ export default function HomePage() {
           <p key={line}>{line}</p>
         ))}
 
-        <button type="button" onClick={() => void handleSelectFromGoogle()} disabled={isLoading}>
+        <button
+          type="button"
+          onClick={() => void handleSelectFromGoogle()}
+          disabled={isLoading}
+        >
           {isLoading ? 'Opening Google Photos…' : 'Select from Google Photos'}
         </button>
 
@@ -81,7 +88,9 @@ export default function HomePage() {
           </Banner>
         ) : null}
 
-        {lastOutcome === 'cancelled' ? <p aria-live="polite">Selection cancelled.</p> : null}
+        {lastOutcome === 'cancelled' ? (
+          <p aria-live="polite">Selection cancelled.</p>
+        ) : null}
 
         <p>
           <Link href="/projects">Go to Projects</Link>

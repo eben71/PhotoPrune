@@ -69,7 +69,9 @@ describe('HomePage', () => {
       </RunSessionProvider>
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /select from google photos/i }));
+    fireEvent.click(
+      screen.getByRole('button', { name: /select from google photos/i })
+    );
 
     await waitFor(() => {
       expect(pushMock).toHaveBeenCalledWith('/run');

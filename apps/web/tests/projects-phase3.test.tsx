@@ -7,6 +7,26 @@ import ProjectRunPage from '../app/projects/[id]/run/page';
 import ProjectsPage from '../app/projects/page';
 import { RunSessionProvider } from '../app/state/runSessionStore';
 
+const openPickerMock = vi.fn();
+
+vi.mock('../app/hooks/useGooglePhotosPicker', () => ({
+  useGooglePhotosPicker: () => ({
+    openPicker: openPickerMock,
+    isLoading: false,
+    error: null,
+    lastOutcome: null
+  }),
+  normalizePickerSelection: (items: Array<Record<string, string>>) =>
+    items.map((item) => ({
+      id: item.id,
+      createTime: item.createTime,
+      filename: item.filename,
+      mimeType: item.mimeType,
+      baseUrl: item.baseUrl,
+      type: 'PHOTO'
+    }))
+}));
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
   useSearchParams: () => new URLSearchParams('scanId=scan-1')
@@ -14,6 +34,7 @@ vi.mock('next/navigation', () => ({
 
 describe('phase 3 projects pages', () => {
   beforeEach(() => {
+    openPickerMock.mockReset();
     vi.stubGlobal(
       'fetch',
       vi.fn((input: string) => {
@@ -229,23 +250,18 @@ describe('phase 3 projects pages', () => {
         <ProjectRunPage params={Promise.resolve({ id: 'p1' })} />
       </RunSessionProvider>
     );
-    fireEvent.change(screen.getByLabelText('Picker payload'), {
-      target: {
-        value: JSON.stringify({
-          mediaItems: [
-            {
-              id: 'i1',
-              baseUrl: 'https://placehold.co/300',
-              filename: 'a.jpg',
-              mimeType: 'image/jpeg',
-              createTime: '2025-01-01T00:00:00Z',
-              type: 'PHOTO'
-            }
-          ]
-        })
+    openPickerMock.mockResolvedValue([
+      {
+        id: 'i1',
+        baseUrl: 'https://placehold.co/300',
+        filename: 'a.jpg',
+        mimeType: 'image/jpeg',
+        createTime: '2025-01-01T00:00:00Z'
       }
-    });
-    fireEvent.click(screen.getByText('Use selection'));
+    ]);
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Select from Google Photos' })
+    );
     const startButton = screen.getByText('Start project scan');
     await waitFor(() => expect(startButton).not.toBeDisabled());
     fireEvent.click(startButton);

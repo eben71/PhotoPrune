@@ -3,7 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { normalizePickerSelection, useGooglePhotosPicker } from '../../../hooks/useGooglePhotosPicker';
+import {
+  normalizePickerSelection,
+  useGooglePhotosPicker
+} from '../../../hooks/useGooglePhotosPicker';
 import { useRunSession } from '../../../state/runSessionStore';
 import { ProjectScanResponseSchema } from '../../../../src/types/projects';
 
@@ -66,7 +69,11 @@ export default function ProjectRunPage({
         <h1>Project scan</h1>
         <p>Manual-only guidance. No deletion API calls are performed.</p>
         <p>Selected items: {state.selection.length}</p>
-        <button type="button" onClick={() => void handleSelect()} disabled={isLoading}>
+        <button
+          type="button"
+          onClick={() => void handleSelect()}
+          disabled={isLoading}
+        >
           {isLoading ? 'Opening Google Photos…' : 'Select from Google Photos'}
         </button>
         <button

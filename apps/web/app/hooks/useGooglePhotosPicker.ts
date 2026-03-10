@@ -52,6 +52,28 @@ type GooglePickerCallbackData = {
   state?: string;
 };
 
+type GooglePickerView = {
+  setMimeTypes: (types: string) => GooglePickerView;
+  setSelectFolderEnabled: (enabled: boolean) => GooglePickerView;
+  setIncludeFolders: (enabled: boolean) => GooglePickerView;
+};
+
+type GooglePickerInstance = {
+  setVisible: (visible: boolean) => void;
+};
+
+type GooglePickerBuilder = {
+  addView: (view: GooglePickerView) => GooglePickerBuilder;
+  setOAuthToken: (token: string) => GooglePickerBuilder;
+  setDeveloperKey: (apiKey: string) => GooglePickerBuilder;
+  setCallback: (
+    callback: (data: GooglePickerCallbackData) => void
+  ) => GooglePickerBuilder;
+  setAppId: (appId: string) => GooglePickerBuilder;
+  setSelectableMimeTypes: (types: string) => GooglePickerBuilder;
+  build: () => GooglePickerInstance;
+};
+
 declare global {
   interface Window {
     gapi?: {
@@ -69,20 +91,8 @@ declare global {
       };
       picker?: {
         Action: { PICKED: string; CANCEL: string };
-        DocsView: new (viewId?: string) => {
-          setMimeTypes: (types: string) => unknown;
-          setSelectFolderEnabled: (enabled: boolean) => unknown;
-          setIncludeFolders: (enabled: boolean) => unknown;
-        };
-        PickerBuilder: new () => {
-          addView: (view: unknown) => unknown;
-          setOAuthToken: (token: string) => unknown;
-          setDeveloperKey: (apiKey: string) => unknown;
-          setCallback: (callback: (data: GooglePickerCallbackData) => void) => unknown;
-          setAppId: (appId: string) => unknown;
-          setSelectableMimeTypes: (types: string) => unknown;
-          build: () => { setVisible: (visible: boolean) => void };
-        };
+        DocsView: new (viewId?: string) => GooglePickerView;
+        PickerBuilder: new () => GooglePickerBuilder;
         ViewId: {
           DOCS_IMAGES: string;
         };
@@ -96,7 +106,9 @@ const GAPI_SRC = 'https://apis.google.com/js/api.js';
 
 function loadScript(src: string): Promise<void> {
   if (typeof window === 'undefined') {
-    return Promise.reject(new Error('Google Photos Picker is only available in the browser.'));
+    return Promise.reject(
+      new Error('Google Photos Picker is only available in the browser.')
+    );
   }
 
   const existing = document.querySelector(`script[src="${src}"]`);
@@ -191,62 +203,71 @@ export function useGooglePhotosPicker(): UseGooglePhotosPickerResult {
       }
 
       const stateToken = crypto.randomUUID();
-      const selected = await new Promise<PickerMediaItem[] | null>((resolve, reject) => {
-        const docsView = new picker.DocsView(picker.ViewId.DOCS_IMAGES)
-          .setMimeTypes('image/jpeg,image/png,image/webp,image/heic,image/heif')
-          .setIncludeFolders(false)
-          .setSelectFolderEnabled(false);
+      const selected = await new Promise<PickerMediaItem[] | null>(
+        (resolve, reject) => {
+          const docsView = new picker.DocsView(picker.ViewId.DOCS_IMAGES)
+            .setMimeTypes(
+              'image/jpeg,image/png,image/webp,image/heic,image/heif'
+            )
+            .setIncludeFolders(false)
+            .setSelectFolderEnabled(false);
 
-        const builtPicker = new picker.PickerBuilder()
-          .addView(docsView)
-          .setOAuthToken(token)
-          .setDeveloperKey(apiKey)
-          .setSelectableMimeTypes('image/jpeg,image/png,image/webp,image/heic,image/heif')
-          .setAppId(clientId)
-          .setCallback((data) => {
-            if (data.state && data.state !== stateToken) {
-              reject(new Error('Invalid picker state. Please retry.'));
-              return;
-            }
-            if (data.action === picker.Action.CANCEL) {
-              setLastOutcome('cancelled');
-              resolve(null);
-              return;
-            }
-            if (data.action !== picker.Action.PICKED) {
-              return;
-            }
+          const builtPicker = new picker.PickerBuilder()
+            .addView(docsView)
+            .setOAuthToken(token)
+            .setDeveloperKey(apiKey)
+            .setSelectableMimeTypes(
+              'image/jpeg,image/png,image/webp,image/heic,image/heif'
+            )
+            .setAppId(clientId)
+            .setCallback((data) => {
+              if (data.state && data.state !== stateToken) {
+                reject(new Error('Invalid picker state. Please retry.'));
+                return;
+              }
+              if (data.action === picker.Action.CANCEL) {
+                setLastOutcome('cancelled');
+                resolve(null);
+                return;
+              }
+              if (data.action !== picker.Action.PICKED) {
+                return;
+              }
 
-            const items = (data.docs ?? [])
-              .map((doc) => {
-                if (!doc.id || !doc.url) {
-                  return null;
-                }
-                return {
-                  id: doc.id,
-                  createTime:
-                    doc.photoMediaMetadata?.creationTime ?? new Date().toISOString(),
-                  filename: doc.name ?? doc.id,
-                  mimeType: doc.mimeType ?? 'image/jpeg',
-                  width: doc.photoMediaMetadata?.width ?? 0,
-                  height: doc.photoMediaMetadata?.height ?? 0,
-                  baseUrl: doc.thumbnails?.[0]?.url ?? doc.url,
-                  productUrl: doc.url
-                };
-              })
-              .filter((item): item is PickerMediaItem => item !== null);
+              const items = (data.docs ?? [])
+                .map((doc): PickerMediaItem | null => {
+                  if (!doc.id || !doc.url) {
+                    return null;
+                  }
+                  return {
+                    id: doc.id,
+                    createTime:
+                      doc.photoMediaMetadata?.creationTime ??
+                      new Date().toISOString(),
+                    filename: doc.name ?? doc.id,
+                    mimeType: doc.mimeType ?? 'image/jpeg',
+                    width: doc.photoMediaMetadata?.width ?? 0,
+                    height: doc.photoMediaMetadata?.height ?? 0,
+                    baseUrl: doc.thumbnails?.[0]?.url ?? doc.url,
+                    productUrl: doc.url
+                  };
+                })
+                .filter((item): item is PickerMediaItem => item !== null);
 
-            setLastOutcome('selected');
-            resolve(items);
-          })
-          .build();
+              setLastOutcome('selected');
+              resolve(items);
+            })
+            .build();
 
-        builtPicker.setVisible(true);
-      });
+          builtPicker.setVisible(true);
+        }
+      );
 
       return selected;
     } catch {
-      setError('Unable to open Google Photos Picker. Check your connection and try again.');
+      setError(
+        'Unable to open Google Photos Picker. Check your connection and try again.'
+      );
       return null;
     } finally {
       setIsLoading(false);
@@ -261,7 +282,9 @@ export function useGooglePhotosPicker(): UseGooglePhotosPickerResult {
   };
 }
 
-export function normalizePickerSelection(items: PickerMediaItem[]): PickerItem[] {
+export function normalizePickerSelection(
+  items: PickerMediaItem[]
+): PickerItem[] {
   return items.map((item) => ({
     id: item.id,
     createTime: item.createTime,
