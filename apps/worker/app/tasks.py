@@ -16,6 +16,4 @@ def typed_task(
     )
 
 
-@typed_task(name="tasks.ping")
-def ping() -> str:
-    return "pong"
+# Worker tasks will be implemented in Phase 3.
