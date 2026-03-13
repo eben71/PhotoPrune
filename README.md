@@ -1,278 +1,65 @@
 # PhotoPrune
 
-## Project Summary
-
-**What PhotoPrune does:** PhotoPrune is a validation MVP that helps users **review potential duplicate and near-duplicate photos** selected via the Google Photos Picker. It groups likely matches, labels confidence, and guides a cautious, review-only workflow.
-
-**What PhotoPrune does NOT do (Phase 2):** It does **not** scan full libraries, **does not** delete photos automatically, and **does not** use embeddings or semantic similarity in the MVP.
-
-## Phase 2 MVP Constraints (Locked)
-
-- **Picker API only** (user-selected items; no library-wide scan).
-- **Configurable max photos per run** (cost guardrail).
-- **Review-only** results (no deletion or bulk destructive actions).
-- **Single-session usage** (no background sync, no multi-session accounts).
-
-> Phase 2 is a **validation MVP**. Accuracy perfection is **not** the goal; trust and predictability are.
-
-## Trust & Safety
-
-- Review-first workflow; users must make the final decision.
-- Clear confidence labels and known limitations are shown to users.
-- Cost guardrails prevent unexpected usage spikes.
-
-## Phase 2.3 Style & Trust Layer (Current)
-
-Phase 2.3 refines the **single-session, review-only** web flow with trust-first copy and transparent state messaging:
-
-1. **Start** (`/`) — expectations + “Select photos” CTA
-2. **Run** (`/run`) — confirm selection, start analysis, monitor progress + cost, cancel if needed
-3. **Results** (`/results`) — review duplicate groups, expand groups, and open items in Google Photos
-
-Trust copy is centralized in `apps/web/app/copy/trustCopy.ts`; update guidance lives in `docs/trust-copy.md`.
-
-The UI consumes a Phase 2.2 envelope schema (version `2.2.0`). The run API calls the
-Phase 2.1 `/api/scan` engine and adapts its `ScanResult` payload into the envelope
-shape expected by the UX.
-
-Phase 2.2 runs Next.js images in unoptimized mode to avoid remote host restrictions during
-MVP validation; revisit this in Phase 2.3 when the image pipeline is stabilized.
-
-## Tech stack (current)
-
-- **Frontend:** Next.js + React + TypeScript
-- **Backend API:** Python + FastAPI
-- **Worker:** Celery (Redis broker)
-- **Queue/Broker:** Redis
-- **Database:** PostgreSQL
-- **Validation:** Zod (shared types)
-- **Monorepo:** Turborepo + pnpm workspaces
-- **CI:** GitHub Actions
-- **Testing:** Vitest (FE), pytest (API/worker)
-- **Lint/Format/Typecheck:** ESLint/Prettier, Ruff/Black, MyPy
-
-## Core Engine (Phase 2.1)
-
-The core engine lives in the FastAPI service and produces deterministic group cards for:
-
-- **Exact duplicates** (byte-identical SHA-256 hashes)
-- **Near duplicates** (dHash/pHash similarity with fixed thresholds)
-
-The engine performs metadata-based candidate narrowing, downloads bytes on demand with per-run
-caching, and returns a structured `ScanResult` payload that maps 1:1 to the results UI model.
-It also emits timing/count metrics and a cost estimate per run.
-
-### Minimal scan endpoint
-
-`POST /api/scan` accepts either normalized `photoItems` or a raw `pickerPayload`:
-
-```json
-{
-  "photoItems": [
-    {
-      "id": "abc123",
-      "createTime": "2024-01-01T12:00:00Z",
-      "filename": "IMG_0001.jpg",
-      "mimeType": "image/jpeg",
-      "width": 4032,
-      "height": 3024,
-      "downloadUrl": "https://photos.google.com/lr/...",
-      "googlePhotosDeepLink": "https://photos.google.com/photo/..."
-    }
-  ],
-  "consentConfirmed": false
-}
-```
-
-For Picker payloads, the engine normalizes `mediaItems` with metadata under either top-level
-fields or `mediaFile.*`. No photo bytes or URLs are persisted. Google Photos deep links are
-propagated when provided (`googlePhotosDeepLink` or picker `productUrl`) and otherwise
-fall back to a conservative Google Photos search link by item id to support manual review.
-
-## Phase 3 Implementation Notes
-
-- Projects are now stored in the API database as metadata-only records and scan snapshots; **no image bytes are stored**.
-- Manual-only cleanup guidance is available through per-group checklists, CSV/JSON export, and Google Photos deep links (or safe item-id search fallbacks).
-
-## Repo Structure
-
-- `apps/web` — Next.js app with the Phase 2.2 flow (`/`, `/run`, `/results`) plus a `/health` check
-- `apps/web/fixtures` — Optional Phase 2.2 sample envelope data for local mocks
-- `apps/api` — FastAPI service exposing `/healthz` and loading settings from env
-- `apps/worker` — Celery worker with a demo `ping` task
-- `packages/shared` — Shared Zod schemas/types (e.g., health payload)
-- `infra/docker` — Dockerfiles used by local Docker Compose services
-- `docs` — Architecture and contributing guides
-- `.github/workflows` — CI pipelines and checks
+PhotoPrune helps users review duplicate or near-duplicate photos selected from Google Photos.
+It never deletes photos automatically.
 
 ## Local Development
 
-Prereqs: Node.js 20+, pnpm (via Corepack), Python 3.12+, and `uv`.
+```bash
+make setup
+make dev
+```
 
-1. Copy `.env.example` to `.env` and adjust if needed.
-2. Install dependencies and toolchains:
-   ```bash
-   make setup
-   ```
-3. Common tasks:
-   ```bash
-   make dev       # docker compose up web/api/worker + services
-   make lint      # lint JS/TS (pnpm) + Ruff
-   make format    # apply Prettier + Black
-   make format-check  # formatting check only
-   make typecheck # TypeScript + MyPy
-   make test      # Vitest + pytest (with coverage)
-   make build     # Turbo builds + Python bytecode compile
-   make hooks     # install git hooks via lefthook
-   ```
-4. Web tests only run from `apps/web/tests` (excluding `.next`) to avoid picking up compiled artifacts.
-5. Web tests only run from `apps/web/tests` (excluding `.next`) to avoid picking up compiled artifacts.
-6. If you regenerate lockfiles (e.g., after dependency changes), commit the updated `pnpm-lock.yaml` and requirement locks so CI stays reproducible.
+## Quality Gates
 
-### Picker harness (fixture extraction)
-
-Use `tools/picker-harness.html` to run the Google Photos Picker flow locally and export fixture JSON for tests/UI mocks.
-
-1. Serve the `tools/` directory over localhost (GIS requires `http://localhost` / `http://127.0.0.1`, not `file://`):
-   ```bash
-   py -m http.server --directory tools 42813
-   ```
-2. Open `http://localhost:42813/picker-harness.html`.
-3. Use a **Web application** OAuth client and ensure the **Authorized JavaScript origin** matches the page’s origin (shown at the top of the page).
-4. Click **Authorize**, then **Open Picker**, select items, and wait for polling to finish.
-5. Copy or download the JSON payload, then save it as a fixture (for example, in `apps/web/fixtures/`).
-
-The harness prints the payload to the page and `console.log()` and intentionally excludes access tokens.
-
-### CI notes
-
-CI runs the same Makefile targets listed above (`make lint`, `make format-check`, `make typecheck`, `make test`, `make build`) to keep checks consistent between local and GitHub Actions.
-
-### Agent skill: `fix:ci`
-
-For local CI parity checks with safe auto-fixes, use the PhotoPrune agent skill:
+Run before opening a PR:
 
 ```bash
-node skills/agent-fix-ci/agent-fix-ci.mjs
+make lint
+make format
+make typecheck
+make test
+make build
 ```
 
-This reads `.github/workflows/ci.yml` to stay aligned with CI. It will auto-apply safe fixes (formatting) and re-run a step until it passes or a guardrail/manual failure stops the loop.
+## Repo Structure
 
-To emit a Codex repair capsule for non-fixable failures:
+- `apps/web` — Next.js frontend
+- `apps/api` — FastAPI API
+- `apps/worker` — Celery worker
+- `packages/shared` — shared TypeScript types/utilities
+- `infra/docker` — Dockerfiles for local/containerized services
+- `docs` — product, architecture, and trust-copy documentation
+- `.github/workflows` — CI pipeline definitions
 
-```bash
-node skills/agent-fix-ci/agent-fix-ci.mjs --codex
-```
+## Key Environment Variables
 
-You can also run the shortcut:
+### Frontend (`apps/web`)
 
-```bash
-make agent-fix-ci
-```
+- `NEXT_PUBLIC_GOOGLE_API_KEY`
+- `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
+- `NEXT_PUBLIC_SCAN_MAX_PHOTOS`
+- `NEXT_PUBLIC_API_BASE_URL`
 
-To pass flags through Make, append them after the target:
+### API (`apps/api`)
 
-```bash
-make agent-fix-ci -- --codex
-```
+- `PHOTO_PRUNE_DATABASE_URL`
+- `PHOTO_PRUNE_SCAN_MAX_PHOTOS`
+- `PHOTO_PRUNE_SCAN_CONSENT_THRESHOLD`
+- `PHOTO_PRUNE_COST_SOFT_CAP_USD`
+- `PHOTO_PRUNE_COST_HARD_CAP_USD`
 
-Future agent skills follow the same Makefile convention:
+Copy `.env.example` and provide local values. Do not commit secrets.
 
-```bash
-make agent-<name>
-```
+## Product Behavior
 
-### API configuration (scan guardrails)
+1. User selects photos via Google Photos Picker.
+2. Selection is normalized and scanned for duplicate groups.
+3. User reviews grouped results and cost telemetry.
+4. No deletion calls are made by PhotoPrune.
 
-```
-ENVIRONMENT=local
-SCAN_MAX_PHOTOS=250
-SCAN_CONSENT_THRESHOLD=200
-SCAN_ALLOWED_DOWNLOAD_HOSTS=photos.google.com,lh3.googleusercontent.com,googleusercontent.com,placehold.co
-SCAN_DHASH_THRESHOLD_VERY=5
-SCAN_DHASH_THRESHOLD_POSSIBLE=10
-SCAN_PHASH_THRESHOLD_VERY=6
-SCAN_PHASH_THRESHOLD_POSSIBLE=12
-SCAN_COST_PER_DOWNLOAD=0.0002
-SCAN_COST_PER_BYTE_HASH=0.00005
-SCAN_COST_PER_PERCEPTUAL_HASH=0.00008
-SCAN_COST_PER_COMPARISON=0.00001
-SCAN_SMALL_INPUT_FALLBACK_MAX=20
-SCAN_EXPLAIN=0
-```
+## Documentation
 
-In `local` or `dev`, guardrails only log warnings. In `prod`, limits are enforced. Download
-`SCAN_ALLOWED_DOWNLOAD_HOSTS` accepts a JSON array (e.g. `["lh3.googleusercontent.com"]`),
-a comma-delimited string, or an empty/unset value to disable the allowlist locally. Only
-exact hostnames are allowed. To accept Google Photos media hosts like `lh4.googleusercontent.com`,
-include `googleusercontent.com` or `.googleusercontent.com` in the allowlist, which enables
-only `lh<N>.googleusercontent.com` (not arbitrary subdomains). URLs are rejected if they
-resolve to non-global addresses to mitigate SSRF risk. Fixtures must not obfuscate hostnames;
-if they do, add the real hostnames to the allowlist in local/dev.
-The sample web selection uses `placehold.co`; include it in local allowlists if enabled.
-
-For small scans where metadata narrowing yields zero candidates, the engine optionally
-falls back to a lightweight near-duplicate pass across the full selection when
-`SCAN_SMALL_INPUT_FALLBACK_MAX` is set (defaults to 20). For diagnostics, set `SCAN_EXPLAIN=1`
-or send `X-Scan-Explain: 1` in local/dev to include extra candidate narrowing counters and a
-debug block (ids/counts only; no URLs) in the scan response.
-
-For local/dev fixture runs with obfuscated hosts, you can rewrite hostnames before validation
-and download with `SCAN_DOWNLOAD_HOST_OVERRIDES` (JSON map or `source:dest` CSV). This is
-ignored in `prod`. If an override is present in local/dev, the host allowlist and
-private-address checks are bypassed for that overridden host to support local fixture
-servers. Example:
-
-```
-SCAN_DOWNLOAD_HOST_OVERRIDES=example.test:http://127.0.0.1:8001
-```
-
-### Web dev run mode (Phase 2.2)
-
-```
-NEXT_PUBLIC_PHASE2_RUN_MODE=engine
-```
-
-- Default behavior is explicit: in development, web runs use the real scan engine adapter (`engine`) unless you set `NEXT_PUBLIC_PHASE2_RUN_MODE=fixture`.
-- Fixture mode is dev-only; production always uses the real engine path.
-- When enabled in development, the run page displays a small mode label so engineers can verify whether they are on fixture or engine mode.
-
-### Fixture Hygiene (Local Dev)
-
-Do not commit live or expiring `downloadUrl` values in fixtures. Keep fixture payloads
-sanitized and prefer local bytes for repeatable runs.
-
-Recommended `.gitignore` additions for local-only fixtures:
-
-```
-tests/fixtures/picker/*
-tests/fixtures/requests/*
-tests/fixtures/results/*
-```
-
-## Out of Scope (Phase 2)
-
-- Library-wide scanning (Library API enumeration)
-- Automatic deletion or bulk destructive actions
-- Embedding/semantic similarity in the MVP
-- Multi-session accounts, background sync, or persistent indexing
-- Pricing plans, billing systems, or free-tier enforcement
-- Hosted production deployment guarantees
-
-## Upcoming Phase 3: Recurring Workflow & Scoped Ingestion (Planned)
-
-- **Projects & Persistence:** Multi-session cleanup projects with persisted metadata + review decisions only (no image bytes stored).
-- **Scoped Ingestion:** Google sign-in with read-only access is available in the web app; users import Picker payload selections to run scans without full-library enumeration.
-- **Live Visibility:** Run and project pages include live activity feeds that auto-refresh progress and recent scan activity for safer monitoring.
-- **Persistence Next:** Persisting stable identifiers/fingerprints and incremental-only re-scan diffing remains in progress for the next phase.
-- **Manual Action Guidance:** Per-group checklists plus CSV/JSON exports for user-led cleanup; PhotoPrune never deletes or modifies photos automatically.
-
-## Phase 1 Feasibility Summary
-
-Phase 1 established two key outcomes: whole-library enumeration through the Google Photos Library API is not viable for this product direction, while Picker-based user-selected ingestion is viable for Phase 2 review workflows. Those findings informed the locked Phase 2 scope and the planned Phase 3 direction above.
-
-## Notes
-
-- No secrets are committed. Use `.env.example` as a template and provide values locally.
-- CI enforces linting, formatting, type checking, tests, coverage (>=80%), doc guard, and audits.
-- The checked-in `pnpm-lock.yaml` is a placeholder due to offline bootstrapping; regenerate with `pnpm install` when network access is available and commit the result.
+- Architecture: `docs/ARCHITECTURE.md`
+- Trust copy: `docs/trust-copy.md`
+- Contribution workflow: `docs/CONTRIBUTING.md`

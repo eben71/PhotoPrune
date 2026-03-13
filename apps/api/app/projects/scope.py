@@ -21,7 +21,6 @@ class PickerScopeProvider:
 
 class AlbumSetScopeProvider:
     def resolve(self, definition: ScopeDefinition) -> dict[str, object]:
-        # TODO(phase3.3): integrate Google Photos read-only album APIs for scoped ingestion.
         return {"type": "album_set", "albumIds": definition.album_ids, "status": "stub"}
 
 

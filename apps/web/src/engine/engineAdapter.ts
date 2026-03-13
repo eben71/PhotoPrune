@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import fixtureRunEnvelope from '../../fixtures/phase2_2_sample_results.json';
+import fixtureRunEnvelope from '../../tests/fixtures/phase2_2_sample_results.json';
 
 import type { PickerItem, RunEnvelope } from '../types/phase2Envelope';
 import { shouldUsePhase21FixtureMode } from './runMode';

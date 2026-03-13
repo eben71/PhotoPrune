@@ -11,7 +11,6 @@
     "typecheck": "turbo typecheck",
     "test": "turbo test",
     "build": "turbo build",
-    "agent:fix:ci": "node skills/agent-fix-ci/agent-fix-ci.mjs",
     "check:docs": "node scripts/check-docs.js",
     "prepare": "node scripts/prepare-lefthook.cjs"
   },
