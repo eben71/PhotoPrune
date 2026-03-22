@@ -4,7 +4,7 @@ amqp==5.3.1
     # via kombu
 billiard==4.2.4
     # via celery
-black==24.10.0
+black==26.3.1
     # via photoprune-worker (pyproject.toml:dev)
 boolean-py==5.0
     # via license-expression
