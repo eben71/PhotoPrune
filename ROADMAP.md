@@ -243,6 +243,8 @@ The approved implementation direction for the web frontend is:
 This design lock is intended to support implementation speed and consistency.
 It does not change product scope.
 
+- ✅ 2026-03-22: Implemented v1 trust-first frontend refresh in `apps/web` with Tailwind tokens, reusable UI primitives, and redesigned home/run/results screens aligned to the approved visual direction.
+
 ---
 
 ## 3 — Phase 3: Recurring Workflow & Scoped Ingestion (POST-VALIDATION)

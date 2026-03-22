@@ -7,12 +7,6 @@ import type { Group } from '../../src/types/phase2Envelope';
 import { trustCopy } from '../copy/trustCopy';
 import { OpenInGooglePhotosButton } from './OpenInGooglePhotosButton';
 
-const confidenceDescriptions: Record<Group['confidence'], string> = {
-  HIGH: trustCopy.results.confidenceBands.HIGH,
-  MEDIUM: trustCopy.results.confidenceBands.MEDIUM,
-  LOW: trustCopy.results.confidenceBands.LOW
-};
-
 const reasonCodeSummary: Record<string, string> = {
   HASH_MATCH: 'Reason: Strong visual match across structure and content',
   PHASH_CLOSE:
@@ -27,18 +21,11 @@ function getReasonSummary(group: Group) {
   const firstKnownReason = group.reasonCodes.find(
     (code) => reasonCodeSummary[code]
   );
-  if (firstKnownReason) {
-    return reasonCodeSummary[firstKnownReason];
-  }
-
-  if (group.confidence === 'HIGH') {
-    return 'Reason: Strong visual match across structure and content';
-  }
-
+  if (firstKnownReason) return reasonCodeSummary[firstKnownReason];
+  if (group.confidence === 'HIGH') return reasonCodeSummary.HASH_MATCH;
   if (group.confidence === 'MEDIUM') {
     return 'Reason: Matching dominant features with moderate visual differences';
   }
-
   return 'Reason: Shared visual traits with weaker overall similarity';
 }
 
@@ -46,84 +33,74 @@ export function GroupCard({ group, index }: { group: Group; index: number }) {
   const [expanded, setExpanded] = useState(false);
 
   const representativeItems = useMemo(() => {
-    const representatives = group.items.filter((item) =>
+    const reps = group.items.filter((item) =>
       group.representativeItemIds.includes(item.itemId)
     );
-    if (representatives.length > 0) {
-      return representatives.slice(0, 2);
-    }
-    return group.items.slice(0, 2);
+    return (reps.length > 0 ? reps : group.items).slice(0, 2);
   }, [group]);
 
   const remainingCount = Math.max(0, group.itemsCount - 2);
+  const bandClass =
+    group.confidence === 'HIGH'
+      ? 'conf-band-high'
+      : group.confidence === 'MEDIUM'
+        ? 'conf-band-medium'
+        : 'conf-band-low';
 
   return (
-    <article>
-      <header>
-        <h3>{`Group ${index + 1} — ${group.confidence} Confidence`}</h3>
-        <p>{`Confidence: ${group.confidence}`}</p>
+    <article className={`group-card ${bandClass}`}>
+      <div className="group-main">
+        <h3>Group {index + 1}</h3>
+        <p>Confidence: {group.confidence}</p>
         <p>{getReasonSummary(group)}</p>
-      </header>
-
-      <p>{confidenceDescriptions[group.confidence]}</p>
-      <p>{trustCopy.groupDetail.reviewLines[0]}</p>
-      <p>{trustCopy.groupDetail.reviewLines[1]}</p>
-
-      <details>
-        <summary>{trustCopy.results.reasonTitle}</summary>
-        <ul>
-          {trustCopy.results.reasonBullets.map((bullet) => (
-            <li key={bullet}>{bullet}</li>
-          ))}
-        </ul>
-        <p>{trustCopy.results.footnote}</p>
-      </details>
-
-      {!expanded ? (
-        <div>
-          <div>
-            {representativeItems.map((item) => (
-              <Image
-                key={item.itemId}
-                src={item.thumbnail.baseUrl}
-                alt={item.filename}
-                width={160}
-                height={160}
-              />
-            ))}
-          </div>
-          {remainingCount > 0 ? <p>+{remainingCount} more</p> : null}
-        </div>
-      ) : (
-        <div>
-          {group.items.map((item) => (
-            <div key={item.itemId}>
-              <Image
-                src={item.thumbnail.baseUrl}
-                alt={item.filename}
-                width={160}
-                height={160}
-              />
-              <p>{item.filename}</p>
-              <p>{new Date(item.createTime).toLocaleString()}</p>
-              <OpenInGooglePhotosButton item={item} />
-              <label>
-                <input
-                  type="checkbox"
-                  name={`potential-removal-${item.itemId}`}
-                />
-                {trustCopy.groupDetail.neutralSelection}
-              </label>
-            </div>
+        <div className="img-grid">
+          {representativeItems.map((item) => (
+            <Image
+              key={item.itemId}
+              src={item.thumbnail.baseUrl}
+              alt={item.filename}
+              width={200}
+              height={200}
+            />
           ))}
         </div>
-      )}
-
-      {group.itemsCount > 2 ? (
-        <button type="button" onClick={() => setExpanded((prev) => !prev)}>
-          {expanded ? 'Show fewer' : 'Show all items'}
+        {remainingCount > 0 ? <p>+{remainingCount} more</p> : null}
+        {group.itemsCount > 2 ? (
+          <button
+            className="btn btn-secondary"
+            type="button"
+            onClick={() => setExpanded((p) => !p)}
+          >
+            {expanded ? 'Show fewer' : 'Show all items'}
+          </button>
+        ) : null}
+      </div>
+      <div className="group-actions">
+        <button className="btn btn-primary" type="button">
+          Keep recommended
         </button>
-      ) : null}
+        <button className="btn btn-danger" type="button">
+          Remove selected
+        </button>
+        <button className="btn btn-secondary" type="button">
+          Skip for now
+        </button>
+        {expanded
+          ? group.items.map((item) => (
+              <div key={item.itemId} style={{ marginTop: 12 }}>
+                <p>{item.filename}</p>
+                <OpenInGooglePhotosButton item={item} />
+                <label>
+                  <input
+                    type="checkbox"
+                    name={`potential-removal-${item.itemId}`}
+                  />
+                  {trustCopy.groupDetail.neutralSelection}
+                </label>
+              </div>
+            ))
+          : null}
+      </div>
     </article>
   );
 }

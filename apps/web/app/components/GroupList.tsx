@@ -2,14 +2,10 @@ import type { Group } from '../../src/types/phase2Envelope';
 import { trustCopy } from '../copy/trustCopy';
 import { GroupCard } from './GroupCard';
 
-type GroupListProps = {
-  groups: Group[];
-};
-
-export function GroupList({ groups }: GroupListProps) {
+export function GroupList({ groups }: { groups: Group[] }) {
   if (groups.length === 0) {
     return (
-      <section>
+      <section className="card">
         <h2>{trustCopy.results.emptyHeader}</h2>
         {trustCopy.results.emptyDescription.map((line) => (
           <p key={line}>{line}</p>
@@ -19,13 +15,11 @@ export function GroupList({ groups }: GroupListProps) {
   }
 
   return (
-    <section>
-      <h2>Groups</h2>
-      <div>
-        {groups.map((group, index) => (
-          <GroupCard key={group.groupId} group={group} index={index} />
-        ))}
-      </div>
+    <section className="group-list">
+      <h2>We found groups of very similar photos for you to review.</h2>
+      {groups.map((group, index) => (
+        <GroupCard key={group.groupId} group={group} index={index} />
+      ))}
     </section>
   );
 }
