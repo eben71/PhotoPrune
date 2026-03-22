@@ -330,7 +330,7 @@ class ProjectRepository:
                             "googlePhotos": {
                                 "url": item.get("deep_link"),
                                 "fallbackQuery": f"{member_id}",
-                                "fallbackUrl": "https://photos.google.com/search/" f"{member_id}",
+                                "fallbackUrl": f"https://photos.google.com/search/{member_id}",
                             }
                         },
                     }
