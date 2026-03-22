@@ -5,16 +5,14 @@ import { RunSessionProvider } from './state/runSessionStore';
 
 export const metadata = {
   title: 'PhotoPrune',
-  description: 'Review potential photo duplicates from a Picker session.'
+  description: 'Review groups of similar photos before making any changes.'
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <RunSessionProvider>
-          <main className="app-shell">{children}</main>
-        </RunSessionProvider>
+        <RunSessionProvider>{children}</RunSessionProvider>
       </body>
     </html>
   );

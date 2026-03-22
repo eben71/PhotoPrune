@@ -3,10 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-import { Banner } from '../components/Banner';
-import { CostPanel } from '../components/CostPanel';
 import { GroupList } from '../components/GroupList';
-import { trustCopy } from '../copy/trustCopy';
 import { requireResults } from '../state/sessionGuards';
 import { useRunSession } from '../state/runSessionStore';
 
@@ -14,96 +11,73 @@ export default function ResultsPage() {
   const router = useRouter();
   const { state, hydrated, clearSelection } = useRunSession();
 
-  if (!hydrated) {
-    return null;
-  }
-
+  if (!hydrated) return null;
   const guard = requireResults(state.results);
-
   if (!guard.allow) {
     return (
-      <section>
-        <h1>Session expired</h1>
-        <p>{trustCopy.sessionBanner[0]}</p>
-        <p>{trustCopy.sessionBanner[1]}</p>
-        <Link href="/">Return to start</Link>
-      </section>
+      <main className="shell">
+        <section className="card">
+          <h1>Session expired</h1>
+          <p>This is a single-session scan. Start a new run to continue.</p>
+          <Link href="/">Return to start</Link>
+        </section>
+      </main>
     );
   }
 
-  const { results, telemetry } = state;
-  if (!results) {
-    return null;
-  }
-
-  const hasIssues =
-    results.skippedItems.length > 0 || results.failedItems.length > 0;
-  const hitHardCap = telemetry?.cost.hitHardCap ?? false;
-
-  const handleClearSession = () => {
-    clearSelection();
-    router.push('/');
-  };
+  const { results } = state;
+  if (!results) return null;
 
   return (
-    <section>
-      <h1>{trustCopy.results.header}</h1>
-      {trustCopy.results.intro.map((line) => (
-        <p key={line}>{line}</p>
-      ))}
-
-      <Banner tone="info" title={trustCopy.sessionBanner[0]}>
-        <p>{trustCopy.sessionBanner[1]}</p>
-      </Banner>
-
-      <button type="button" onClick={handleClearSession}>
-        End Session
-      </button>
-
-      {hitHardCap ? (
-        <Banner tone="warn" title={trustCopy.capReached.header}>
-          {trustCopy.capReached.explanation.map((line) => (
-            <p key={line}>{line}</p>
-          ))}
-        </Banner>
-      ) : null}
-
-      <section>
-        <h2>{trustCopy.results.confidenceTitle}</h2>
-        <ul>
-          <li>
-            <strong>HIGH:</strong> {trustCopy.results.confidenceBands.HIGH}
-          </li>
-          <li>
-            <strong>MEDIUM:</strong> {trustCopy.results.confidenceBands.MEDIUM}
-          </li>
-          <li>
-            <strong>LOW:</strong> {trustCopy.results.confidenceBands.LOW}
-          </li>
-        </ul>
-        <p>{trustCopy.results.confidenceFooter}</p>
+    <main className="shell">
+      <section className="hero">
+        <p className="eyebrow">Action required</p>
+        <h1>Review dashboard</h1>
+        <p>You review each group before anything changes.</p>
+      </section>
+      <section className="card" style={{ marginTop: '1rem' }}>
+        <div className="summary">
+          <div>
+            <h2>Session summary</h2>
+            <p>
+              Groups: {results.summary.groupsCount} • Grouped items:{' '}
+              {results.summary.groupedItemsCount}
+            </p>
+          </div>
+          <button
+            className="btn btn-secondary"
+            type="button"
+            onClick={() => {
+              clearSelection();
+              router.push('/');
+            }}
+          >
+            End Session
+          </button>
+        </div>
+        <div className="badges">
+          <span className="badge badge-high">High confidence</span>
+          <span className="badge badge-medium">Medium confidence</span>
+          <span className="badge badge-low">Low confidence</span>
+        </div>
       </section>
 
-      <section>
-        <h2>Run summary</h2>
-        <ul>
-          <li>Groups: {results.summary.groupsCount}</li>
-          <li>Grouped items: {results.summary.groupedItemsCount}</li>
-          <li>Ungrouped items: {results.summary.ungroupedItemsCount}</li>
-        </ul>
+      <section className="card" style={{ marginTop: '1rem' }}>
+        <h2>What the confidence bands mean:</h2>
+        <p>
+          High confidence, Medium confidence, and Low confidence indicate
+          similarity only.
+        </p>
+        <p>Nothing is deleted automatically.</p>
+        <p>
+          This is a single-session scan. If you refresh or close this page,
+          results will be lost.
+        </p>
       </section>
 
-      <GroupList groups={results.groups} />
-
-      {hasIssues ? (
-        <Banner tone="warn" title={trustCopy.errors.processing.title}>
-          {trustCopy.errors.processing.body.map((line) => (
-            <p key={line}>{line}</p>
-          ))}
-        </Banner>
-      ) : null}
-
-      <CostPanel telemetry={telemetry} />
-    </section>
+      <section style={{ marginTop: '1rem' }}>
+        <GroupList groups={results.groups} />
+      </section>
+    </main>
   );
 }
