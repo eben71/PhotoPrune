@@ -190,12 +190,14 @@ Manual-only remaining work:
 - ✅ Checklist G human review pass
 - ✅ Cancel + cap smoke tests in live/manual flows
 
-### Phase 2.3: Style & Trust Layer
+### Phase 2.3: Style & Trust Layer (**DONE**)
 
-- ✅ Trust-first copy (predictability over hype)
+- ✅ Trust-first copy aligned to actual product scope
 - ✅ Clear scope boundaries visible in UI
 - ✅ Transparency on limits and known failure modes
-- ✅ Checklist A (Selection & Ingestion) verified via automated tests
+- ✅ Confidence expressed as `High` / `Medium` / `Low` only
+- ✅ No similarity percentages in the intended UX
+- ✅ Final visual design direction approved for implementation
 - ✅ Trust copy source and update guidance documented (`docs/trust-copy.md`)
 
 ### Phase 2.4: Validation & Stress Testing
@@ -227,9 +229,25 @@ Manual-only remaining work:
 
 ---
 
+## Design Lock for Implementation
+
+The approved implementation direction for the web frontend is:
+
+- Next.js + React + TypeScript
+- Tailwind CSS
+- shadcn/ui + Radix UI primitives
+- calm, trust-first visual system
+- group-based review UX
+- confidence bands only (`High` / `Medium` / `Low`)
+
+This design lock is intended to support implementation speed and consistency.
+It does not change product scope.
+
+---
+
 ## 3 — Phase 3: Recurring Workflow & Scoped Ingestion (POST-VALIDATION)
 
-> **Goal:** Transform PhotoPrune from a single-session validator into a recurring workflow **without** breaking Phase 2 trust and cost guardrails.
+> **Goal:** Transform PhotoPrune from a single-session validator into a recurring workflow **after** the approved Phase 2 trust-first frontend is implemented, without breaking Phase 2 cost and trust guardrails.
 
 ### Projects & Persistence
 
