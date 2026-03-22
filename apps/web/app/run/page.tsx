@@ -60,6 +60,24 @@ export default function RunPage() {
     }
   };
 
+  const handleConfirmEndSession = async () => {
+    if (state.run?.status === 'RUNNING' && state.run.runId) {
+      try {
+        const response = await fetch(`/api/run/${state.run.runId}/cancel`, {
+          method: 'POST'
+        });
+        const envelope = RunEnvelopeSchema.parse(await response.json());
+        applyEnvelope(envelope);
+      } catch {
+        setError('Unable to stop this scan right now. Please try again.');
+        return;
+      }
+    }
+
+    clearSelection();
+    setShowEndSessionConfirm(false);
+  };
+
   const progressValue = useMemo(() => {
     if (!state.progress) return 0;
     return (
@@ -145,7 +163,7 @@ export default function RunPage() {
               <button
                 className="btn btn-danger"
                 type="button"
-                onClick={clearSelection}
+                onClick={() => void handleConfirmEndSession()}
               >
                 End Session
               </button>
