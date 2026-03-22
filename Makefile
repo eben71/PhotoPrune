@@ -39,6 +39,9 @@ ifeq ($(UV),)
 $(error uv is required. Install via "brew install uv" or "curl -LsSf https://astral.sh/uv/install.sh | sh", ensure it is on PATH, or set UV=/full/path/to/uv)
 endif
 
+# Clear any externally activated virtualenv so uv uses the service-local project env.
+UV_RUN := VIRTUAL_ENV= $(UV)
+
 .PHONY: setup dev dev-web lint format format-check typecheck test build hooks fixture-server
 
 _dev_compose := $(DOCKER_RUN) compose -f docker-compose.yml -p photoprune
@@ -46,8 +49,8 @@ _dev_compose_dev := $(DOCKER_RUN) compose -f docker-compose.yml -f docker-compos
 
 setup:
 	$(PNPM) install
-	cd apps/api && $(UV) venv && $(UV) pip install -r requirements-dev.lock
-	cd apps/worker && $(UV) venv && $(UV) pip install -r requirements-dev.lock
+	cd apps/api && $(UV_RUN) venv && $(UV_RUN) pip install -r requirements-dev.lock
+	cd apps/worker && $(UV_RUN) venv && $(UV_RUN) pip install -r requirements-dev.lock
 
 dev:
 	@if [ -z "$(DOCKER)" ]; then \
@@ -65,38 +68,37 @@ dev-web:
 
 lint:
 	$(PNPM) lint
-	cd apps/api && $(UV) run ruff check app tests
-	cd apps/worker && $(UV) run ruff check app tests
+	cd apps/api && $(UV_RUN) run ruff check app tests
+	cd apps/worker && $(UV_RUN) run ruff check app tests
 
 format:
 	$(PNPM) format
-	cd apps/api && $(UV) run black app tests
-	cd apps/worker && $(UV) run black app tests
+	cd apps/api && $(UV_RUN) run black app tests
+	cd apps/worker && $(UV_RUN) run black app tests
 
 format-check:
 	$(PNPM) format:check
-	cd apps/api && $(UV) run black --check app tests
-	cd apps/worker && $(UV) run black --check app tests
+	cd apps/api && $(UV_RUN) run black --check app tests
+	cd apps/worker && $(UV_RUN) run black --check app tests
 
 typecheck:
 	$(PNPM) typecheck
-	cd apps/api && $(UV) run mypy app
-	cd apps/worker && $(UV) run mypy app
+	cd apps/api && $(UV_RUN) run mypy app
+	cd apps/worker && $(UV_RUN) run mypy app
 
 test:
 	$(PNPM) test
-	cd apps/api && $(UV) run pytest
-	cd apps/worker && $(UV) run pytest
+	cd apps/api && $(UV_RUN) run pytest
+	cd apps/worker && $(UV_RUN) run pytest
 
 build:
 	$(PNPM) build
-	cd apps/api && $(UV) run python -m compileall app
-	cd apps/worker && $(UV) run python -m compileall app
+	cd apps/api && $(UV_RUN) run python -m compileall app
+	cd apps/worker && $(UV_RUN) run python -m compileall app
 
 hooks:
 	$(PNPM) lefthook install
 
 fixture-server:
-	cd apps/api && $(UV) venv && $(UV) pip install -r requirements-dev.lock
-	cd apps/api && $(UV) run python ../../scripts/fixture_media_server.py
-
+	cd apps/api && $(UV_RUN) venv && $(UV_RUN) pip install -r requirements-dev.lock
+	cd apps/api && $(UV_RUN) run python ../../scripts/fixture_media_server.py
