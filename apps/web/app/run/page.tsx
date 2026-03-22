@@ -13,7 +13,6 @@ import { LiveFeed, type FeedEvent } from '../components/LiveFeed';
 import { requireSelection } from '../state/sessionGuards';
 import { useRunSession } from '../state/runSessionStore';
 import { RunEnvelopeSchema } from '../../src/types/phase2Envelope';
-import { getPhase21RunMode } from '../../src/engine/runMode';
 import { trustCopy } from '../copy/trustCopy';
 
 const StartRunResponseSchema = z.object({ runId: z.string() });
@@ -26,8 +25,6 @@ export default function RunPage() {
   const [error, setError] = useState<string | null>(null);
   const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
   const isCompleted = state.run?.status === 'COMPLETED';
-  const runMode = getPhase21RunMode();
-  const showDevRunModeLabel = process.env.NODE_ENV !== 'production';
 
   useEffect(() => {
     if (!hydrated) {
@@ -135,10 +132,6 @@ export default function RunPage() {
         <p key={line}>{line}</p>
       ))}
       <p>{trustCopy.run.transparency}</p>
-
-      {showDevRunModeLabel ? (
-        <p data-testid="dev-run-mode-label">Dev mode: {runMode} backend</p>
-      ) : null}
 
       <SelectionSummary selection={state.selection} />
 

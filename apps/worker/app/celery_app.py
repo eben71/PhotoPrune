@@ -14,4 +14,4 @@ app = Celery(
     backend=backend_url,
 )
 
-app.conf.task_routes = {"tasks.ping": {"queue": "default"}}
+# app.conf.task_routes will be added in Phase 3

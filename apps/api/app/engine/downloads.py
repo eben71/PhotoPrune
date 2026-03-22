@@ -8,7 +8,6 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable
 from functools import partial
-from typing import cast
 from urllib.parse import urlparse
 
 from app.engine.models import PhotoItem
@@ -75,7 +74,16 @@ def _default_fetcher(
     request = urllib.request.Request(effective_url, headers=headers)
     try:
         with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
-            return cast(bytes, response.read())
+            data = bytearray()
+            max_size = 50 * 1024 * 1024  # 50MB limit
+            while True:
+                chunk = response.read(65536)
+                if not chunk:
+                    break
+                data.extend(chunk)
+                if len(data) > max_size:
+                    raise ValueError(f"Download exceeded maximum size of {max_size} bytes.")
+            return bytes(data)
     except urllib.error.HTTPError as exc:
         parsed = urlparse(effective_url)
         hostname = parsed.hostname.lower() if parsed.hostname else "unknown"
