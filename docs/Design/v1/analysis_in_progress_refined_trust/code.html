@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PhotoPrune - AI Analysis</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-surface": "#f9f9ff",
+                        "primary": "#5adace",
+                        "primary-dim": "#49ccc0",
+                        "on-tertiary-container": "#3e0005",
+                        "inverse-primary": "#006b64",
+                        "on-background": "#dbe5ff",
+                        "on-error-container": "#ff9993",
+                        "primary-fixed": "#79f7ea",
+                        "secondary": "#e88532",
+                        "secondary-fixed-dim": "#ffcaa5",
+                        "on-secondary-container": "#ffad70",
+                        "surface-container-lowest": "#000000",
+                        "background": "#080e1a",
+                        "on-secondary": "#371800",
+                        "on-primary-container": "#65e4d8",
+                        "error": "#ee7d77",
+                        "secondary-fixed": "#ffdcc5",
+                        "surface": "#080e1a",
+                        "tertiary-fixed-dim": "#ea5d5d",
+                        "on-surface-variant": "#98abd4",
+                        "error-container": "#7f2927",
+                        "on-secondary-fixed-variant": "#8f4800",
+                        "on-error": "#490106",
+                        "on-tertiary-fixed-variant": "#520009",
+                        "tertiary": "#ff7f7d",
+                        "on-tertiary": "#58000b",
+                        "outline": "#63769b",
+                        "surface-dim": "#080e1a",
+                        "outline-variant": "#35486b",
+                        "surface-container-high": "#0f1f3a",
+                        "primary-container": "#00504a",
+                        "surface-container": "#0d192f",
+                        "surface-tint": "#5adace",
+                        "primary-fixed-dim": "#6ae8dc",
+                        "on-tertiary-fixed": "#000000",
+                        "surface-container-highest": "#102546",
+                        "on-surface": "#dbe5ff",
+                        "tertiary-fixed": "#fb6969",
+                        "secondary-dim": "#e88532",
+                        "tertiary-dim": "#ff706f",
+                        "surface-container-low": "#0a1323",
+                        "inverse-on-surface": "#4f5563",
+                        "on-primary": "#004943",
+                        "on-primary-fixed": "#004843",
+                        "error-dim": "#bb5551",
+                        "surface-bright": "#112c53",
+                        "tertiary-container": "#fb6969",
+                        "on-secondary-fixed": "#653100",
+                        "secondary-container": "#602e00",
+                        "surface-variant": "#102546",
+                        "on-primary-fixed-variant": "#006760"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .tonal-shift {
+            background: linear-gradient(135deg, #0a1323 0%, #080e1a 100%);
+        }
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            background: rgba(17, 44, 83, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary/30">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-slate-50/10 dark:bg-slate-900/80 backdrop-blur-xl shadow-xl shadow-slate-950/20">
+<div class="flex justify-between items-center px-6 h-16 w-full max-w-screen-2xl mx-auto">
+<div class="text-xl font-bold tracking-tighter text-slate-100 font-headline">PhotoPrune</div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="text-slate-400 hover:text-slate-200 transition-colors font-manrope tracking-tight font-medium" href="#">History</a>
+<a class="text-slate-400 hover:text-slate-200 transition-colors font-manrope tracking-tight font-medium" href="#">Settings</a>
+<button class="hover:bg-slate-800/50 rounded-lg transition-all p-2 flex items-center">
+<span class="material-symbols-outlined text-teal-400">account_circle</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- SideNavBar (Web Only) -->
+<aside class="hidden md:flex h-screen w-64 fixed left-0 top-0 border-r border-slate-800/20 bg-slate-950 flex-col py-8">
+<div class="px-6 mb-12">
+<div class="text-2xl font-black text-slate-100 font-headline">PhotoPrune</div>
+</div>
+<nav class="flex-1 space-y-1">
+<div class="flex items-center gap-3 bg-slate-900 text-teal-400 rounded-r-full py-3 px-6 border-l-4 border-teal-400 font-manrope text-sm font-semibold uppercase tracking-widest translate-x-1 duration-300">
+<span class="material-symbols-outlined" data-icon="radar">radar</span>
+<span>Scanning</span>
+</div>
+<div class="flex items-center gap-3 text-slate-500 py-3 px-6 hover:text-slate-300 transition-all font-manrope text-sm font-semibold uppercase tracking-widest">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span>Grouping</span>
+</div>
+<div class="flex items-center gap-3 text-slate-500 py-3 px-6 hover:text-slate-300 transition-all font-manrope text-sm font-semibold uppercase tracking-widest">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+<span>Review</span>
+</div>
+<div class="flex items-center gap-3 text-slate-500 py-3 px-6 hover:text-slate-300 transition-all font-manrope text-sm font-semibold uppercase tracking-widest">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span>Summary</span>
+</div>
+</nav>
+<div class="px-6 mt-auto">
+<div class="flex items-center gap-3 text-slate-500 py-3 hover:text-slate-300 transition-all font-manrope text-sm font-semibold uppercase tracking-widest">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span>Support</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:pl-64 pt-16 pb-24 md:pb-0 min-h-screen tonal-shift">
+<div class="max-w-4xl mx-auto px-6 py-12 md:py-24">
+<!-- Hero Header -->
+<header class="mb-16">
+<span class="inline-block px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold tracking-widest uppercase rounded-full mb-6">Processing analysis</span>
+<h1 class="text-5xl md:text-6xl font-headline font-extrabold text-on-background tracking-tighter mb-4 leading-tight">
+                    Curating your moments.
+                </h1>
+<p class="text-lg text-on-surface-variant font-light max-w-xl leading-relaxed">
+                    Analyzing your library to organize photos. <br class="hidden md:block"/>
+                    You'll review every suggestion before any action is taken.
+                </p>
+</header>
+<!-- Progress Visualization Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Main Progress Card -->
+<div class="md:col-span-2 bg-inverse-surface rounded-xl p-8 shadow-2xl relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+<div class="flex justify-between items-end mb-12">
+<div>
+<div class="text-[10px] font-bold text-inverse-on-surface uppercase tracking-widest mb-2">Overall Progress</div>
+<div class="text-4xl font-headline font-black text-surface tracking-tighter">64%</div>
+</div>
+<div class="text-right">
+<div class="text-[10px] font-bold text-inverse-on-surface/60 uppercase tracking-widest mb-1">Estimated finish</div>
+<div class="text-sm font-medium text-inverse-on-surface/80">~ 4 mins</div>
+</div>
+</div>
+<!-- Calm Progress Bar -->
+<div class="relative h-2 w-full bg-slate-100 rounded-full overflow-hidden mb-8">
+<div class="absolute top-0 left-0 h-full bg-primary w-[64%] transition-all duration-1000 ease-out"></div>
+</div>
+<div class="space-y-6">
+<!-- Step 1: Scanning -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div>
+<div class="text-sm font-bold text-surface">Scanning selected photos</div>
+<div class="text-xs text-inverse-on-surface">12,402 items indexed</div>
+</div>
+</div>
+<span class="text-[10px] font-bold text-primary uppercase">Finished</span>
+</div>
+<!-- Step 2: Grouping -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-sm animate-pulse">grid_view</span>
+</div>
+<div>
+<div class="text-sm font-bold text-surface">Identifying similar groups</div>
+<div class="text-xs text-inverse-on-surface">Analyzing visual patterns</div>
+</div>
+</div>
+<span class="text-[10px] font-bold text-primary uppercase tracking-widest">In Progress</span>
+</div>
+<!-- Step 3: Preparing -->
+<div class="flex items-center justify-between opacity-40">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+</div>
+<div>
+<div class="text-sm font-bold text-surface">Preparing your review session</div>
+<div class="text-xs text-inverse-on-surface">Organizing insights...</div>
+</div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pending</span>
+</div>
+</div>
+</div>
+<!-- Secondary Info Stack -->
+<div class="flex flex-col gap-6">
+<!-- Media Type Breakdown Card -->
+<div class="bg-surface-container-high rounded-xl p-6 flex flex-col justify-between h-full border border-outline-variant/10 shadow-lg">
+<div class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-4">Current Batch</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-sm font-medium text-on-surface">HDR Photos</span>
+<span class="text-sm font-bold text-primary">4,281</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-sm font-medium text-on-surface">Live Photos</span>
+<span class="text-sm font-bold text-secondary">1,092</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-sm font-medium text-on-surface">Screenshots</span>
+<span class="text-sm font-bold text-tertiary">845</span>
+</div>
+</div>
+<div class="mt-8 pt-6 border-t border-outline-variant/10">
+<div class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Confidence Level</div>
+<div class="flex items-center gap-2">
+<div class="flex-1 h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[92%]"></div>
+</div>
+<span class="text-xs font-bold text-primary">92%</span>
+</div>
+</div>
+</div>
+<!-- AI Insights Card -->
+<div class="bg-surface-bright/30 rounded-xl p-6 glass-panel border border-outline-variant/10">
+<span class="material-symbols-outlined text-secondary mb-3" data-icon="lightbulb" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+<div class="text-sm font-bold text-on-surface mb-1">Observation</div>
+<p class="text-xs text-on-surface-variant leading-relaxed">The analysis is currently prioritizing blurry burst shots and redundant receipts for your first review list.</p>
+</div>
+</div>
+</div>
+<!-- Asymmetric Footer / Status Area -->
+<footer class="mt-20 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+<div class="max-w-xs">
+<div class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Privacy &amp; Security</div>
+<p class="text-xs text-on-surface-variant leading-relaxed">All processing occurs locally on your device. Your metadata is handled with privacy in mind and stays within your vault.</p>
+</div>
+<button class="px-8 py-3 bg-slate-800 text-slate-100 font-bold rounded-md shadow-xl hover:bg-slate-700 transition-colors">
+                    Monitor progress
+                </button>
+</footer>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full h-20 flex justify-around items-center px-4 pb-safe bg-slate-900/90 backdrop-blur-lg border-t border-slate-800/30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] z-50 rounded-t-3xl">
+<a class="flex flex-col items-center justify-center bg-teal-500/10 text-teal-400 rounded-xl px-4 py-2 scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="radar">radar</span>
+<span class="font-manrope text-[10px] font-bold uppercase tracking-widest mt-1">Scanning</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-4 py-2 active:bg-slate-800 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-manrope text-[10px] font-bold uppercase tracking-widest mt-1">Grouping</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-4 py-2 active:bg-slate-800 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+<span class="font-manrope text-[10px] font-bold uppercase tracking-widest mt-1">Review</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-4 py-2 active:bg-slate-800 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-manrope text-[10px] font-bold uppercase tracking-widest mt-1">Summary</span>
+</a>
+</nav>
+</body></html>
