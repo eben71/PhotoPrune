@@ -34,8 +34,7 @@ class ProjectRepository:
 
     def _init_db(self) -> None:
         with self._conn() as conn:
-            conn.executescript(
-                """
+            conn.executescript("""
                 CREATE TABLE IF NOT EXISTS projects (
                     id TEXT PRIMARY KEY,
                     user_id TEXT NOT NULL,
@@ -92,8 +91,7 @@ class ProjectRepository:
                     UNIQUE(project_id, group_fingerprint),
                     FOREIGN KEY(project_id) REFERENCES projects(id)
                 );
-                """
-            )
+                """)
 
     def create_project(self, name: str, user_id: str = "local-user") -> dict[str, Any]:
         now = _now_iso()
