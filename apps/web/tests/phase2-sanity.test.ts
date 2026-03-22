@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import fixture from '../fixtures/phase2_2_sample_results.json';
+import fixture from './fixtures/phase2_2_sample_results.json';
 import { RunEnvelopeSchema } from '../src/types/phase2Envelope';
 
 describe('Phase 2.1 sanity fixtures', () => {

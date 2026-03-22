@@ -40,3 +40,6 @@ build
 
 # Misc
 .DS_Store
+
+apps/web/tests/fixtures/tmp/
+apps/web/tests/fixtures/local/

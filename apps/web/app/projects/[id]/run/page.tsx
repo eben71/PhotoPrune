@@ -3,8 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { GoogleAuthPanel } from '../../../components/GoogleAuthPanel';
-import { PickerPayloadImporter } from '../../../components/PickerPayloadImporter';
+import {
+  normalizePickerSelection,
+  useGooglePhotosPicker
+} from '../../../hooks/useGooglePhotosPicker';
 import { useRunSession } from '../../../state/runSessionStore';
 import { ProjectScanResponseSchema } from '../../../../src/types/projects';
 
@@ -20,6 +22,7 @@ export default function ProjectRunPage({
   }, [params]);
   const router = useRouter();
   const { state, setSelection } = useRunSession();
+  const { openPicker, isLoading, error: pickerError } = useGooglePhotosPicker();
 
   const handleStart = async () => {
     if (!id || state.selection.length === 0) {
@@ -51,6 +54,15 @@ export default function ProjectRunPage({
     router.push(`/projects/${id}/results?scanId=${payload.projectScanId}`);
   };
 
+  const handleSelect = async () => {
+    const items = await openPicker();
+    if (!items || items.length === 0) {
+      return;
+    }
+    setSelection(normalizePickerSelection(items));
+    setError(null);
+  };
+
   return (
     <>
       <section>
@@ -59,20 +71,21 @@ export default function ProjectRunPage({
         <p>Selected items: {state.selection.length}</p>
         <button
           type="button"
+          onClick={() => void handleSelect()}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Opening Google Photos…' : 'Select from Google Photos'}
+        </button>
+        <button
+          type="button"
           onClick={() => void handleStart()}
           disabled={!id || state.selection.length === 0}
         >
           Start project scan
         </button>
+        {pickerError ? <p role="alert">{pickerError}</p> : null}
         {error ? <p role="alert">{error}</p> : null}
       </section>
-      <GoogleAuthPanel />
-      <PickerPayloadImporter
-        onApplySelection={(selection) => {
-          setSelection(selection);
-          setError(null);
-        }}
-      />
     </>
   );
 }
