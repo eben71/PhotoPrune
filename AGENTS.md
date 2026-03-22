@@ -1,251 +1,205 @@
 # AGENTS.md
 
 ## Purpose
+This file tells coding agents how to work in the PhotoPrune repository.
 
-**Status:** PhotoPrune is past feasibility and actively building the Phase 2 MVP application.
-
-This file instructs development agents (e.g., CODEX) and reviewers on how to produce
-**secure, clean, testable, and maintainable code** for the PhotoPrune codebase.
-
-Primary goals:
-- Secure coding by default
-- Clean, well-structured code
-- Meaningful tests with **repo-wide ≥ 80% coverage**
-- Sensible dependency management
-- Green CI/CD at all times
-- Living documentation that evolves with the codebase
-
-Non-goals:
-- Shipping code that “just works” but is unsafe, untested, or undocumented
-- Over-testing or cargo-cult testing patterns
+Read this file first.
+Then read `AGENT_RULES.md`.
+If there is any conflict, `AGENT_RULES.md` wins.
 
 ---
 
-## Hard Quality Gates (Non-Negotiable)
+## Project Context
 
-A change must NOT be merged if any of the following fail:
+PhotoPrune is a trust-first photo review product.
 
-1. Security standards (see below)
-2. Code quality standards
-3. Repo-wide test coverage below **80%**
-4. CI/CD pipeline not fully green
-5. Documentation not updated when behavior, APIs, or architecture changes
+It helps users review duplicate or near-duplicate photos selected from Google Photos.
+It does **not** automatically delete photos.
+The UX unit is the **group**, not an individual similarity score.
 
----
-
-## Security Standards (Must Follow)
-
-### Secrets & Sensitive Data
-- **Never** commit or log:
-  - API keys
-  - OAuth authorization codes
-  - Access tokens
-  - Refresh tokens
-  - Encryption keys
-- Secrets must come from environment variables or a secrets manager.
-- Logs must be scrubbed of PII and sensitive metadata.
-
-### OAuth / Authentication
-- Treat OAuth and identity flows as **high-risk**.
-- Refresh tokens:
-  - must be encrypted at rest
-  - must not be overwritten if a provider omits a refresh token on renewal
-- Validate:
-  - redirect URIs
-  - `state` parameters (anti-CSRF)
-  - token expiry and refresh failure paths
-- Never log token payloads or decoded JWTs.
-
-### Data Protection
-- Treat as sensitive:
-  - user identifiers
-  - photo metadata (including EXIF/location data)
-  - embeddings, hashes, perceptual fingerprints
-- Store only what is required for the feature.
-- Provide deletion paths (at least internal/admin) for user data.
-
-### Crypto Rules
-- Do not invent cryptography.
-- Use well-known, actively maintained libraries.
-- Use authenticated encryption where applicable.
-- Keys must be rotatable and externalized.
+Current repo architecture:
+- `apps/web` — Next.js frontend
+- `apps/api` — FastAPI API
+- `apps/worker` — Celery worker
+- `packages/shared` — shared TypeScript contracts/utilities
 
 ---
 
-## Code Quality & Structure
+## Current Product Scope
 
-- Prefer small, focused functions.
-- Avoid “god files” and excessive conditional logic.
-- Maintain clear boundaries:
-  - API layer: request/response + orchestration only
-  - Services: business logic
-  - Persistence: repositories/DAOs only
-  - Workers: idempotent background execution
-- Remove dead code, commented-out blocks, and unresolved TODOs.
-- Use consistent patterns for:
-  - configuration access
-  - logging
-  - error handling
+Agents must stay inside the current validated product scope unless explicitly instructed otherwise.
 
----
+In scope:
+- Picker-based selected-photo ingestion
+- Single-session review flow
+- Grouped results
+- Trust-first UX
+- Confidence bands only: `High`, `Medium`, `Low`
+- Review-only actions
+- Cost and cap visibility
+- UI polish and implementation hardening
 
-## Testing Strategy
-
-### Core Principles
-- **Repo-wide coverage must remain ≥ 80%**
-- Tests must be **appropriate to the change**
-- Do **not** over-test
-- Do **not** under-test
-- If unsure which test type applies, **pause and discuss**
-
-### Test Types (Use the Right Tool)
-
-#### Unit Tests
-Use when:
-- Logic is deterministic
-- No I/O or infrastructure dependency
-- Pure functions or small business rules
-
-#### Integration Tests
-Use when:
-- Code interacts with databases, queues, file systems, or APIs
-- Verifying boundaries between major components
-Avoid when:
-- The logic can be validated with unit tests alone
-
-#### Worker / Background Job Tests
-- Validate idempotency
-- Validate retry behavior
-- Ensure safe re-execution
-
-#### E2E / Smoke Tests
-Use **sparingly**, only for:
-- Critical user journeys
-- Authentication flows
-- Destructive operations (e.g. deletion)
-
-### External Services
-- No live external calls in CI
-- Use mocks or fixtures
-- Validate contract expectations (payload shapes, error cases)
-
-### When Tests Are Hard
-If something is difficult to test:
-- Document **why**
-- Describe alternative validation performed
-- Get explicit agreement before merging
+Out of scope unless explicitly requested:
+- Automatic deletion
+- Background sync
+- Multi-session persistence
+- Library-wide scanning
+- Embeddings/semantic search expansion
+- Billing/pricing implementation
+- New backend architecture
 
 ---
 
-## Coverage Policy
+## Working Style
 
-- Coverage is enforced **repo-wide**, not per-package.
-- Artificial coverage inflation (testing trivial lines only) is not acceptable.
-- Coverage drops must be justified and explicitly approved.
+### 1. Prefer incremental changes
+- Make small, isolated, reviewable changes.
+- Reuse existing structure before adding new abstractions.
+- Do not rewrite major sections unless clearly required.
 
----
+### 2. Protect product truth
+Never introduce UI, copy, or logic that suggests:
+- auto-delete
+- hidden destructive actions
+- unsupported recovery flows
+- percentage-based similarity
+- exaggerated AI claims
 
-## Dependency Management
+### 3. Prioritise trust and clarity
+Every user-facing change should support:
+- calm UX
+- plain English
+- clear next actions
+- obvious user control
+- safe destructive-action handling
 
-- Prefer **latest stable** versions.
-- Avoid adding new dependencies unless clearly justified.
-- For new dependencies:
-  - explain why existing ones are insufficient
-  - confirm license compatibility
-  - confirm active maintenance and security posture
-- Opportunistically upgrade patch/minor versions when touching an area.
-- Large or risky upgrades should be isolated into separate PRs unless requested.
+### 4. Match the approved design direction
+The frontend should feel:
+- premium
+- calm
+- spacious
+- trustworthy
+- photo-first
 
----
-
-## CI/CD Expectations
-
-A PR must pass:
-- linting
-- formatting
-- type checks (if applicable)
-- unit/integration tests
-- coverage gate (≥ 80%)
-- build (frontend/backend as applicable)
-- security checks if configured
-
-Never bypass or weaken CI gates to “get it through”.
-
----
-
-## Documentation Is Mandatory
-
-Documentation must be updated when code changes affect:
-- public APIs
-- authentication flows
-- configuration
-- architecture
-- operational behavior
-- developer workflows
-
-Minimum expectations:
-- `README.md` kept current
-- `.env.example` updated for new config
-- Architecture or flow changes documented inline or in `/docs`
-- Breaking changes clearly called out
-
-Code that changes behavior **without updating documentation is incomplete**.
+Avoid:
+- generic SaaS dashboard styling
+- neon AI visuals
+- cluttered layouts
+- hypey AI language
 
 ---
 
-## Review Workflow (Agent Checklist)
+## Frontend Implementation Expectations
 
-1. Understand scope and intent
-2. Threat-model the change
-3. Trace execution paths (success + failure)
-4. Validate data integrity and lifecycle
-5. Review test coverage and test choice
-6. Run locally (mirror CI as closely as possible)
-7. Verify documentation updates
+When working in `apps/web`, prefer this implementation layer:
+- Next.js App Router
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Radix UI primitives
+- lucide-react
+- class-variance-authority
+- clsx
+- tailwind-merge
+- Framer Motion only for subtle transitions
+- React Hook Form where needed
+- Zod for validation
+- TanStack Query where async client state is needed
 
----
-
-## Common Blockers (Must Be Fixed)
-
-- Secrets or PII in logs or code
-- Lost or overwritten refresh tokens
-- Missing timeouts or retries on external calls
-- Non-idempotent workers
-- Silent exception swallowing
-- Disabling lint/tests to pass CI
-- Behavior changes without documentation updates
-
----
-
-## Review Output Format
-
-Use:
-- Severity: High / Medium / Low
-- Location: file:line
-- Risk: what could break or leak
-- Fix: concrete recommendation
-
-Conclude with:
-- Blockers to merge
-- Non-blocking improvements
-- Open questions / assumptions
+### UI rules
+- Build reusable components, not one-off pages.
+- Use semantic tokens for colour, spacing, radius, and elevation.
+- Keep photos visually primary.
+- Keep confidence visualised only as:
+  - High
+  - Medium
+  - Low
+- Separate primary, secondary, and destructive actions clearly.
+- Use restrained motion only.
 
 ---
 
-## Ready-to-Merge Checklist
+## Copy Rules
 
-- [ ] Security rules followed
-- [ ] Clean, maintainable structure
-- [ ] Appropriate tests added
-- [ ] Repo-wide coverage ≥ 80%
-- [ ] Dependencies justified and stable
-- [ ] CI fully green
-- [ ] README and docs updated
-- [ ] Config examples updated
-- [ ] Background jobs safe and idempotent (if applicable)
+Prefer plain English.
+
+Good examples:
+- “We found groups of very similar photos for you to review.”
+- “Recommended photo”
+- “High confidence”
+- “You review each group before anything changes.”
+- “Skip this group and come back later.”
+
+Avoid:
+- “98% match”
+- “Digital Curator Engine”
+- “Neural engine”
+- “Deep scan”
+- “Photos pruned”
+- “Recover deleted items”
+- “Recently deleted”
+
+Do not claim:
+- on-device analysis
+- deletion recovery
+- permanent action reversibility
+
+unless those behaviours are actually implemented and verified.
 
 ---
 
-## Final Rule
-If something feels ambiguous, risky, or unclear:
-**Stop and ask. Quality over speed, always.**
+## Engineering Rules
+
+- Keep code typed, readable, and testable.
+- Prefer composition over over-abstraction.
+- Avoid dead code.
+- Avoid speculative scaffolding.
+- Preserve accessibility and responsive behaviour.
+- Keep tests aligned with real product behaviour.
+
+Before finishing substantial work:
+- lint
+- format check
+- typecheck
+- tests
+- build
+
+---
+
+## Testing Expectations
+
+Minimum expectation for meaningful UI changes:
+- component render coverage
+- confidence badge/band coverage
+- safe/destructive action visibility checks
+- key screen smoke tests
+
+Where practical:
+- add or update Playwright coverage for critical review flows
+
+---
+
+## File Change Discipline
+
+When updating docs:
+- keep README aligned with actual implementation
+- keep ROADMAP aligned with actual scope
+- keep trust language consistent across product and docs
+
+When updating frontend:
+- prefer shared components under a clear component structure
+- avoid scattering ad hoc styles across pages
+- centralise tokens and variants
+
+---
+
+## If You Are Unsure
+
+If a proposed change creates uncertainty, choose the safer option:
+- less scope
+- less magic
+- more clarity
+- more explicit user control
+
+Do not invent product capabilities to make the UI feel more complete.
