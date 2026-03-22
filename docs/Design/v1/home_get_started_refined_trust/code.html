@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PhotoPrune — Photo Review Assistant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "inverse-surface": "#f9f9ff",
+              "primary": "#5adace",
+              "primary-dim": "#49ccc0",
+              "on-tertiary-container": "#3e0005",
+              "inverse-primary": "#006b64",
+              "on-background": "#dbe5ff",
+              "on-error-container": "#ff9993",
+              "primary-fixed": "#79f7ea",
+              "secondary": "#e88532",
+              "secondary-fixed-dim": "#ffcaa5",
+              "on-secondary-container": "#ffad70",
+              "surface-container-lowest": "#000000",
+              "background": "#080e1a",
+              "on-secondary": "#371800",
+              "on-primary-container": "#65e4d8",
+              "error": "#ee7d77",
+              "secondary-fixed": "#ffdcc5",
+              "surface": "#080e1a",
+              "tertiary-fixed-dim": "#ea5d5d",
+              "on-surface-variant": "#98abd4",
+              "error-container": "#7f2927",
+              "on-secondary-fixed-variant": "#8f4800",
+              "on-error": "#490106",
+              "on-tertiary-fixed-variant": "#520009",
+              "tertiary": "#ff7f7d",
+              "on-tertiary": "#58000b",
+              "outline": "#63769b",
+              "surface-dim": "#080e1a",
+              "outline-variant": "#35486b",
+              "surface-container-high": "#0f1f3a",
+              "primary-container": "#00504a",
+              "surface-container": "#0d192f",
+              "surface-tint": "#5adace",
+              "primary-fixed-dim": "#6ae8dc",
+              "on-tertiary-fixed": "#000000",
+              "surface-container-highest": "#102546",
+              "on-surface": "#dbe5ff",
+              "tertiary-fixed": "#fb6969",
+              "secondary-dim": "#e88532",
+              "tertiary-dim": "#ff706f",
+              "surface-container-low": "#0a1323",
+              "inverse-on-surface": "#4f5563",
+              "on-primary": "#004943",
+              "on-primary-fixed": "#004843",
+              "error-dim": "#bb5551",
+              "surface-bright": "#112c53",
+              "tertiary-container": "#fb6969",
+              "on-secondary-fixed": "#653100",
+              "secondary-container": "#602e00",
+              "surface-variant": "#102546",
+              "on-primary-fixed-variant": "#006760"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-effect {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #5adace, #00504a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary/30 antialiased overflow-x-hidden">
+<!-- Top Navigation Shell -->
+<nav class="fixed top-0 w-full z-50 bg-slate-50/10 dark:bg-slate-900/80 backdrop-blur-xl shadow-xl shadow-slate-950/20">
+<div class="flex justify-between items-center px-6 h-16 w-full max-w-screen-2xl mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-slate-100 font-headline">PhotoPrune</span>
+<div class="hidden md:flex gap-6">
+<a class="font-manrope tracking-tight font-medium text-teal-400 border-b-2 border-teal-400 pb-1" href="#">History</a>
+<a class="font-manrope tracking-tight font-medium text-slate-400 hover:text-slate-200 transition-colors" href="#">Settings</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-slate-800/50 rounded-lg transition-all">
+<span class="material-symbols-outlined text-slate-100" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</nav>
+<main class="relative pt-32 pb-40 px-6 max-w-7xl mx-auto">
+<!-- Hero Section -->
+<section class="flex flex-col items-start gap-8 max-w-3xl mb-24">
+<div class="flex flex-col gap-4">
+<span class="label-sm text-[10px] font-bold uppercase tracking-widest text-secondary py-1 px-3 bg-secondary/10 rounded-full w-fit">
+                    Smart Photo Review
+                </span>
+<h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-on-background font-headline leading-[1.1]">
+                    Review and declutter <br/>
+<span class="text-gradient">your photo library</span> with confidence.
+                </h1>
+</div>
+<p class="text-xl text-on-surface-variant font-light leading-relaxed max-w-xl">
+                PhotoPrune helps you reclaim your memories by grouping similar shots and surfacing the highlights for your final approval.
+            </p>
+<div class="flex flex-col gap-6 mt-4">
+<div class="flex flex-wrap gap-4">
+<button class="px-8 py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-102 transition-transform active:scale-95 flex items-center gap-2">
+                        Connect Photo Library
+                        <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<button class="px-8 py-4 bg-transparent border border-outline-variant/20 text-primary font-bold rounded-xl hover:bg-surface-container-low transition-colors">
+                        Learn how it works
+                    </button>
+</div>
+<div class="flex items-center gap-2 text-sm text-on-surface-variant/80">
+<span class="material-symbols-outlined text-primary text-lg" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span>Nothing is removed automatically. You review every group first.</span>
+</div>
+</div>
+</section>
+<!-- Bento Grid Section -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+<!-- Primary Review-First Card (The Highlight) -->
+<div class="md:col-span-8 bg-inverse-surface rounded-[2rem] p-10 flex flex-col justify-between relative overflow-hidden shadow-2xl">
+<!-- Decorative background elements -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
+<div class="relative z-10 space-y-8">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="rule" style="font-variation-settings: 'FILL' 1;">rule</span>
+</div>
+<h2 class="text-3xl font-bold text-surface tracking-tight font-headline">Review-First Workflow</h2>
+</div>
+<div class="space-y-4 max-w-lg">
+<p class="text-2xl text-inverse-on-surface font-medium leading-snug">
+                            Your photos, curated with care. No photos are deleted automatically. You stay in control of every decision.
+                        </p>
+<p class="text-inverse-on-surface/70">
+                            Our AI suggests candidates for pruning based on blurriness, duplication, or poor lighting. You make the final call to archive or keep.
+                        </p>
+</div>
+<div class="flex gap-3 pt-6">
+<div class="h-1 w-20 bg-primary rounded-full"></div>
+<div class="h-1 w-20 bg-outline-variant/20 rounded-full"></div>
+<div class="h-1 w-20 bg-outline-variant/20 rounded-full"></div>
+</div>
+</div>
+<!-- Abstract App Preview -->
+<div class="mt-12 md:mt-0 relative h-64 md:h-80 w-full bg-surface-container-low/5 rounded-2xl border border-outline-variant/5 flex items-center justify-center overflow-hidden">
+<img alt="App review interface with photo grouping" class="w-full h-full object-cover opacity-80" data-alt="Screenshot of photo review interface showing smart grouping" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4ywXXaNJnaiB9T0jNjm7tjDtOik9ogM4xDi8zryWkGlyZl3w3eMDhyaOXDmVp2h-9qF4oLbmsI7Mh2Fyv89li0BxEbKGg53-RS-DN2Ky57iHPm-nFZT553Z7r8EXQ8VYC947xM5bW2q06i0xMnd-Y-OqIPYaswO-d7KYe5phnUWroYPaGMX3hdXjYVOGR95OK_e4nKbOBkWHBaaBl8YAXpJMdT0O3ceDk4kptLaiR_2lAgtuWV0QoJl3KC_wIinH29I023vLyT834"/>
+<div class="absolute inset-0 bg-gradient-to-t from-inverse-surface via-transparent to-transparent"></div>
+<div class="absolute bottom-6 left-6 right-6 p-4 glass-effect bg-white/40 rounded-xl border border-white/20 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-surface" data-icon="photo_library">photo_library</span>
+<span class="text-surface font-bold text-sm">Review 12 similar photos</span>
+</div>
+<span class="text-[10px] font-black tracking-widest text-primary-container bg-primary py-1 px-3 rounded-full">ACTION REQUIRED</span>
+</div>
+</div>
+</div>
+<!-- Side Bento Items -->
+<div class="md:col-span-4 flex flex-col gap-6">
+<!-- Confidence/Review Card -->
+<div class="bg-surface-container-high rounded-[2rem] p-8 flex-1 border-l-4 border-primary">
+<div class="flex flex-col h-full justify-between">
+<span class="material-symbols-outlined text-primary text-4xl mb-4" data-icon="grading">grading</span>
+<div>
+<h3 class="text-xl font-bold mb-2">Review Before Action</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+                                Experience a non-destructive workflow where every suggested change is presented for your explicit approval before any action is taken.
+                            </p>
+</div>
+</div>
+</div>
+<!-- Privacy Card -->
+<div class="bg-surface-container-low rounded-[2rem] p-8 flex-1 border-l-4 border-secondary">
+<div class="flex flex-col h-full justify-between">
+<span class="material-symbols-outlined text-secondary text-4xl mb-4" data-icon="lock">lock</span>
+<div>
+<h3 class="text-xl font-bold mb-2">Private &amp; Secure</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+                                We prioritize your privacy with industry-standard security protocols, ensuring your personal library remains yours alone throughout the review process.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary CTA Section -->
+<section class="mt-40 text-center flex flex-col items-center">
+<h2 class="text-4xl font-bold font-headline mb-6 tracking-tight">Ready to reclaim your library?</h2>
+<p class="text-on-surface-variant max-w-md mb-10 leading-relaxed">
+                Join thousands of users who have already refined their digital legacy. Start your first scan in seconds.
+            </p>
+<div class="flex flex-col items-center gap-4">
+<button class="px-10 py-5 bg-on-background text-background font-black rounded-2xl hover:bg-primary transition-colors hover:text-on-primary">
+                    Get Started for Free
+                </button>
+<p class="text-xs text-on-surface-variant/60 font-medium">Safe and secure • No credit card required to start</p>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="border-t border-outline-variant/10 bg-surface-container-lowest py-12 px-6">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex flex-col items-center md:items-start gap-2">
+<span class="text-xl font-bold tracking-tighter text-slate-100 font-headline">PhotoPrune</span>
+<p class="text-xs text-on-surface-variant">© 2024 PhotoPrune. All rights reserved.</p>
+</div>
+<div class="flex gap-8 text-sm font-medium text-on-surface-variant">
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="hover:text-primary transition-colors" href="#">Security</a>
+<a class="hover:text-primary transition-colors" href="#">Contact Support</a>
+</div>
+</div>
+</footer>
+<!-- Bottom Navigation Shell (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full h-20 bg-slate-900/90 backdrop-blur-lg flex justify-around items-center px-4 pb-safe border-t border-slate-800/30 z-50">
+<a class="flex flex-col items-center justify-center text-slate-500 px-4 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="radar">radar</span>
+<span class="font-manrope text-[10px] font-bold uppercase tracking-widest mt-1">Scanning</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-4 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-manrope text-[10px] font-bold uppercase tracking-widest mt-1">Grouping</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-teal-500/10 text-teal-400 rounded-xl px-4 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+<span class="font-manrope text-[10px] font-bold uppercase tracking-widest mt-1">Review</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-4 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-manrope text-[10px] font-bold uppercase tracking-widest mt-1">Summary</span>
+</a>
+</nav>
+</body></html>

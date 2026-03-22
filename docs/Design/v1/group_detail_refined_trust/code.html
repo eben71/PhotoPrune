@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PhotoPrune - Group Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "inverse-surface": "#f9f9ff",
+              "primary": "#5adace",
+              "primary-dim": "#49ccc0",
+              "on-tertiary-container": "#3e0005",
+              "inverse-primary": "#006b64",
+              "on-background": "#dbe5ff",
+              "on-error-container": "#ff9993",
+              "primary-fixed": "#79f7ea",
+              "secondary": "#e88532",
+              "secondary-fixed-dim": "#ffcaa5",
+              "on-secondary-container": "#ffad70",
+              "surface-container-lowest": "#000000",
+              "background": "#080e1a",
+              "on-secondary": "#371800",
+              "on-primary-container": "#65e4d8",
+              "error": "#ee7d77",
+              "secondary-fixed": "#ffdcc5",
+              "surface": "#080e1a",
+              "tertiary-fixed-dim": "#ea5d5d",
+              "on-surface-variant": "#98abd4",
+              "error-container": "#7f2927",
+              "on-secondary-fixed-variant": "#8f4800",
+              "on-error": "#490106",
+              "on-tertiary-fixed-variant": "#520009",
+              "tertiary": "#ff7f7d",
+              "on-tertiary": "#58000b",
+              "outline": "#63769b",
+              "surface-dim": "#080e1a",
+              "outline-variant": "#35486b",
+              "surface-container-high": "#0f1f3a",
+              "primary-container": "#00504a",
+              "surface-container": "#0d192f",
+              "surface-tint": "#5adace",
+              "primary-fixed-dim": "#6ae8dc",
+              "on-tertiary-fixed": "#000000",
+              "surface-container-highest": "#102546",
+              "on-surface": "#dbe5ff",
+              "tertiary-fixed": "#fb6969",
+              "secondary-dim": "#e88532",
+              "tertiary-dim": "#ff706f",
+              "surface-container-low": "#0a1323",
+              "inverse-on-surface": "#4f5563",
+              "on-primary": "#004943",
+              "on-primary-fixed": "#004843",
+              "error-dim": "#bb5551",
+              "surface-bright": "#112c53",
+              "tertiary-container": "#fb6969",
+              "on-secondary-fixed": "#653100",
+              "secondary-container": "#602e00",
+              "surface-variant": "#102546",
+              "on-primary-fixed-variant": "#006760"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        .glass-header {
+            background: rgba(17, 44, 83, 0.7);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-slate-50/10 dark:bg-slate-900/80 backdrop-blur-xl shadow-xl shadow-slate-950/20">
+<div class="flex justify-between items-center px-6 h-16 w-full max-w-screen-2xl mx-auto">
+<div class="text-xl font-bold tracking-tighter text-slate-100 font-headline">PhotoPrune</div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="text-slate-400 hover:text-slate-200 transition-colors font-medium tracking-tight" href="#">History</a>
+<a class="text-slate-400 hover:text-slate-200 transition-colors font-medium tracking-tight" href="#">Settings</a>
+<div class="h-8 w-8 rounded-full bg-surface-container-highest flex items-center justify-center border border-outline-variant/20">
+<span class="material-symbols-outlined text-teal-400" data-icon="account_circle">account_circle</span>
+</div>
+</div>
+<button class="md:hidden text-on-surface">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+</nav>
+<!-- SideNavBar (Desktop Only) -->
+<aside class="hidden lg:flex flex-col h-screen w-64 fixed left-0 top-0 border-r border-slate-800/20 bg-slate-950 py-8 z-40">
+<div class="px-6 mb-12">
+<h1 class="text-2xl font-black text-slate-100 font-headline tracking-tighter">PhotoPrune</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">Digital Curator</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 text-slate-500 py-3 px-6 hover:text-slate-300 transition-all font-label text-sm font-semibold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" data-icon="radar">radar</span> Scanning
+            </a>
+<a class="flex items-center gap-3 bg-slate-900 text-teal-400 rounded-r-full py-3 px-6 border-l-4 border-teal-400 font-label text-sm font-semibold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span> Grouping
+            </a>
+<a class="flex items-center gap-3 text-slate-500 py-3 px-6 hover:text-slate-300 transition-all font-label text-sm font-semibold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span> Review
+            </a>
+<a class="flex items-center gap-3 text-slate-500 py-3 px-6 hover:text-slate-300 transition-all font-label text-sm font-semibold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span> Summary
+            </a>
+</nav>
+<div class="mt-auto px-6">
+<a class="flex items-center gap-3 text-slate-500 py-3 hover:text-slate-300 font-label text-sm font-semibold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span> Support
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 pt-24 px-4 md:px-12 max-w-7xl mx-auto">
+<!-- Header & Breadcrumbs -->
+<header class="mb-12">
+<div class="flex items-center gap-2 text-outline mb-4">
+<span class="text-xs font-label uppercase tracking-widest font-bold">Library</span>
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+<span class="text-xs font-label uppercase tracking-widest font-bold">Clusters</span>
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+<span class="text-xs font-label uppercase tracking-widest font-bold text-primary">Golden Hour Series</span>
+</div>
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h2 class="text-4xl font-black font-headline tracking-tight text-on-background mb-2">Cluster ID: #GH-204</h2>
+<p class="text-on-surface-variant max-w-xl">Detected 5 nearly identical frames. Our curator recommends keeping the primary shot based on technical fidelity.</p>
+</div>
+<!-- Safety Callout -->
+<div class="bg-surface-container-low px-6 py-4 rounded-xl flex items-center gap-4 border-l-4 border-secondary shadow-lg">
+<span class="material-symbols-outlined text-secondary" data-icon="security" style="font-variation-settings: 'FILL' 1;">security</span>
+<div>
+<p class="text-sm font-bold text-on-surface">Safe Review Active</p>
+<p class="text-xs text-on-surface-variant">Nothing is finalized automatically. Review all changes before syncing.</p>
+</div>
+</div>
+</div>
+</header>
+<!-- Bento Grid for Review -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+<!-- Primary Recommendation (The "Exhibit") -->
+<div class="xl:col-span-8 space-y-6">
+<div class="relative group bg-surface-container rounded-3xl overflow-hidden shadow-2xl transition-all border border-outline-variant/10">
+<div class="absolute top-6 left-6 z-10">
+<div class="flex items-center gap-2 bg-primary/90 text-on-primary px-4 py-2 rounded-full shadow-xl backdrop-blur-md">
+<span class="material-symbols-outlined text-sm" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-[10px] font-black uppercase tracking-widest">Recommended Keeper</span>
+</div>
+</div>
+<!-- AI Badge Detail -->
+<div class="absolute bottom-0 inset-x-0 p-8 bg-gradient-to-t from-surface-container-lowest/90 to-transparent backdrop-blur-sm">
+<div class="flex items-start gap-4">
+<div class="h-10 w-1 pt-1 bg-primary rounded-full"></div>
+<div>
+<h4 class="text-lg font-bold text-white mb-1">Superior Fidelity</h4>
+<p class="text-slate-300 text-sm leading-relaxed">This image is sharper and has better lighting. Face detection confirms eyes are open and focus is tack-sharp on the subject.</p>
+</div>
+</div>
+</div>
+<img alt="High quality landscape photo" class="w-full h-[600px] object-cover" data-alt="Stunning golden hour landscape photograph with sharp focus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtkbuVNkf14UqIQlivdPSvKsx5_uo6I7I8KkBa2VrRrCtnj79k5nrjEwH5yBosnDT9Uo_xtG2-3alyo3UkkB8SBD-8fMvO6KHiHWasuMvCaIMVj2yKYSgfGsmQHMQWa_h14owFyBmbWP_1FtTKTzccAU41UK7gg3DE7cWQ77Yer4jPIEOr8Jn3KY5RMZV2e6jemtrBH7pb0VSjl83ybNQ2OwC71uuoJ2tzVfcQO8uUvD2FUdNUbigiWFpAtjIZDII0hzO5QX8y7SAL"/>
+</div>
+<!-- AI Reasoning Section -->
+<div class="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10">
+<details class="group">
+<summary class="flex items-center justify-between cursor-pointer list-none">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="psychology">psychology</span>
+<span class="text-sm font-bold tracking-tight uppercase font-label">Rationale</span>
+</div>
+<span class="material-symbols-outlined transition-transform group-open:rotate-180" data-icon="expand_more">expand_more</span>
+</summary>
+<div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-outline-variant/20">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle">check_circle</span>
+<span class="text-sm font-bold text-on-surface">Sharpest version</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle">check_circle</span>
+<span class="text-sm font-bold text-on-surface">Better lighting</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle">check_circle</span>
+<span class="text-sm font-bold text-on-surface">Better framing</span>
+</div>
+</div>
+</details>
+</div>
+</div>
+<!-- Alternates & Actions (The "Workspace") -->
+<div class="xl:col-span-4 bg-inverse-surface rounded-3xl p-8 shadow-xl">
+<div class="mb-8">
+<h3 class="text-2xl font-black text-surface tracking-tighter mb-1">Decision Hub</h3>
+<p class="text-inverse-on-surface text-sm">Compare with alternates and mark your intent.</p>
+</div>
+<!-- Alternate Thumbnails -->
+<div class="space-y-8">
+<!-- Alternate 1 -->
+<div class="flex gap-4 group">
+<div class="relative h-24 w-24 flex-shrink-0 rounded-xl overflow-hidden shadow-md">
+<img alt="Alternative blurry photo" class="h-full w-full object-cover" data-alt="Similar landscape photo but slightly out of focus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQ8gBzRS2saX-j6JrxkMBzlbkj20GDrb8wDFyCf70Cq9afFS3ekIrXOMGdL5Fc9ZVI0hl26zpYVolA1D4S_yqE9CRxMK_BvBCTkoYm95-2DmvgKqsYTpPVG5B4MO1WhD_kpZ-H7Wz5xJ-t6UnQE0pLYVjMlD8FjbeJ7jjthVA1OWM6E1p6-yfJeUNLf84dghIbpbv_TOguk9g1E_qSM0npCgbN5d5xkGtQjQbGv7M3Yi8ttTnf-ZYaAbuCgsRA2VqirxHnyKV3a4_O"/>
+<div class="absolute inset-0 bg-tertiary/20 border-2 border-tertiary opacity-100"></div>
+</div>
+<div class="flex-1 flex flex-col justify-between py-1">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] font-black uppercase tracking-widest text-tertiary">Low Confidence</span>
+<span class="h-1 w-1 rounded-full bg-outline-variant"></span>
+<span class="text-[10px] font-bold text-inverse-on-surface">Motion Blur</span>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2.5 rounded-lg bg-surface border-b-4 border-surface-container-highest active:border-b-0 active:translate-y-[2px] text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all">
+                                Confirm Discard
+                            </button>
+<button class="px-3 py-2 rounded-lg border border-outline-variant/30 text-inverse-on-surface hover:bg-slate-100 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="help">help</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Alternate 2 -->
+<div class="flex gap-4 group">
+<div class="relative h-24 w-24 flex-shrink-0 rounded-xl overflow-hidden shadow-md">
+<img alt="Alternative dark photo" class="h-full w-full object-cover" data-alt="Forest photo with poor lighting and heavy shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2Zw3s29A_VLSzcI6aNhOb0p-GlOkRxRXOW47_edD1iprdIGBSFZY4Un3qvBroa5WMMReXeydXzPoUGllF-hSGoXcG6l9DJ7Eph5tBh3PVOxGvYbH9-an_mswWFcoDSvaZepqQYZ302u12_R6AYNUFcpe9ed-EGQFqXfwFRGp2EJjXlHmlqrRTxW2HHmd8oW5wk-c46zZFfSVKLNeIbOu5zIU4T3-OhnnyoondVJzP1EHkYAM3L85DOuQiHhbdcL2YSZdxvcKbcWZU"/>
+</div>
+<div class="flex-1 flex flex-col justify-between py-1">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] font-black uppercase tracking-widest text-secondary">Medium Confidence</span>
+<span class="h-1 w-1 rounded-full bg-outline-variant"></span>
+<span class="text-[10px] font-bold text-inverse-on-surface">Underexposed</span>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2.5 rounded-lg bg-surface border-b-4 border-surface-container-highest active:border-b-0 active:translate-y-[2px] text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all">
+                                Confirm Discard
+                            </button>
+<button class="px-3 py-2 rounded-lg border border-outline-variant/30 text-inverse-on-surface hover:bg-slate-100 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="help">help</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-12 space-y-4">
+<button class="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary font-black uppercase tracking-widest rounded-xl shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform active:scale-95">
+                        Keep Recommendation
+                    </button>
+<div class="flex flex-col gap-3">
+<button class="w-full py-3 border-2 border-outline-variant/10 text-surface font-black uppercase tracking-widest rounded-xl hover:bg-slate-100 transition-colors text-xs">
+                            Mark all as undecided
+                        </button>
+<p class="text-[10px] text-center text-inverse-on-surface/70 uppercase tracking-widest font-bold">
+                            You can skip this group and decide later.
+                        </p>
+</div>
+</div>
+<p class="mt-8 text-[10px] text-center text-inverse-on-surface uppercase tracking-widest font-bold opacity-60">
+                    Shift + K to keep • Shift + D to discard
+                </p>
+</div>
+</div>
+<!-- Section Spacing -->
+<div class="h-24"></div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full h-20 flex justify-around items-center px-4 pb-safe bg-slate-900/90 backdrop-blur-lg border-t border-slate-800/30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] z-50 rounded-t-3xl">
+<a class="flex flex-col items-center justify-center text-slate-500 px-4 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="radar">radar</span>
+<span class="font-manrope text-[10px] font-bold uppercase tracking-widest">Scanning</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-teal-500/10 text-teal-400 rounded-xl px-4 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-manrope text-[10px] font-bold uppercase tracking-widest">Grouping</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-4 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+<span class="font-manrope text-[10px] font-bold uppercase tracking-widest">Review</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-4 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-manrope text-[10px] font-bold uppercase tracking-widest">Summary</span>
+</a>
+</nav>
+</body></html>
