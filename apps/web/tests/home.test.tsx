@@ -45,7 +45,7 @@ describe('HomePage', () => {
     );
 
     expect(
-      screen.getByRole('heading', { name: /review similar photos — safely/i })
+      screen.getByRole('heading', { name: /review similar photos safely/i })
     ).toBeInTheDocument();
     expect(
       screen.getByText(/it does not delete anything/i)
