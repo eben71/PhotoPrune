@@ -9,6 +9,12 @@ Repo-managed skills live in `.agents/skills/`. They are committed, reviewable wo
 - Use a normal doc for reference material that is informative but not a routed workflow.
 - Add scripts or templates only when they remove real repetition.
 
+## Discovery and routing
+- `AGENTS.md` files are auto-loaded based on directory scope.
+- `AGENT_RULES.md` is referenced from `AGENTS.md`; it is canonical policy, not a parallel auto-loaded layer.
+- Repo-local skills under `.agents/skills/` are committed workflow assets, but they are not auto-run just because they exist on disk.
+- To make a skill reliably usable, reference it from `AGENTS.md` or another canonical doc when appropriate, and give it a precise `description` so explicit invocation and routing stay clear.
+
 ## Skill location and naming
 - Put each skill in its own folder under `.agents/skills/<skill-name>/`.
 - Use lowercase kebab-case names.
