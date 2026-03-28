@@ -13,7 +13,7 @@ Use this checklist when auditing or maintaining this repository's agent guidance
   - [ ] typecheck
   - [ ] test
   - [ ] relevant project verification flows
-- [ ] Root `AGENTS.md` includes concrete “definition of done” checks.
+- [ ] Root `AGENTS.md` includes concrete "definition of done" checks.
 - [ ] Root `AGENTS.md` avoids long prose, motivational language, and generic advice.
 - [ ] Root `AGENTS.md` does not duplicate large sections from `AGENT_RULES.md` or docs.
 
@@ -76,10 +76,10 @@ For every skill under `.agents/skills/` or equivalent:
 ## 7) Duplication and bloat checks
 - [ ] No repeated command lists across too many files.
 - [ ] No repeated policy blocks across AGENTS, docs, and skills.
-- [ ] No generic statements like “write clean code” unless made concrete.
+- [ ] No generic statements like "write clean code" unless made concrete.
 - [ ] No outdated architecture or tooling references remain.
-- [ ] No oversized “catch-all” skills remain.
-- [ ] No oversized “catch-all” `AGENTS.md` remains.
+- [ ] No oversized "catch-all" skills remain.
+- [ ] No oversized "catch-all" `AGENTS.md` remains.
 
 ## 8) Discovery and routing validation
 - [ ] It is clear which `AGENTS.md` files Codex will auto-discover.
