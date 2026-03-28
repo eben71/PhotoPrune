@@ -1,0 +1,7 @@
+interface:
+  display_name: "Maintain Agent System"
+  short_description: "Audit and maintain AGENTS.md, AGENT_RULES.md, and repo-local skills."
+  default_prompt: "Use the maintain-agent-system skill to audit and improve this repository's agent guidance and skills."
+
+policy:
+  allow_implicit_invocation: false

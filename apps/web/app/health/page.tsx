@@ -18,9 +18,7 @@ export default function HealthPage() {
           throw new Error('Health check failed');
         }
         const data: unknown = await res.json();
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const parsed = HealthStatusSchema.parse(data);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
         setStatus(parsed.status ?? 'unknown');
       } catch (error) {
         console.error('Health check error', error);
