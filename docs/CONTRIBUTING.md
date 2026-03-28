@@ -1,11 +1,10 @@
 # Contributing
 
-## Expectations (from AGENTS.md)
-- Follow secure coding practices: no secrets or PII in code/logs; use environment variables.
-- Keep code small, focused, and well-structured; avoid dead code and unresolved TODOs.
-- Maintain repo-wide coverage **>= 80%** and add appropriate tests for changes.
-- Update documentation whenever behavior, APIs, configs, or workflows change.
-- Keep CI green: lint, format, type checks, tests, coverage, builds, and audits must pass.
+## Working agreement
+- Treat [AGENT_RULES.md](../AGENT_RULES.md) as the canonical engineering and product guardrail file.
+- Treat [docs/ai/testing.md](ai/testing.md) as the canonical verification guide.
+- Keep changes small, typed, testable, and aligned with the trust-first product scope.
+- Update documentation whenever behavior, APIs, commands, configs, or workflows change.
 
 ## Setup
 1. Copy `.env.example` to `.env` and adjust values for your environment.
@@ -23,6 +22,7 @@
 - Format (check): `make format-check`
 - Type check: `make typecheck`
 - Tests (with coverage): `make test`
+- Coverage gate: `node scripts/check-coverage.mjs`
 - Build: `make build`
 - Local stack: `make dev`
 - Install git hooks: `make hooks`

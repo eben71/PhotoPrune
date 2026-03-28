@@ -1,15 +1,5 @@
 # AGENT_RULES.md
 
-## Mandatory Guardrails
-- Do not expand scope unless explicitly instructed.
-- No automatic deletion flows.
-- No persistence or backend architecture changes unless explicitly required for the requested task.
-- Prefer small, isolated, reviewable changes.
-- Keep tests passing before handoff.
-- Do not add new dependencies unless they are part of the approved frontend implementation stack or clearly justified by the task.
-
----
-
 ## Mission
 Implement PhotoPrune as a trust-first, production-quality photo review app.
 
@@ -21,6 +11,16 @@ Prioritise:
 - predictable behaviour
 
 Do not prioritise cleverness over trust.
+
+---
+
+## Mandatory Guardrails
+- Do not expand scope unless explicitly instructed.
+- No automatic deletion flows.
+- No persistence or backend architecture changes unless explicitly required for the requested task.
+- Prefer small, isolated, reviewable changes.
+- Keep tests passing before handoff.
+- Do not add new dependencies unless they are part of the current stack or clearly justified by the task.
 
 ---
 
@@ -39,7 +39,7 @@ Do not prioritise cleverness over trust.
 - Do not imply destructive actions happen automatically.
 - Do not claim unsupported technical behaviour.
 - Do not invent product scope that does not exist.
-- Do not add recovery/trash/recently-deleted product flows unless explicitly implemented in scope.
+- Do not add recovery, trash, or recently-deleted flows unless they are explicitly implemented in scope.
 
 ---
 
@@ -59,7 +59,7 @@ Use or align to:
 
 ---
 
-## Frontend Implementation Rules
+## Implementation Rules
 - Use semantic design tokens.
 - Keep photos visually primary.
 - Keep the UI calm and uncluttered.
@@ -67,33 +67,36 @@ Use or align to:
 - Use subtle motion only.
 - Prefer reusable components over one-off styling.
 - Preserve responsive behaviour and accessibility.
+- Update docs when commands, workflow, or product behaviour changes.
 
 ---
 
 ## Copy Rules
 Prefer plain English:
-- “Recommended photo”
-- “High confidence”
-- “You review each group before anything changes.”
-- “Skip this group and come back later.”
+- "Recommended photo"
+- "High confidence"
+- "You review each group before anything changes."
+- "Skip this group and come back later."
 
 Avoid:
-- “98% match”
-- “Neural engine”
-- “Digital curator engine”
-- “Deep scan”
-- “Photos pruned”
-- “Recover deleted items”
+- "98% match"
+- "Neural engine"
+- "Digital curator engine"
+- "Deep scan"
+- "Photos pruned"
+- "Recover deleted items"
 
 ---
 
-## Completion Rules
-Before finishing:
+## Verification Rules
+Before finishing substantial work:
 - run lint
 - run format check
 - run typecheck
 - run tests
+- run coverage gate
 - run build
+- run docs guard if commands, repo structure, or workflow docs changed
 - confirm no percentage-based confidence remains
-- confirm no unsupported deletion/recovery claims remain
+- confirm no unsupported deletion or recovery claims remain
 - confirm scope has not expanded silently
