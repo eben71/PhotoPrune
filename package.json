@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "lefthook": "^2.1.4",
-    "turbo": "^2.8.21",
+    "turbo": "^2.9.3",
     "typescript": "^5.9.3"
   },
   "dependencies": {
