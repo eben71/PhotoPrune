@@ -1,7 +1,11 @@
 import './globals.css';
 import type { ReactNode } from 'react';
+import { Inter, Manrope } from 'next/font/google';
 
 import { RunSessionProvider } from './state/runSessionStore';
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope' });
 
 export const metadata = {
   title: 'PhotoPrune',
@@ -10,8 +14,8 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" className={`${inter.variable} ${manrope.variable}`}>
+      <body className="font-sans bg-background text-on-surface">
         <RunSessionProvider>{children}</RunSessionProvider>
       </body>
     </html>
