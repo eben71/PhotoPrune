@@ -18,6 +18,7 @@ export default tseslint.config(
       'dist/**/*',
       'eslint.config.*',
       'next.config.js',
+      'postcss.config.mjs',
       'vitest.config.mts'
     ]
   },

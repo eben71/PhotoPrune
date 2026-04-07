@@ -1,6 +1,6 @@
 export const trustCopy = {
   landing: {
-    header: 'Review Similar Photos — Safely',
+    header: 'Review Similar Photos - Safely',
     subheader:
       'This tool groups photos that appear visually similar so you can review them yourself.',
     safetyLines: [
@@ -33,13 +33,13 @@ export const trustCopy = {
     secondaryButton: 'Cancel and Return'
   },
   run: {
-    header: 'Scanning for visually similar photos…',
+    header: 'Scanning for visually similar photos...',
     subtext: [
       'Photos are being analyzed and grouped based on visual similarity patterns.',
       'This may take a moment.'
     ],
     transparency:
-      'We group photos based on image structure and visual features — not file names or dates.',
+      'We group photos based on image structure and visual features - not file names or dates.',
     cancelButton: 'Stop Scan (No Changes Made)',
     cancelMicrocopy: 'Stopping will discard this session.'
   },
@@ -57,7 +57,7 @@ export const trustCopy = {
     intro: [
       'Photos are grouped by visual similarity.',
       'Each group is labeled with a confidence band.',
-      'You are in full control — nothing is deleted automatically.'
+      'You are in full control - nothing is deleted automatically.'
     ],
     confidenceTitle: 'What the confidence bands mean:',
     confidenceBands: {
@@ -67,7 +67,7 @@ export const trustCopy = {
       LOW: 'Images share some visual features but may represent different moments.'
     },
     confidenceFooter:
-      'Confidence reflects visual similarity only — not quality, importance, or intent.',
+      'Confidence reflects visual similarity only - not quality, importance, or intent.',
     reasonTitle: 'Why these were grouped:',
     reasonBullets: [
       'Shared visual composition',
@@ -79,7 +79,7 @@ export const trustCopy = {
     emptyHeader: 'No similar photo groups detected',
     emptyDescription: [
       'No groups met the minimum similarity threshold for this session.',
-      'This does not mean your library has no duplicates — only that none met the current grouping criteria.'
+      'This does not mean your library has no duplicates - only that none met the current grouping criteria.'
     ]
   },
   groupDetail: {
