@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react';
 import type { Group } from '../../src/types/phase2Envelope';
 import { trustCopy } from '../copy/trustCopy';
 import { OpenInGooglePhotosButton } from './OpenInGooglePhotosButton';
+import { AppIcon } from './AppIcon';
 
 const reasonCodeSummary: Record<string, string> = {
   HASH_MATCH: 'Strong visual match across structure and content',
@@ -17,19 +18,22 @@ const reasonCodeSummary: Record<string, string> = {
 
 const confidenceTone = {
   HIGH: {
-    ring: 'accent-ring-high',
-    badge: 'bg-cyan-300/18 text-cyan-900',
-    text: 'text-cyan-300'
+    band: 'confidence-band-high',
+    badge: 'bg-[rgba(90,218,206,0.1)] text-[var(--pp-primary)]',
+    accent: 'text-[var(--pp-primary)]',
+    label: 'High Confidence'
   },
   MEDIUM: {
-    ring: 'accent-ring-medium',
-    badge: 'bg-[#f2a357]/20 text-[#7b4300]',
-    text: 'text-[#f2a357]'
+    band: 'confidence-band-medium',
+    badge: 'bg-[rgba(232,133,50,0.12)] text-[var(--pp-secondary)]',
+    accent: 'text-[var(--pp-secondary)]',
+    label: 'Medium Confidence'
   },
   LOW: {
-    ring: 'accent-ring-low',
-    badge: 'bg-[#ff8a8a]/20 text-[#7f2323]',
-    text: 'text-[#ff9b9b]'
+    band: 'confidence-band-low',
+    badge: 'bg-[rgba(255,127,125,0.14)] text-[var(--pp-tertiary)]',
+    accent: 'text-[var(--pp-tertiary)]',
+    label: 'Low Confidence'
   }
 } as const;
 
@@ -42,6 +46,18 @@ function getReasonSummary(group: Group) {
   if (group.confidence === 'MEDIUM')
     return 'Matching dominant features with moderate visual differences';
   return 'Shared visual traits with weaker overall similarity';
+}
+
+function getDescription(group: Group) {
+  if (group.confidence === 'HIGH') {
+    return `We found ${group.itemsCount} very similar photos. Review the recommended keeper before making any decision outside this app.`;
+  }
+
+  if (group.confidence === 'MEDIUM') {
+    return `These images appear visually related. This frame is recommended for review first.`;
+  }
+
+  return 'These images share some visual traits. Review carefully before acting outside this app.';
 }
 
 export function GroupCard({ group, index }: { group: Group; index: number }) {
@@ -62,141 +78,172 @@ export function GroupCard({ group, index }: { group: Group; index: number }) {
   const leadItem = representativeItems[0] ?? group.items[0];
 
   return (
-    <article className="surface-panel overflow-hidden rounded-[1.9rem]">
-      <div className="grid [grid-template-columns:minmax(0,1.35fr)_360px]">
-        <div className={`relative min-h-[430px] ${tone.ring}`}>
-          <p className="sr-only">Confidence: {group.confidence}</p>
-          <p className="sr-only">Reason: {getReasonSummary(group)}</p>
+    <article
+      className={`surface-panel-light ${tone.band} overflow-hidden rounded-[0.85rem] shadow-[0_24px_50px_rgba(3,8,18,0.24)]`}
+    >
+      <p className="sr-only">Confidence: {group.confidence}</p>
+      <p className="sr-only">Reason: {getReasonSummary(group)}</p>
+
+      <div className="group-card-layout">
+        <div className="group-card-media relative">
           {leadItem ? (
             <Image
               src={leadItem.thumbnail.baseUrl}
               alt={leadItem.filename}
               fill
               className="object-cover"
-              sizes="(max-width: 1280px) 100vw, 66vw"
+              sizes="(max-width: 768px) 100vw, 40vw"
             />
           ) : null}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1f] via-[#09101d]/20 to-transparent" />
-          <div className="absolute left-6 top-6">
-            <span
-              className={`rounded-full px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.28em] ${tone.badge}`}
-            >
-              {group.confidence} confidence
-            </span>
-          </div>
-          <div className="absolute bottom-6 left-6 right-6">
-            <div className="inline-flex rounded-full bg-[#08101d]/88 px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.26em] text-cyan-300">
-              Recommended photo
+          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(8,14,26,0.76)] via-transparent to-transparent" />
+          <div className="absolute bottom-4 left-4 right-4 rounded-lg border border-white/10 bg-[rgba(8,14,26,0.8)] px-3 py-2 backdrop-blur-md">
+            <div className="flex items-center gap-2">
+              <AppIcon
+                name="sparkle"
+                className={`h-[13px] w-[13px] ${tone.accent}`}
+              />
+              <span
+                className={`text-[0.58rem] font-black uppercase tracking-[0.18em] ${tone.accent}`}
+              >
+                Recommended Photo
+              </span>
             </div>
-            <h3 className="mt-4 max-w-[420px] font-display text-[2.1rem] font-semibold tracking-tight text-white">
-              Group #{String(index + 1).padStart(2, '0')}
-            </h3>
-            <p className="mt-3 max-w-[520px] text-base leading-7 text-slate-200">
-              {getReasonSummary(group)}
-            </p>
           </div>
         </div>
 
-        <div className="surface-panel-light flex flex-col gap-5 px-6 py-7">
+        <div className="group-card-panel flex flex-1 flex-col justify-between bg-[var(--pp-paper)]">
           <div>
-            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">
-              Group detail
-            </p>
-            <h4 className="mt-3 font-display text-[2rem] font-semibold tracking-tight text-slate-900">
-              {group.itemsCount} similar photos
-            </h4>
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              {trustCopy.groupDetail.reviewLines[0]}{' '}
-              {trustCopy.groupDetail.reviewLines[1]}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3">
-            {representativeItems.map((item) => (
-              <div
-                key={item.itemId}
-                className="overflow-hidden rounded-2xl bg-slate-200"
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-[2rem] font-black leading-none tracking-[-0.05em] text-[var(--pp-paper-text)]">
+                  Group #{String(index + 1).padStart(2, '0')}
+                </h3>
+                <p className="mt-2 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[rgba(79,85,99,0.68)]">
+                  {group.itemsCount} Similar Photos
+                </p>
+              </div>
+              <span
+                className={`rounded-full px-3 py-1 text-[0.58rem] font-black uppercase tracking-[0.16em] ${tone.badge}`}
               >
-                <div className="relative aspect-[1/1]">
+                {tone.label}
+              </span>
+            </div>
+
+            <p className="mb-6 max-w-[290px] text-sm leading-7 text-[var(--pp-paper-muted)]">
+              {getDescription(group)}
+            </p>
+
+            <div className="mb-8 grid grid-cols-3 gap-2">
+              {representativeItems.map((item) => (
+                <div
+                  key={item.itemId}
+                  className="relative aspect-square overflow-hidden rounded-lg border border-[#eef1f6]"
+                >
                   <Image
                     src={item.thumbnail.baseUrl}
                     alt={item.filename}
                     fill
-                    className="object-cover"
-                    sizes="180px"
+                    className="object-cover opacity-45 transition hover:opacity-100"
+                    sizes="96px"
                   />
                 </div>
-                <div className="px-3 py-3">
-                  <p className="truncate text-sm font-semibold text-slate-900">
-                    {item.filename}
-                  </p>
+              ))}
+
+              {remainingCount > 0 ? (
+                <div className="flex aspect-square items-center justify-center rounded-lg border border-[#eef1f6] bg-[#f6f8fc] text-[0.75rem] font-black text-[var(--pp-paper-muted)]">
+                  +{remainingCount}
+                </div>
+              ) : (
+                <div className="flex aspect-square items-center justify-center rounded-lg border border-dashed border-[#dfe5f0] bg-[#f7f9fc] text-[#bcc6da]">
+                  <span className="text-lg leading-none">+</span>
+                </div>
+              )}
+            </div>
+
+            {remainingCount > 0 ? (
+              <p className="mb-6 text-sm text-[var(--pp-paper-muted)]">
+                +{remainingCount} more
+              </p>
+            ) : null}
+          </div>
+
+          <div className="space-y-3">
+            <button
+              className="w-full rounded-lg bg-[var(--pp-primary)] px-4 py-4 text-sm font-black text-[#09423f] transition hover:bg-[var(--pp-primary-dim)]"
+              type="button"
+            >
+              Keep Recommended
+            </button>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                className="rounded-lg border border-[rgba(255,127,125,0.18)] px-3 py-3 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#e06f6d] transition hover:bg-[rgba(255,127,125,0.06)]"
+                type="button"
+              >
+                Mark Externally
+              </button>
+              <button
+                className="rounded-lg border border-[#eef1f6] px-3 py-3 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#9aa6bf] transition hover:bg-[#f6f8fc]"
+                type="button"
+              >
+                Skip For Now
+              </button>
+            </div>
+
+            {group.itemsCount > representativeItems.length ? (
+              <button
+                className="rounded-full border border-[#dfe5f0] px-4 py-2 text-[0.62rem] font-black uppercase tracking-[0.16em] text-[var(--pp-paper-muted)] transition hover:bg-[#f7f9fc]"
+                type="button"
+                onClick={() => setExpanded((previous) => !previous)}
+              >
+                {expanded ? 'Show fewer' : 'Show all items'}
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      {expanded ? (
+        <div className="group-card-expanded-wrap bg-[#f4f6fb]">
+          <div className="group-card-expanded-grid">
+            {group.items.map((item) => (
+              <div
+                key={item.itemId}
+                className="rounded-[1rem] bg-white px-4 py-4 shadow-[0_12px_22px_rgba(8,14,26,0.08)]"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl">
+                    <Image
+                      src={item.thumbnail.baseUrl}
+                      alt={item.filename}
+                      fill
+                      className="object-cover"
+                      sizes="80px"
+                    />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-[var(--pp-paper-text)]">
+                      {item.filename}
+                    </p>
+                    <label className="mt-3 flex items-start gap-3 text-sm leading-6 text-[var(--pp-paper-muted)]">
+                      <input
+                        type="checkbox"
+                        name={`potential-removal-${item.itemId}`}
+                        className="mt-1 h-4 w-4 rounded border-[#d4dce9]"
+                      />
+                      <span>{trustCopy.groupDetail.neutralSelection}</span>
+                    </label>
+                    <div className="mt-3">
+                      <OpenInGooglePhotosButton item={item} />
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-
-          {remainingCount > 0 ? (
-            <p className="text-sm text-slate-500">+{remainingCount} more</p>
-          ) : null}
-
-          <div className="space-y-3">
-            <button
-              className="w-full rounded-xl bg-[#1bb0a8] px-4 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#07232a] transition hover:brightness-105"
-              type="button"
-            >
-              Keep recommendation
-            </button>
-            <button
-              className="w-full rounded-xl border border-[#f09b9b]/55 bg-white px-4 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#d16767] transition hover:bg-[#fff5f5]"
-              type="button"
-            >
-              Mark others externally
-            </button>
-            <button
-              className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 transition hover:bg-white"
-              type="button"
-            >
-              Skip for now
-            </button>
-          </div>
-
-          {group.itemsCount > representativeItems.length ? (
-            <button
-              className="self-start rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 transition hover:border-slate-400 hover:text-slate-700"
-              type="button"
-              onClick={() => setExpanded((previous) => !previous)}
-            >
-              {expanded ? 'Show fewer' : 'Show all items'}
-            </button>
-          ) : null}
-
-          {expanded ? (
-            <div className="space-y-4 rounded-[1.5rem] bg-white/70 p-4">
-              {group.items.map((item) => (
-                <div
-                  key={item.itemId}
-                  className="rounded-[1.2rem] border border-slate-200 bg-white px-4 py-4"
-                >
-                  <p className="text-sm font-semibold text-slate-900">
-                    {item.filename}
-                  </p>
-                  <label className="mt-3 flex items-start gap-3 text-sm leading-6 text-slate-600">
-                    <input
-                      type="checkbox"
-                      name={`potential-removal-${item.itemId}`}
-                      className="mt-1 h-4 w-4 rounded border-slate-300"
-                    />
-                    <span>{trustCopy.groupDetail.neutralSelection}</span>
-                  </label>
-                  <div className="mt-3">
-                    <OpenInGooglePhotosButton item={item} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
         </div>
-      </div>
+      ) : null}
     </article>
   );
 }

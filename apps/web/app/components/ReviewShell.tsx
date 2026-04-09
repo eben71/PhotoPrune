@@ -3,17 +3,20 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 
+import { AppIcon } from './AppIcon';
+
 type ReviewStage = 'SCANNING' | 'GROUPING' | 'REVIEW' | 'SUMMARY';
 
 const railItems: Array<{
   id: ReviewStage;
   label: string;
   href: '/' | '/run' | '/results';
+  icon: 'scan' | 'group' | 'review' | 'summary';
 }> = [
-  { id: 'SCANNING', label: 'Scanning', href: '/run' },
-  { id: 'GROUPING', label: 'Grouping', href: '/results' },
-  { id: 'REVIEW', label: 'Review', href: '/results' },
-  { id: 'SUMMARY', label: 'Summary', href: '/results' }
+  { id: 'SCANNING', label: 'Scanning', href: '/run', icon: 'scan' },
+  { id: 'GROUPING', label: 'Grouping', href: '/results', icon: 'group' },
+  { id: 'REVIEW', label: 'Review', href: '/results', icon: 'review' },
+  { id: 'SUMMARY', label: 'Summary', href: '/results', icon: 'summary' }
 ];
 
 export function ReviewShell({
@@ -23,79 +26,109 @@ export function ReviewShell({
   activeStage: ReviewStage;
   children: ReactNode;
 }) {
+  const showReviewTopLink = activeStage === 'REVIEW';
+
   return (
-    <div className="app-bg min-h-screen">
-      <header className="glass-header sticky top-0 z-40">
-        <div className="mx-auto flex h-[4.5rem] max-w-[1400px] items-center justify-between px-5">
+    <div className="shell-root app-bg min-h-screen">
+      <header className="glass-header fixed inset-x-0 top-0 z-50">
+        <div className="page-shell desktop-gutter flex h-16 items-center justify-between">
           <div>
             <Link
               href="/"
-              className="font-display text-xl font-semibold tracking-tight text-white"
+              className="text-[1.5rem] font-bold tracking-[-0.04em] text-slate-100"
             >
               PhotoPrune
             </Link>
-            <p className="mt-1 text-[0.62rem] uppercase tracking-[0.34em] text-slate-500">
-              Digital curator
-            </p>
+            <p className="sr-only">Digital Curator</p>
           </div>
-          <nav className="flex items-center gap-8 text-sm text-slate-400">
-            <Link href="/" className="transition hover:text-white">
+
+          <nav className="top-nav-desktop">
+            <Link href="/results" className="shell-nav-link">
               History
             </Link>
-            <Link
-              href="/results"
-              className="border-b border-cyan-400 pb-1 text-cyan-300"
-            >
-              Review
-            </Link>
-            <Link href="/" className="transition hover:text-white">
+            {showReviewTopLink ? (
+              <Link
+                href="/results"
+                className="shell-nav-link shell-nav-link-active pb-1"
+              >
+                Review
+              </Link>
+            ) : null}
+            <Link href="/" className="shell-nav-link">
               Settings
             </Link>
           </nav>
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-cyan-400/40 bg-cyan-400/10 text-cyan-300">
-            <span className="text-sm font-semibold">•</span>
+
+          <div className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--pp-primary)]">
+            <AppIcon name="profile" className="h-[18px] w-[18px]" />
           </div>
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-[1400px]">
-        <aside className="min-h-[calc(100vh-4.5rem)] w-[184px] shrink-0 border-r border-slate-800/80 bg-[#060c1a]/80">
-          <nav className="flex h-full flex-col justify-between py-10">
-            <div className="space-y-2 px-3">
+      <div className="page-shell flex pt-16">
+        <aside className="side-rail">
+          <div className="flex w-full flex-col py-10">
+            <div className="px-5">
+              <Link
+                href="/"
+                className="text-[1.55rem] font-black tracking-[-0.04em] text-slate-100"
+              >
+                PhotoPrune
+              </Link>
+              <p className="mt-1 text-[0.6rem] font-semibold uppercase tracking-[0.28em] text-[#5f6f92]">
+                Digital Curator
+              </p>
+            </div>
+
+            <nav className="mt-10 space-y-1">
               {railItems.map((item) => {
                 const active = item.id === activeStage;
                 return (
                   <Link
                     key={item.id}
                     href={item.href}
-                    className={`flex items-center rounded-xl px-4 py-3 text-sm font-medium tracking-[0.18em] uppercase transition ${
-                      active
-                        ? 'bg-cyan-400/12 text-cyan-300 shadow-[inset_3px_0_0_0_#44d9d1]'
-                        : 'text-slate-500 hover:bg-slate-900/80 hover:text-slate-200'
-                    }`}
+                    className={`rail-item ${active ? 'rail-item-active' : ''}`}
                   >
+                    <AppIcon name={item.icon} className="h-[15px] w-[15px]" />
                     <span>{item.label}</span>
                   </Link>
                 );
               })}
-            </div>
+            </nav>
 
-            <div className="px-6">
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-5">
-                <p className="text-[0.62rem] uppercase tracking-[0.3em] text-slate-500">
-                  Support
-                </p>
-                <p className="mt-3 text-sm leading-6 text-slate-300">
-                  Review stays in your control. No photos are deleted
-                  automatically.
-                </p>
+            <div className="mt-auto px-5">
+              <div className="rail-item px-0 text-[0.72rem] text-[#7383a6] hover:bg-transparent hover:text-[#b6c4e3]">
+                <AppIcon name="support" className="h-[15px] w-[15px]" />
+                <span>Support</span>
               </div>
             </div>
-          </nav>
+          </div>
         </aside>
 
-        <main className="min-w-0 flex-1 px-6 py-8">{children}</main>
+        <main className="shell-main min-w-0 flex-1">{children}</main>
       </div>
+
+      <nav className="mobile-bottom-nav glass-header fixed inset-x-0 bottom-0 z-50 border-t border-white/5">
+        <div className="grid h-20 grid-cols-4 items-center px-4">
+          {railItems.map((item) => {
+            const active = item.id === activeStage;
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={`mx-auto flex w-fit flex-col items-center rounded-xl px-3 py-2 text-[0.6rem] font-bold uppercase tracking-[0.2em] ${
+                  active
+                    ? 'bg-[#12253f] text-[var(--pp-primary)]'
+                    : 'text-[#5c6d92]'
+                }`}
+              >
+                <AppIcon name={item.icon} className="mb-1 h-[16px] w-[16px]" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

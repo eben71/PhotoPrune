@@ -16,7 +16,7 @@ description: Use when a task changes user-facing review UI or copy in apps/web a
 - Files under `apps/web`
 - `AGENT_RULES.md`
 - `docs/trust-copy.md`
-- `docs/frontend-design-implementation-note.md`
+- `docs/frontend-design-implementation-notes.md`
 
 ## Workflow
 1. Confirm the change keeps the review group as the main unit of action.

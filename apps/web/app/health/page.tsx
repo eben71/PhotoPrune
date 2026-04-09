@@ -2,10 +2,21 @@
 
 import { useEffect, useState } from 'react';
 
-import { HealthStatusSchema } from '@photoprune/shared';
-
 const API_BASE_URL =
   process.env.PHOTOPRUNE_API_BASE_URL ?? 'http://localhost:8000';
+
+function readHealthStatus(data: unknown) {
+  if (
+    typeof data === 'object' &&
+    data !== null &&
+    'status' in data &&
+    typeof data.status === 'string'
+  ) {
+    return data.status;
+  }
+
+  return 'unknown';
+}
 
 export default function HealthPage() {
   const [status, setStatus] = useState<string>('loading');
@@ -18,8 +29,7 @@ export default function HealthPage() {
           throw new Error('Health check failed');
         }
         const data: unknown = await res.json();
-        const parsed = HealthStatusSchema.parse(data);
-        setStatus(parsed.status ?? 'unknown');
+        setStatus(readHealthStatus(data));
       } catch (error) {
         console.error('Health check error', error);
         setStatus('error');
