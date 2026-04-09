@@ -1,33 +1,37 @@
 import Link from 'next/link';
 
+import { AppIcon } from '../../app/components/AppIcon';
+
 const navItems = [
-  { href: '/', label: 'Get started' },
-  { href: '/run', label: 'Analysis' },
-  { href: '/results', label: 'Review' }
+  { href: '/results', label: 'History', active: true },
+  { href: '/', label: 'Settings', active: false }
 ] as const;
 
 export function Header() {
   return (
-    <header className="glass-header fixed inset-x-0 top-0 z-50">
-      <div className="mx-auto flex h-[4.5rem] max-w-[1240px] items-center justify-between px-5">
-        <Link
-          href="/"
-          className="font-display text-[1.65rem] font-semibold tracking-tight text-white"
-        >
-          PhotoPrune
-        </Link>
+    <header className="glass-header">
+      <div className="page-shell desktop-gutter header-inner">
+        <div className="header-brand-cluster">
+          <Link href="/" className="header-brand">
+            PhotoPrune
+          </Link>
 
-        <nav className="flex items-center gap-4 text-sm text-slate-400">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-full px-4 py-2 transition hover:bg-slate-800/70 hover:text-white"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+          <nav className="top-nav-desktop header-nav">
+            {navItems.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`shell-nav-link ${item.active ? 'shell-nav-link-active' : ''}`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        <div className="header-profile">
+          <AppIcon name="profile" className="h-[18px] w-[18px]" />
+        </div>
       </div>
     </header>
   );

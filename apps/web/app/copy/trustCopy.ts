@@ -2,7 +2,7 @@ export const trustCopy = {
   landing: {
     header: 'Review Similar Photos - Safely',
     subheader:
-      'This tool groups photos that appear visually similar so you can review them yourself.',
+      'PhotoPrune helps you reclaim your library by grouping visually similar shots and surfacing highlights for your review.',
     safetyLines: [
       'It does not delete anything.',
       'Nothing is stored.',
@@ -35,11 +35,11 @@ export const trustCopy = {
   run: {
     header: 'Scanning for visually similar photos...',
     subtext: [
-      'Photos are being analyzed and grouped based on visual similarity patterns.',
+      'Analyzing your library to organize photos.',
       'This may take a moment.'
     ],
     transparency:
-      'We group photos based on image structure and visual features - not file names or dates.',
+      'We group photos based on image structure and visual features, not file names or dates.',
     cancelButton: 'Stop Scan (No Changes Made)',
     cancelMicrocopy: 'Stopping will discard this session.'
   },
@@ -57,7 +57,7 @@ export const trustCopy = {
     intro: [
       'Photos are grouped by visual similarity.',
       'Each group is labeled with a confidence band.',
-      'You are in full control - nothing is deleted automatically.'
+      'You are in full control and nothing is deleted automatically.'
     ],
     confidenceTitle: 'What the confidence bands mean:',
     confidenceBands: {
@@ -67,7 +67,7 @@ export const trustCopy = {
       LOW: 'Images share some visual features but may represent different moments.'
     },
     confidenceFooter:
-      'Confidence reflects visual similarity only - not quality, importance, or intent.',
+      'Confidence reflects visual similarity only, not quality, importance, or intent.',
     reasonTitle: 'Why these were grouped:',
     reasonBullets: [
       'Shared visual composition',

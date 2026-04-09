@@ -6,7 +6,7 @@ This layer applies only inside `apps/web`.
 
 - [../../AGENT_RULES.md](../../AGENT_RULES.md) for product and copy guardrails.
 - [../../docs/trust-copy.md](../../docs/trust-copy.md) when changing user-facing copy.
-- [../../docs/frontend-design-implementation-note.md](../../docs/frontend-design-implementation-note.md) when changing layout or visual treatment.
+- [../../docs/frontend-design-implementation-notes.md](../../docs/frontend-design-implementation-note.md) when changing layout or visual treatment.
 
 ## Local rules
 

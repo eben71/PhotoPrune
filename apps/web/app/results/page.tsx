@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import { AppIcon } from '../components/AppIcon';
 import { GroupList } from '../components/GroupList';
 import { ReviewShell } from '../components/ReviewShell';
 import { trustCopy } from '../copy/trustCopy';
@@ -19,23 +20,25 @@ export default function ResultsPage() {
   if (!guard.allow) {
     return (
       <ReviewShell activeStage="REVIEW">
-        <section className="surface-panel mx-auto max-w-[680px] rounded-[1.8rem] px-8 py-10">
-          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-[#f2a357]">
-            Session expired
-          </p>
-          <h1 className="mt-4 font-display text-4xl font-semibold text-white">
-            Start a new review to continue.
-          </h1>
-          <p className="mt-5 max-w-[540px] text-base leading-8 text-slate-400">
-            This is a single-session scan. If the page refreshes or closes,
-            results are intentionally cleared.
-          </p>
-          <Link
-            href="/"
-            className="mt-8 inline-flex rounded-xl bg-[#0f766e] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#129388]"
-          >
-            Return to start
-          </Link>
+        <section className="mx-auto max-w-[760px] pt-12">
+          <div className="surface-panel rounded-[1rem] px-8 py-10">
+            <p className="text-[0.62rem] font-bold uppercase tracking-[0.18em] text-[var(--pp-secondary)]">
+              Session Expired
+            </p>
+            <h1 className="mt-4 text-4xl font-bold tracking-[-0.05em] text-[var(--pp-on-background)]">
+              Start a new review to continue.
+            </h1>
+            <p className="mt-5 max-w-[560px] text-base leading-8 text-[var(--pp-on-surface-muted)]">
+              This is a single-session scan. If the page refreshes or closes,
+              results are intentionally cleared.
+            </p>
+            <Link
+              href="/"
+              className="action-button-primary mt-8 px-6 py-3.5 text-sm"
+            >
+              Return to start
+            </Link>
+          </div>
         </section>
       </ReviewShell>
     );
@@ -44,122 +47,167 @@ export default function ResultsPage() {
   const { results } = state;
   if (!results) return null;
 
-  const summaryCards = [
-    {
-      label: 'Groups reviewed',
-      value: results.summary.groupsCount,
-      accent: 'text-cyan-300'
-    },
-    {
-      label: 'Photos marked for action',
-      value: results.summary.groupedItemsCount,
-      accent: 'text-[#f2a357]'
-    },
-    {
-      label: 'Items kept outside groups',
-      value: results.summary.ungroupedItemsCount,
-      accent: 'text-[#ff7d7d]'
-    }
-  ];
+  const itemsRemaining = results.groups.reduce(
+    (total, group) => total + group.itemsCount,
+    0
+  );
 
   return (
     <ReviewShell activeStage="REVIEW">
-      <section className="max-w-[920px]">
-        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.32em] text-cyan-300">
-          Action required
-        </p>
-        <h1 className="mt-6 max-w-[760px] font-display text-[3.6rem] font-semibold leading-[0.96] tracking-tight text-[#edf2ff]">
-          Review groups.
-        </h1>
-        <p className="mt-5 max-w-[700px] text-lg leading-8 text-slate-400">
-          {trustCopy.results.intro[0]} {trustCopy.results.intro[1]}{' '}
-          {trustCopy.results.intro[2]}
-        </p>
-      </section>
+      <div className="mx-auto max-w-[1140px] pb-12">
+        <header className="mb-14">
+          <p className="text-[0.62rem] font-bold uppercase tracking-[0.18em] text-[var(--pp-primary)]">
+            Action Required
+          </p>
+          <h1 className="results-title mt-3 max-w-[720px] font-extrabold leading-[0.97] tracking-[-0.05em] text-[var(--pp-on-background)]">
+            Review Groups
+          </h1>
+          <p className="mt-5 max-w-[620px] text-lg font-light leading-8 text-[var(--pp-on-surface-muted)]">
+            {trustCopy.results.intro[0]} {trustCopy.results.intro[1]}{' '}
+            {trustCopy.results.intro[2]}
+          </p>
+        </header>
 
-      <section className="mt-10 grid gap-5 [grid-template-columns:repeat(3,minmax(0,1fr))]">
-        {summaryCards.map((card) => (
-          <article
-            key={card.label}
-            className="surface-panel-light rounded-[1.55rem] px-6 py-7"
-          >
-            <p className={`text-2xl ${card.accent}`}>●</p>
-            <p className="mt-4 text-5xl font-semibold tracking-tight text-slate-900">
-              {card.value}
+        <section className="mt-10">
+          <GroupList groups={results.groups} showHeader={false} />
+        </section>
+
+        <section className="results-sticky-bar sticky bottom-0 z-30 mt-10">
+          <div className="surface-panel mx-auto overflow-hidden rounded-t-[0.8rem] px-8 py-6 shadow-[0_-12px_40px_rgba(0,0,0,0.45)]">
+            <div className="flex items-center justify-between gap-6">
+              <div className="flex items-center gap-12">
+                <div>
+                  <p className="text-[0.62rem] font-bold uppercase tracking-[0.18em] text-[var(--pp-primary)]">
+                    Groups in Session
+                  </p>
+                  <p className="mt-2 text-[2.15rem] font-black tracking-[-0.05em] text-white">
+                    {results.summary.groupsCount}
+                  </p>
+                </div>
+
+                <div className="h-10 w-px bg-[rgba(99,118,155,0.14)]" />
+
+                <div>
+                  <p className="text-[0.62rem] font-bold uppercase tracking-[0.18em] text-[#7384aa]">
+                    Items Remaining
+                  </p>
+                  <p className="mt-2 text-[2.15rem] font-black tracking-[-0.05em] text-white">
+                    {itemsRemaining}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex min-w-[360px] flex-col items-end gap-3">
+                <div className="flex items-center gap-4">
+                  <a
+                    href="#review-queue"
+                    className="action-button-primary px-12 py-4 text-sm"
+                  >
+                    Continue Review
+                  </a>
+                  <button
+                    className="rounded-lg bg-[#24324a] p-4 text-[#8ea0c7] transition hover:bg-[#2e3d57] hover:text-white"
+                    type="button"
+                    onClick={() => {
+                      clearSelection();
+                      router.push('/');
+                    }}
+                  >
+                    <AppIcon name="summary" className="h-[20px] w-[20px]" />
+                  </button>
+                </div>
+                <p className="flex items-center gap-2 text-[0.62rem] font-bold uppercase tracking-[0.18em] text-[#697a9f]">
+                  <AppIcon
+                    name="check"
+                    className="h-[13px] w-[13px] text-[var(--pp-primary)]"
+                  />
+                  You review each group before anything changes.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-10">
+          <div className="surface-panel-soft rounded-[0.9rem] border border-dashed border-[rgba(53,72,107,0.2)] px-8 py-12 text-center">
+            <h2 className="text-[2rem] font-bold tracking-[-0.04em] text-[var(--pp-on-background)]">
+              Continue Scanning?
+            </h2>
+            <p className="mx-auto mt-3 max-w-[520px] text-sm leading-7 text-[var(--pp-on-surface-muted)]">
+              We&apos;ve reached the end of this batch. Start a new session to
+              search for more similar photos in another selection.
             </p>
-            <p className="mt-2 text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-slate-500">
-              {card.label}
-            </p>
+            <button
+              className="mt-8 rounded-md bg-[#2a354b] px-8 py-3.5 text-sm font-bold text-[#d5def2] transition hover:bg-[#344159]"
+              type="button"
+              onClick={() => {
+                clearSelection();
+                router.push('/');
+              }}
+            >
+              Search Library
+            </button>
+          </div>
+        </section>
+
+        <section className="results-info-grid mt-10">
+          <article className="results-hero-card surface-panel rounded-[1rem]">
+            <div className="results-hero-layout">
+              <div className="flex w-full max-w-[210px] justify-center rounded-[0.85rem] bg-[#173057] p-10">
+                <AppIcon
+                  name="sparkle"
+                  className="h-[64px] w-[64px] text-[var(--pp-primary)]"
+                />
+              </div>
+
+              <div>
+                <h2 className="text-[2rem] font-bold tracking-[-0.04em] text-[var(--pp-on-background)]">
+                  Peace of mind by design.
+                </h2>
+                <p className="mt-4 max-w-[620px] text-base leading-8 text-[var(--pp-on-surface-muted)]">
+                  Confidence reflects visual similarity only. You decide what to
+                  keep, what to skip, and whether anything should be acted on
+                  outside this app.
+                </p>
+                <div className="mt-6 flex items-center gap-3 text-[var(--pp-secondary)]">
+                  <AppIcon name="check" className="h-[16px] w-[16px]" />
+                  <p className="text-[0.68rem] font-bold uppercase tracking-[0.18em]">
+                    Curation Protocol Active
+                  </p>
+                </div>
+              </div>
+            </div>
           </article>
-        ))}
-      </section>
 
-      <section className="mt-10 grid gap-5 [grid-template-columns:minmax(0,1.4fr)_minmax(280px,0.8fr)]">
-        <article className="surface-panel rounded-[1.8rem] px-7 py-8">
-          <div className="grid items-center gap-6 [grid-template-columns:220px_minmax(0,1fr)]">
-            <div className="flex min-h-[150px] items-center justify-center rounded-[1.5rem] bg-[#15284a] text-5xl text-cyan-300">
-              ✦
-            </div>
-            <div>
-              <h2 className="font-display text-[2rem] font-semibold tracking-tight text-white">
-                Peace of mind by design.
-              </h2>
-              <p className="mt-4 max-w-[560px] text-base leading-8 text-slate-300">
-                Confidence reflects visual similarity only. You decide what to
-                keep, what to skip, and whether anything should be acted on
-                outside this app.
+          <article className="surface-panel rounded-[1rem] px-6 py-7">
+            <h2 className="text-2xl font-bold tracking-[-0.03em] text-[var(--pp-on-background)]">
+              {trustCopy.results.confidenceTitle}
+            </h2>
+            <div className="mt-6 space-y-4 text-sm leading-7 text-[var(--pp-on-surface-muted)]">
+              <p>
+                <span className="font-bold text-[var(--pp-primary)]">
+                  High confidence:
+                </span>{' '}
+                {trustCopy.results.confidenceBands.HIGH}
               </p>
-              <p className="mt-5 text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-[#f2a357]">
-                Curation protocol active
+              <p>
+                <span className="font-bold text-[var(--pp-secondary)]">
+                  Medium confidence:
+                </span>{' '}
+                {trustCopy.results.confidenceBands.MEDIUM}
               </p>
+              <p>
+                <span className="font-bold text-[var(--pp-tertiary)]">
+                  Low confidence:
+                </span>{' '}
+                {trustCopy.results.confidenceBands.LOW}
+              </p>
+              <p>{trustCopy.results.confidenceFooter}</p>
+              <p>{trustCopy.sessionBanner[1]}</p>
             </div>
-          </div>
-        </article>
-
-        <article className="surface-panel rounded-[1.8rem] px-6 py-7">
-          <h2 className="font-display text-2xl font-semibold text-white">
-            {trustCopy.results.confidenceTitle}
-          </h2>
-          <div className="mt-6 space-y-4 text-sm leading-7 text-slate-300">
-            <p>
-              <span className="font-semibold text-cyan-300">
-                High confidence:
-              </span>{' '}
-              {trustCopy.results.confidenceBands.HIGH}
-            </p>
-            <p>
-              <span className="font-semibold text-[#f2a357]">
-                Medium confidence:
-              </span>{' '}
-              {trustCopy.results.confidenceBands.MEDIUM}
-            </p>
-            <p>
-              <span className="font-semibold text-[#ff9b9b]">
-                Low confidence:
-              </span>{' '}
-              {trustCopy.results.confidenceBands.LOW}
-            </p>
-            <p className="text-slate-400">
-              {trustCopy.results.confidenceFooter}
-            </p>
-            <p className="text-slate-400">{trustCopy.sessionBanner[1]}</p>
-          </div>
-          <button
-            className="mt-8 rounded-xl border border-slate-700 bg-slate-950/70 px-5 py-3 text-sm font-medium text-slate-200 transition hover:border-slate-500"
-            type="button"
-            onClick={() => {
-              clearSelection();
-              router.push('/');
-            }}
-          >
-            End Session
-          </button>
-        </article>
-      </section>
-
-      <section className="mt-10">
-        <GroupList groups={results.groups} />
-      </section>
+          </article>
+        </section>
+      </div>
     </ReviewShell>
   );
 }
