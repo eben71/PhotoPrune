@@ -60,7 +60,15 @@ function getDescription(group: Group) {
   return 'These images share some visual traits. Review carefully before acting outside this app.';
 }
 
-export function GroupCard({ group, index }: { group: Group; index: number }) {
+export function GroupCard({
+  group,
+  index,
+  showActions = true
+}: {
+  group: Group;
+  index: number;
+  showActions?: boolean;
+}) {
   const [expanded, setExpanded] = useState(false);
 
   const representativeItems = useMemo(() => {
@@ -167,43 +175,45 @@ export function GroupCard({ group, index }: { group: Group; index: number }) {
             ) : null}
           </div>
 
-          <div className="space-y-3">
-            <button
-              className="w-full rounded-lg bg-[var(--pp-primary)] px-4 py-4 text-sm font-black text-[#09423f] transition hover:bg-[var(--pp-primary-dim)]"
-              type="button"
-            >
-              Keep Recommended
-            </button>
+          {showActions ? (
+            <div className="space-y-3">
+              <button
+                className="w-full rounded-lg bg-[var(--pp-primary)] px-4 py-4 text-sm font-black text-[#09423f] transition hover:bg-[var(--pp-primary-dim)]"
+                type="button"
+              >
+                Keep Recommended
+              </button>
 
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                className="rounded-lg border border-[rgba(255,127,125,0.18)] px-3 py-3 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#e06f6d] transition hover:bg-[rgba(255,127,125,0.06)]"
-                type="button"
-              >
-                Mark Externally
-              </button>
-              <button
-                className="rounded-lg border border-[#eef1f6] px-3 py-3 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#9aa6bf] transition hover:bg-[#f6f8fc]"
-                type="button"
-              >
-                Skip For Now
-              </button>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  className="rounded-lg border border-[rgba(255,127,125,0.18)] px-3 py-3 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#e06f6d] transition hover:bg-[rgba(255,127,125,0.06)]"
+                  type="button"
+                >
+                  Mark Externally
+                </button>
+                <button
+                  className="rounded-lg border border-[#eef1f6] px-3 py-3 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#9aa6bf] transition hover:bg-[#f6f8fc]"
+                  type="button"
+                >
+                  Skip For Now
+                </button>
+              </div>
+
+              {group.itemsCount > representativeItems.length ? (
+                <button
+                  className="rounded-full border border-[#dfe5f0] px-4 py-2 text-[0.62rem] font-black uppercase tracking-[0.16em] text-[var(--pp-paper-muted)] transition hover:bg-[#f7f9fc]"
+                  type="button"
+                  onClick={() => setExpanded((previous) => !previous)}
+                >
+                  {expanded ? 'Show fewer' : 'Show all items'}
+                </button>
+              ) : null}
             </div>
-
-            {group.itemsCount > representativeItems.length ? (
-              <button
-                className="rounded-full border border-[#dfe5f0] px-4 py-2 text-[0.62rem] font-black uppercase tracking-[0.16em] text-[var(--pp-paper-muted)] transition hover:bg-[#f7f9fc]"
-                type="button"
-                onClick={() => setExpanded((previous) => !previous)}
-              >
-                {expanded ? 'Show fewer' : 'Show all items'}
-              </button>
-            ) : null}
-          </div>
+          ) : null}
         </div>
       </div>
 
-      {expanded ? (
+      {showActions && expanded ? (
         <div className="group-card-expanded-wrap bg-[#f4f6fb]">
           <div className="group-card-expanded-grid">
             {group.items.map((item) => (

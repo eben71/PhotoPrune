@@ -19,6 +19,7 @@ class ProjectResponse(BaseModel):
     user_id: str = Field(alias="userId")
     name: str
     status: Literal["active", "archived"]
+    scope: dict[str, Any] | None = None
     created_at: datetime = Field(alias="createdAt")
     updated_at: datetime = Field(alias="updatedAt")
 
@@ -70,7 +71,7 @@ class ProjectScopeRequest(BaseModel):
 
 
 class ProjectScanRequest(ScanRequest):
-    source_type: Literal["picker", "album_set_stub"] = Field(default="picker", alias="sourceType")
+    source_type: Literal["picker", "album_set"] = Field(default="picker", alias="sourceType")
     source_ref: dict[str, Any] | None = Field(default=None, alias="sourceRef")
 
 

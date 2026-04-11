@@ -4,10 +4,12 @@ import { GroupCard } from './GroupCard';
 
 export function GroupList({
   groups,
-  showHeader = true
+  showHeader = true,
+  showActions = true
 }: {
   groups: Group[];
   showHeader?: boolean;
+  showActions?: boolean;
 }) {
   if (groups.length === 0) {
     return (
@@ -45,7 +47,12 @@ export function GroupList({
 
       <div className="group-list-grid">
         {groups.map((group, index) => (
-          <GroupCard key={group.groupId} group={group} index={index} />
+          <GroupCard
+            key={group.groupId}
+            group={group}
+            index={index}
+            showActions={showActions}
+          />
         ))}
       </div>
     </section>
