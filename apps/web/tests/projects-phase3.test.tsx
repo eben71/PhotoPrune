@@ -55,6 +55,9 @@ describe('phase 3 projects pages', () => {
     );
 
     vi.spyOn(document.body, 'append').mockImplementation(() => undefined);
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(
+      () => undefined
+    );
 
     vi.stubGlobal(
       'fetch',
@@ -390,11 +393,10 @@ describe('phase 3 projects pages', () => {
 
     render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
 
-    await waitFor(() =>
-      expect(screen.getByText('Export CSV')).toBeInTheDocument()
-    );
+    const exportButton = screen.getByRole('button', { name: 'Export CSV' });
+    await waitFor(() => expect(exportButton).not.toBeDisabled());
 
-    fireEvent.click(screen.getByText('Export CSV'));
+    fireEvent.click(exportButton);
 
     await waitFor(() =>
       expect(fetchSpy).toHaveBeenCalledWith(
