@@ -27,7 +27,8 @@ describe('useGooglePhotosPicker hook', () => {
     process.env = {
       ...env,
       NEXT_PUBLIC_GOOGLE_API_KEY: 'api-key',
-      NEXT_PUBLIC_GOOGLE_CLIENT_ID: 'client-id'
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID:
+        '123456789012-client-id.apps.googleusercontent.com'
     };
 
     vi.spyOn(crypto, 'randomUUID').mockReturnValue('state-123');
@@ -51,6 +52,7 @@ describe('useGooglePhotosPicker hook', () => {
 
   it('returns selected items from picker callback', async () => {
     let pickerCallback: ((data: PickerData) => void) | undefined;
+    let pickerAppId: string | undefined;
 
     class DocsView {
       setMimeTypes() {
@@ -78,7 +80,8 @@ describe('useGooglePhotosPicker hook', () => {
         pickerCallback = callback;
         return this;
       }
-      setAppId() {
+      setAppId(appId: string) {
+        pickerAppId = appId;
         return this;
       }
       setSelectableMimeTypes() {
@@ -143,6 +146,7 @@ describe('useGooglePhotosPicker hook', () => {
       filename: 'a.jpg',
       baseUrl: 'https://thumbs/a.jpg'
     });
+    expect(pickerAppId).toBe('123456789012');
   });
 
   it('returns null when picker is cancelled', async () => {
@@ -224,7 +228,8 @@ describe('useGooglePhotosPicker hook', () => {
     process.env = {
       ...env,
       NEXT_PUBLIC_GOOGLE_API_KEY: undefined,
-      NEXT_PUBLIC_GOOGLE_CLIENT_ID: undefined
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: undefined,
+      NEXT_PUBLIC_GOOGLE_APP_ID: undefined
     };
 
     const { result } = renderHook(() => useGooglePhotosPicker());
@@ -236,5 +241,88 @@ describe('useGooglePhotosPicker hook', () => {
 
     expect(output).toBeNull();
     expect(result.current.error).toMatch(/not configured/i);
+  });
+
+  it('prefers explicit google app id when configured', async () => {
+    let pickerCallback: ((data: PickerData) => void) | undefined;
+    let pickerAppId: string | undefined;
+
+    process.env = {
+      ...env,
+      NEXT_PUBLIC_GOOGLE_API_KEY: 'api-key',
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID:
+        '123456789012-client-id.apps.googleusercontent.com',
+      NEXT_PUBLIC_GOOGLE_APP_ID: '999888777666'
+    };
+
+    class DocsView {
+      setMimeTypes() {
+        return this;
+      }
+      setSelectFolderEnabled() {
+        return this;
+      }
+      setIncludeFolders() {
+        return this;
+      }
+    }
+
+    class PickerBuilder {
+      addView() {
+        return this;
+      }
+      setOAuthToken() {
+        return this;
+      }
+      setDeveloperKey() {
+        return this;
+      }
+      setCallback(callback: (data: PickerData) => void) {
+        pickerCallback = callback;
+        return this;
+      }
+      setAppId(appId: string) {
+        pickerAppId = appId;
+        return this;
+      }
+      setSelectableMimeTypes() {
+        return this;
+      }
+      build() {
+        return {
+          setVisible: () => {
+            pickerCallback?.({ action: 'cancel', state: 'state-123' });
+          }
+        };
+      }
+    }
+
+    window.gapi = {
+      load: (_lib, callback) => callback()
+    };
+
+    window.google = {
+      accounts: {
+        oauth2: {
+          initTokenClient: ({ callback }) => ({
+            requestAccessToken: () => callback({ access_token: 'token' })
+          })
+        }
+      },
+      picker: {
+        Action: { PICKED: 'picked', CANCEL: 'cancel' },
+        DocsView,
+        PickerBuilder,
+        ViewId: { DOCS_IMAGES: 'docs_images' }
+      }
+    };
+
+    const { result } = renderHook(() => useGooglePhotosPicker());
+
+    await act(async () => {
+      await result.current.openPicker();
+    });
+
+    expect(pickerAppId).toBe('999888777666');
   });
 });

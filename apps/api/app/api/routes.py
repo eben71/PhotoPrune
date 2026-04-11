@@ -6,6 +6,7 @@ from typing import Any
 from fastapi import APIRouter, Header, HTTPException, Query, Response, status
 
 from app.core.config import get_settings
+from app.engine.models import PhotoItem
 from app.engine.normalizer import normalize_photo_items, normalize_picker_payload
 from app.engine.scan import run_scan
 from app.engine.schemas import ScanRequest, ScanResult
@@ -48,32 +49,11 @@ def scan(
     request: ScanRequest,
     x_scan_explain: str | None = Header(default=None, alias="X-Scan-Explain"),
 ) -> ScanResult:
+    items, explain_requested = _prepare_scan_items(
+        request,
+        x_scan_explain=x_scan_explain,
+    )
     settings = get_settings()
-    if request.photo_items:
-        items = normalize_photo_items(request.photo_items)
-    else:
-        items = normalize_picker_payload(request.picker_payload or {})
-
-    if not items:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No valid photo items provided.",
-        )
-
-    input_count = len(items)
-    if input_count > settings.scan_max_photos:
-        message = f"Scan requested {input_count} items; max allowed is {settings.scan_max_photos}."
-        if settings.enforce_scan_limits:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
-        logger.warning(message)
-
-    if input_count > settings.scan_consent_threshold and not request.consent_confirmed:
-        message = "Scan exceeds consent threshold; explicit consent is required in production."
-        if settings.enforce_scan_limits:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
-        logger.warning(message)
-
-    explain_requested = _parse_explain_header(x_scan_explain)
     try:
         return run_scan(items, settings, explain=explain_requested or settings.scan_explain)
     except ValueError as exc:
@@ -109,7 +89,10 @@ def set_project_scope(project_id: str, request: ProjectScopeRequest) -> dict[str
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     resolved = resolve_scope(ScopeDefinition(type=request.type, album_ids=request.album_ids or []))
-    return {"projectId": project_id, "scope": resolved}
+    updated = get_project_repo().set_scope(project_id, resolved)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return {"projectId": project_id, "scope": updated["scope"]}
 
 
 @router.post("/api/projects/{project_id}/scan", response_model=ProjectScanResponse)
@@ -118,14 +101,23 @@ def project_scan(project_id: str, request: ProjectScanRequest) -> ProjectScanRes
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    scan_result = scan(request)
+    items, explain_requested = _prepare_scan_items(request)
+    settings = get_settings()
+    try:
+        scan_result = run_scan(items, settings, explain=explain_requested or settings.scan_explain)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
     envelope = _to_envelope(scan_result)
     scan_id = get_project_repo().create_scan(
         project_id=project_id,
         source_type=request.source_type,
         source_ref=request.source_ref or {"type": request.source_type},
-        envelope=envelope,
         scan_result=scan_result,
+        input_items=items,
+        envelope=envelope,
     )
     return ProjectScanResponse(projectScanId=scan_id, envelope=envelope)
 
@@ -158,8 +150,12 @@ def patch_group_review(
 
 
 @router.get("/api/projects/{project_id}/export")
-def export_project(project_id: str, format: str = Query(default="json")) -> Response:
-    rows = get_project_repo().export_rows(project_id)
+def export_project(
+    project_id: str,
+    format: str = Query(default="json"),
+    scan_id: str | None = Query(default=None, alias="scanId"),
+) -> Response:
+    rows = get_project_repo().export_rows(project_id, scan_id=scan_id)
     if format == "csv":
         return Response(
             content=to_csv(rows),
@@ -263,3 +259,36 @@ def _parse_explain_header(value: str | None) -> bool:
     if value is None:
         return False
     return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _prepare_scan_items(
+    request: ScanRequest,
+    *,
+    x_scan_explain: str | None = None,
+) -> tuple[list[PhotoItem], bool]:
+    settings = get_settings()
+    if request.photo_items:
+        items = normalize_photo_items(request.photo_items)
+    else:
+        items = normalize_picker_payload(request.picker_payload or {})
+
+    if not items:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No valid photo items provided.",
+        )
+
+    input_count = len(items)
+    if input_count > settings.scan_max_photos:
+        message = f"Scan requested {input_count} items; max allowed is {settings.scan_max_photos}."
+        if settings.enforce_scan_limits:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+        logger.warning(message)
+
+    if input_count > settings.scan_consent_threshold and not request.consent_confirmed:
+        message = "Scan exceeds consent threshold; explicit consent is required in production."
+        if settings.enforce_scan_limits:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+        logger.warning(message)
+
+    return items, _parse_explain_header(x_scan_explain)

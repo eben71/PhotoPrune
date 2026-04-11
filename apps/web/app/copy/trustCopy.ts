@@ -82,6 +82,20 @@ export const trustCopy = {
       'This does not mean your library has no duplicates - only that none met the current grouping criteria.'
     ]
   },
+  projects: {
+    listIntro:
+      'Projects let you revisit cleanup work over time. Review decisions stay attached to each project until you finish them manually.',
+    newIntro:
+      'Create a project before scanning so you can return later without losing your grouped results or review notes.',
+    runIntro:
+      'Scans remain read-only. Picker selections are grouped and saved to this project so you can review them across sessions.',
+    resultsIntro:
+      'Choose one photo to keep in each group, review the remaining candidates, and handle any cleanup manually in Google Photos.',
+    resultsReminder:
+      'Nothing is deleted from PhotoPrune. Mark a group done only after you handle it manually.',
+    scopePicker: 'Picker-selected photos only',
+    scopeAlbumSet: 'Album set scope saved for later read-only ingestion'
+  },
   groupDetail: {
     reviewLines: [
       'Review each image carefully.',

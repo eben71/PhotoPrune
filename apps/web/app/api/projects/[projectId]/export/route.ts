@@ -7,5 +7,9 @@ export async function GET(
   const { projectId } = await params;
   const url = new URL(request.url);
   const format = url.searchParams.get('format') ?? 'json';
-  return forward(`/api/projects/${projectId}/export?format=${format}`);
+  const scanId = url.searchParams.get('scanId');
+  const scanQuery = scanId ? `&scanId=${encodeURIComponent(scanId)}` : '';
+  return forward(
+    `/api/projects/${projectId}/export?format=${format}${scanQuery}`
+  );
 }

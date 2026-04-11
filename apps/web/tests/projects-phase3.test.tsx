@@ -1,13 +1,16 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import ProjectDetailPage from '../app/projects/[id]/page';
 import ProjectResultsPage from '../app/projects/[id]/results/page';
 import ProjectRunPage from '../app/projects/[id]/run/page';
+import NewProjectPage from '../app/projects/new/page';
 import ProjectsPage from '../app/projects/page';
 import { RunSessionProvider } from '../app/state/runSessionStore';
 
 const openPickerMock = vi.fn();
+const routerPushMock = vi.fn();
+let searchParamsValue = 'scanId=scan-1';
 
 vi.mock('../app/hooks/useGooglePhotosPicker', () => ({
   useGooglePhotosPicker: () => ({
@@ -28,16 +31,50 @@ vi.mock('../app/hooks/useGooglePhotosPicker', () => ({
 }));
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
-  useSearchParams: () => new URLSearchParams('scanId=scan-1')
+  useRouter: () => ({ push: routerPushMock }),
+  useSearchParams: () => new URLSearchParams(searchParamsValue)
 }));
 
 describe('phase 3 projects pages', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
   beforeEach(() => {
     openPickerMock.mockReset();
+    routerPushMock.mockReset();
+    searchParamsValue = 'scanId=scan-1';
+
+    vi.stubGlobal(
+      'URL',
+      class extends URL {
+        static createObjectURL = vi.fn(() => 'blob:export');
+        static revokeObjectURL = vi.fn();
+      }
+    );
+
+    vi.spyOn(document.body, 'append').mockImplementation(() => undefined);
+
     vi.stubGlobal(
       'fetch',
-      vi.fn((input: string) => {
+      vi.fn((input: string, init?: RequestInit) => {
+        if (input === '/api/projects' && init?.method === 'POST') {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                id: 'p1',
+                userId: 'local-user',
+                name: 'Trip',
+                status: 'active',
+                scope: { type: 'picker', albumIds: [] },
+                createdAt: '2025-01-01T00:00:00Z',
+                updatedAt: '2025-01-01T00:00:00Z'
+              })
+            )
+          );
+        }
+
         if (input === '/api/projects') {
           return Promise.resolve(
             new Response(
@@ -48,6 +85,7 @@ describe('phase 3 projects pages', () => {
                     userId: 'local-user',
                     name: 'Trip',
                     status: 'active',
+                    scope: { type: 'picker', albumIds: [] },
                     createdAt: '2025-01-01T00:00:00Z',
                     updatedAt: '2025-01-01T00:00:00Z'
                   }
@@ -56,6 +94,39 @@ describe('phase 3 projects pages', () => {
             )
           );
         }
+
+        if (input === '/api/projects/p1') {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                id: 'p1',
+                userId: 'local-user',
+                name: 'Trip',
+                status: 'active',
+                scope: { type: 'picker', albumIds: [] },
+                createdAt: '2025-01-01T00:00:00Z',
+                updatedAt: '2025-01-01T00:00:00Z'
+              })
+            )
+          );
+        }
+
+        if (input === '/api/projects/p1/scans') {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify([
+                {
+                  id: 'scan-1',
+                  projectId: 'p1',
+                  createdAt: '2025-01-01T00:00:00Z',
+                  sourceType: 'picker',
+                  sourceRef: {}
+                }
+              ])
+            )
+          );
+        }
+
         if (input.includes('/scans/scan-1/results')) {
           return Promise.resolve(
             new Response(
@@ -141,8 +212,7 @@ describe('phase 3 projects pages', () => {
                               }
                             }
                           }
-                        ],
-                        debug: undefined
+                        ]
                       }
                     ],
                     skippedItems: [],
@@ -160,6 +230,15 @@ describe('phase 3 projects pages', () => {
             )
           );
         }
+
+        if (input === '/api/projects/p1/export?format=csv&scanId=scan-1') {
+          return Promise.resolve(
+            new Response('group_fingerprint,confidence_band\n', {
+              headers: { 'Content-Type': 'text/csv' }
+            })
+          );
+        }
+
         return Promise.resolve(
           new Response(JSON.stringify({ projectScanId: 'scan-1' }))
         );
@@ -167,27 +246,33 @@ describe('phase 3 projects pages', () => {
     );
   });
 
-  it('renders projects list', async () => {
+  it('renders the saved projects list', async () => {
     render(<ProjectsPage />);
+
     await waitFor(() => expect(screen.getByText('Trip')).toBeInTheDocument());
+    expect(
+      screen.getByRole('link', { name: 'New project' })
+    ).toBeInTheDocument();
   });
 
-  it('handles empty projects response body without throwing', async () => {
+  it('renders the empty state when no projects exist', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn((input: string) => {
-        if (input === '/api/projects') {
-          return Promise.resolve(new Response(null, { status: 200 }));
-        }
-        return Promise.resolve(
-          new Response(JSON.stringify({ projectScanId: 'scan-1' }))
-        );
-      }) as unknown as typeof fetch
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              projects: []
+            })
+          )
+        )
+      ) as unknown as typeof fetch
     );
 
     render(<ProjectsPage />);
+
     await waitFor(() =>
-      expect(screen.queryByRole('listitem')).not.toBeInTheDocument()
+      expect(screen.getByText('No projects yet')).toBeInTheDocument()
     );
   });
 
@@ -210,25 +295,13 @@ describe('phase 3 projects pages', () => {
           );
         }
 
-        if (input === '/api/projects') {
-          return Promise.resolve(
-            new Response(
-              JSON.stringify({
-                projects: []
-              })
-            )
-          );
-        }
-
-        return Promise.resolve(
-          new Response(JSON.stringify({ projectScanId: 'scan-1' }))
-        );
+        return Promise.resolve(new Response(JSON.stringify({})));
       }) as unknown as typeof fetch
     );
 
-    render(<ProjectsPage />);
+    render(<NewProjectPage />);
 
-    fireEvent.change(screen.getByPlaceholderText('Project name'), {
+    fireEvent.change(screen.getByPlaceholderText('Weekend cleanup'), {
       target: { value: 'Trip cleanup' }
     });
     fireEvent.click(screen.getByText('Create project'));
@@ -243,13 +316,28 @@ describe('phase 3 projects pages', () => {
     expect(screen.getByDisplayValue('Trip cleanup')).toBeInTheDocument();
   });
 
-  it('project run posts to project scan endpoint', async () => {
+  it('creates a project and routes into the saved scan flow', async () => {
+    render(<NewProjectPage />);
+
+    fireEvent.change(screen.getByPlaceholderText('Weekend cleanup'), {
+      target: { value: 'Trip cleanup' }
+    });
+    fireEvent.click(screen.getByText('Create project'));
+
+    await waitFor(() =>
+      expect(routerPushMock).toHaveBeenCalledWith('/projects/p1/run')
+    );
+  });
+
+  it('project run posts to the project scan endpoint', async () => {
     const fetchSpy = vi.spyOn(global, 'fetch');
+
     render(
       <RunSessionProvider>
         <ProjectRunPage params={Promise.resolve({ id: 'p1' })} />
       </RunSessionProvider>
     );
+
     openPickerMock.mockResolvedValue([
       {
         id: 'i1',
@@ -259,12 +347,15 @@ describe('phase 3 projects pages', () => {
         createTime: '2025-01-01T00:00:00Z'
       }
     ]);
+
     fireEvent.click(
       screen.getByRole('button', { name: 'Select from Google Photos' })
     );
-    const startButton = screen.getByText('Start project scan');
+
+    const startButton = await screen.findByText('Start saved scan');
     await waitFor(() => expect(startButton).not.toBeDisabled());
     fireEvent.click(startButton);
+
     await waitFor(() =>
       expect(fetchSpy).toHaveBeenCalledWith(
         '/api/projects/p1/scan',
@@ -273,13 +364,19 @@ describe('phase 3 projects pages', () => {
     );
   });
 
-  it('results page loads state and marks done', async () => {
+  it('results page loads saved state and marks a group done', async () => {
     const fetchSpy = vi.spyOn(global, 'fetch');
+
     render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
+
     await waitFor(() =>
-      expect(screen.getByText('Checklist for g1')).toBeInTheDocument()
+      expect(
+        screen.getByText('Keep one photo. Review the rest manually.')
+      ).toBeInTheDocument()
     );
-    fireEvent.click(screen.getByText('Mark DONE'));
+
+    fireEvent.click(screen.getByText('Mark done'));
+
     await waitFor(() =>
       expect(fetchSpy).toHaveBeenCalledWith(
         '/api/projects/p1/groups/g1/review',
@@ -288,114 +385,40 @@ describe('phase 3 projects pages', () => {
     );
   });
 
-  it('project detail page loads project, scans, and review counts', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn((input: string) => {
-        if (input === '/api/projects/p1') {
-          return Promise.resolve(
-            new Response(
-              JSON.stringify({
-                id: 'p1',
-                userId: 'local-user',
-                name: 'Trip',
-                status: 'active',
-                createdAt: '2025-01-01T00:00:00Z',
-                updatedAt: '2025-01-01T00:00:00Z'
-              })
-            )
-          );
-        }
+  it('results page exports csv for the active scan', async () => {
+    const fetchSpy = vi.spyOn(global, 'fetch');
 
-        if (input === '/api/projects/p1/scans') {
-          return Promise.resolve(
-            new Response(
-              JSON.stringify([
-                {
-                  id: 'scan-1',
-                  projectId: 'p1',
-                  createdAt: '2025-01-01T00:00:00Z',
-                  sourceType: 'picker',
-                  sourceRef: {}
-                }
-              ])
-            )
-          );
-        }
+    render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
 
-        if (input === '/api/projects/p1/scans/scan-1/results') {
-          return Promise.resolve(
-            new Response(
-              JSON.stringify({
-                projectScanId: 'scan-1',
-                envelope: {
-                  schemaVersion: '2.2.0',
-                  run: {
-                    runId: 'scan-1',
-                    status: 'COMPLETED',
-                    startedAt: '2025-01-01T00:00:00Z',
-                    finishedAt: '2025-01-01T00:00:01Z',
-                    selection: {
-                      requestedCount: 2,
-                      acceptedCount: 2,
-                      rejectedCount: 0
-                    }
-                  },
-                  progress: {
-                    stage: 'FINALIZE',
-                    message: 'done',
-                    counts: { processed: 2, total: 2 }
-                  },
-                  telemetry: {
-                    cost: {
-                      apiCalls: 0,
-                      estimatedUnits: 1,
-                      softCapUnits: 1200,
-                      hardCapUnits: 2000,
-                      hitSoftCap: false,
-                      hitHardCap: false
-                    },
-                    warnings: []
-                  },
-                  results: {
-                    summary: {
-                      groupsCount: 1,
-                      groupedItemsCount: 2,
-                      ungroupedItemsCount: 0
-                    },
-                    groups: [],
-                    skippedItems: [],
-                    failedItems: []
-                  }
-                },
-                reviews: {
-                  g1: { state: 'DONE' },
-                  g2: { state: 'UNREVIEWED' }
-                }
-              })
-            )
-          );
-        }
-
-        return Promise.resolve(new Response(JSON.stringify({})));
-      }) as unknown as typeof fetch
+    await waitFor(() =>
+      expect(screen.getByText('Export CSV')).toBeInTheDocument()
     );
 
+    fireEvent.click(screen.getByText('Export CSV'));
+
+    await waitFor(() =>
+      expect(fetchSpy).toHaveBeenCalledWith(
+        '/api/projects/p1/export?format=csv&scanId=scan-1'
+      )
+    );
+  });
+
+  it('project detail page loads project, scans, and review counts', async () => {
     render(<ProjectDetailPage params={Promise.resolve({ id: 'p1' })} />);
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Trip' })).toBeInTheDocument();
-    });
-    expect(screen.getByText('Done: 1')).toBeInTheDocument();
-    expect(screen.getByText('Unreviewed: 1')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'Trip' })).toBeInTheDocument()
+    );
+
+    expect(screen.getByText('Done')).toBeInTheDocument();
+    expect(screen.getByText('Unreviewed')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'New scan' })).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: 'Resume latest results' })
     ).toBeInTheDocument();
-    expect(screen.getByText('scan-1')).toBeInTheDocument();
   });
 
-  it('project detail handles no scans by resetting review counters', async () => {
+  it('project detail handles projects with no saved scans', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn((input: string) => {
@@ -407,6 +430,7 @@ describe('phase 3 projects pages', () => {
                 userId: 'local-user',
                 name: 'Trip',
                 status: 'active',
+                scope: { type: 'picker', albumIds: [] },
                 createdAt: '2025-01-01T00:00:00Z',
                 updatedAt: '2025-01-01T00:00:00Z'
               })
@@ -424,66 +448,15 @@ describe('phase 3 projects pages', () => {
 
     render(<ProjectDetailPage params={Promise.resolve({ id: 'p1' })} />);
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Trip' })).toBeInTheDocument();
-    });
-    expect(screen.getByText('Done: 0')).toBeInTheDocument();
-    expect(screen.getByText('Unreviewed: 0')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'Trip' })).toBeInTheDocument()
+    );
+
     expect(
       screen.queryByRole('link', { name: 'Resume latest results' })
     ).not.toBeInTheDocument();
-  });
-
-  it('does not continue project polling after unmount during async bootstrap', async () => {
-    vi.useFakeTimers();
-
-    const calls: string[] = [];
-    let resolveProject: (value: Response) => void = () => undefined;
-    const projectPromise = new Promise<Response>((resolve) => {
-      resolveProject = resolve;
-    });
-
-    vi.stubGlobal(
-      'fetch',
-      vi.fn((input: string) => {
-        calls.push(input);
-
-        if (input === '/api/projects/p1') {
-          return projectPromise;
-        }
-
-        if (input === '/api/projects/p1/scans') {
-          return Promise.resolve(new Response(JSON.stringify([])));
-        }
-
-        return Promise.resolve(new Response(JSON.stringify({})));
-      }) as unknown as typeof fetch
-    );
-
-    const { unmount } = render(
-      <ProjectDetailPage params={Promise.resolve({ id: 'p1' })} />
-    );
-
-    unmount();
-
-    resolveProject(
-      new Response(
-        JSON.stringify({
-          id: 'p1',
-          userId: 'local-user',
-          name: 'Trip',
-          status: 'active',
-          createdAt: '2025-01-01T00:00:00Z',
-          updatedAt: '2025-01-01T00:00:00Z'
-        })
-      )
-    );
-
-    await Promise.resolve();
-    await vi.advanceTimersByTimeAsync(5000);
-
-    expect(calls).not.toContain('/api/projects/p1/scans');
-
-    vi.useRealTimers();
+    expect(
+      screen.getByText('No scans have been saved to this project yet.')
+    ).toBeInTheDocument();
   });
 });

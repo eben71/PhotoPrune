@@ -104,6 +104,19 @@ declare global {
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
 const GAPI_SRC = 'https://apis.google.com/js/api.js';
 
+function resolveGoogleAppId(
+  explicitAppId: string | undefined,
+  clientId: string | undefined
+): string | null {
+  const normalizedExplicitAppId = explicitAppId?.trim();
+  if (normalizedExplicitAppId) {
+    return normalizedExplicitAppId;
+  }
+
+  const numericPrefix = clientId?.match(/^\d+/)?.[0];
+  return numericPrefix ?? null;
+}
+
 function loadScript(src: string): Promise<void> {
   if (typeof window === 'undefined') {
     return Promise.reject(
@@ -135,6 +148,10 @@ export function useGooglePhotosPicker(): UseGooglePhotosPickerResult {
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  const appId = resolveGoogleAppId(
+    process.env.NEXT_PUBLIC_GOOGLE_APP_ID,
+    clientId
+  );
 
   const scopes = useMemo(
     () =>
@@ -175,9 +192,9 @@ export function useGooglePhotosPicker(): UseGooglePhotosPickerResult {
   }, [clientId, scopes]);
 
   const openPicker = useCallback(async () => {
-    if (!apiKey || !clientId) {
+    if (!apiKey || !clientId || !appId) {
       setError(
-        'Google Picker is not configured. Set NEXT_PUBLIC_GOOGLE_API_KEY and NEXT_PUBLIC_GOOGLE_CLIENT_ID.'
+        'Google Picker is not configured. Set NEXT_PUBLIC_GOOGLE_API_KEY, NEXT_PUBLIC_GOOGLE_CLIENT_ID, and NEXT_PUBLIC_GOOGLE_APP_ID.'
       );
       return null;
     }
@@ -219,7 +236,7 @@ export function useGooglePhotosPicker(): UseGooglePhotosPickerResult {
             .setSelectableMimeTypes(
               'image/jpeg,image/png,image/webp,image/heic,image/heif'
             )
-            .setAppId(clientId)
+            .setAppId(appId)
             .setCallback((data) => {
               if (data.state && data.state !== stateToken) {
                 reject(new Error('Invalid picker state. Please retry.'));
@@ -272,7 +289,7 @@ export function useGooglePhotosPicker(): UseGooglePhotosPickerResult {
     } finally {
       setIsLoading(false);
     }
-  }, [apiKey, clientId, getToken]);
+  }, [apiKey, appId, clientId, getToken]);
 
   return {
     isLoading,
