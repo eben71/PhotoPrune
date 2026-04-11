@@ -73,6 +73,13 @@ class ProjectRepository:
                     UNIQUE(project_id, google_media_item_id),
                     FOREIGN KEY(project_id) REFERENCES projects(id)
                 );
+                CREATE TABLE IF NOT EXISTS project_scan_items (
+                    id TEXT PRIMARY KEY,
+                    project_scan_id TEXT NOT NULL,
+                    google_media_item_id TEXT NOT NULL,
+                    UNIQUE(project_scan_id, google_media_item_id),
+                    FOREIGN KEY(project_scan_id) REFERENCES project_scans(id)
+                );
                 CREATE TABLE IF NOT EXISTS project_groups (
                     id TEXT PRIMARY KEY,
                     project_scan_id TEXT NOT NULL,
@@ -116,6 +123,10 @@ class ProjectRepository:
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_project_items_project_id_media_id "
                 "ON project_items(project_id, google_media_item_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_project_scan_items_scan_id "
+                "ON project_scan_items(project_scan_id)"
             )
 
     def _ensure_column(
@@ -256,6 +267,17 @@ class ProjectRepository:
                         now,
                     ),
                 )
+                conn.execute(
+                    """
+                    INSERT INTO project_scan_items (
+                        id,
+                        project_scan_id,
+                        google_media_item_id
+                    ) VALUES (?, ?, ?)
+                    ON CONFLICT(project_scan_id, google_media_item_id) DO NOTHING
+                    """,
+                    (str(uuid4()), scan_id, item.id),
+                )
 
             for group in _group_rows(scan_result):
                 conn.execute(
@@ -366,15 +388,18 @@ class ProjectRepository:
                     (project_id, *member_ids),
                 ).fetchall()
 
-            all_item_rows = conn.execute(
-                "SELECT google_media_item_id FROM project_items WHERE project_id = ?",
-                (project_id,),
+            scan_item_rows = conn.execute(
+                (
+                    "SELECT google_media_item_id FROM project_scan_items "
+                    "WHERE project_scan_id = ?"
+                ),
+                (scan_id,),
             ).fetchall()
 
         metrics = _load_json(scan_row["metrics"], {})
         review_map = {row["group_fingerprint"]: dict(row) for row in review_rows}
         item_map = {row["google_media_item_id"]: dict(row) for row in item_rows}
-        all_item_ids = {row["google_media_item_id"] for row in all_item_rows}
+        scan_item_ids = {row["google_media_item_id"] for row in scan_item_rows}
         envelope_groups = []
         for row in groups:
             members = json.loads(row["member_media_item_ids"])
@@ -420,7 +445,7 @@ class ProjectRepository:
         grouped_item_ids = {
             item_id for row in groups for item_id in json.loads(row["member_media_item_ids"])
         }
-        input_count = int(metrics.get("inputCount", len(all_item_ids)))
+        input_count = int(metrics.get("inputCount", len(scan_item_ids or grouped_item_ids)))
         grouped_count = len(grouped_item_ids)
         cost = _load_json(json.dumps(metrics.get("cost", {})), {})
         timing_ms = int(sum(_load_json(json.dumps(metrics.get("timingsMs", {})), {}).values()))
@@ -518,6 +543,10 @@ class ProjectRepository:
             target_scan_id = scan_id or self._latest_scan_id(conn, project_id)
             if target_scan_id is None:
                 return []
+            if scan_id is not None and not self._scan_belongs_to_project(
+                conn, project_id, target_scan_id
+            ):
+                return []
             rows = conn.execute(
                 """
                 SELECT pg.group_fingerprint, pg.confidence_band, pg.representative_media_item_id,
@@ -565,6 +594,15 @@ class ProjectRepository:
             (project_id,),
         ).fetchone()
         return str(row["id"]) if row else None
+
+    def _scan_belongs_to_project(
+        self, conn: sqlite3.Connection, project_id: str, scan_id: str
+    ) -> bool:
+        row = conn.execute(
+            "SELECT 1 FROM project_scans WHERE id = ? AND project_id = ?",
+            (scan_id, project_id),
+        ).fetchone()
+        return row is not None
 
 
 def _project_row(row: sqlite3.Row) -> dict[str, Any]:
