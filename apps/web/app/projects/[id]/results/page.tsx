@@ -199,11 +199,41 @@ export default function ProjectResultsPage({
       const response = await fetch(
         `/api/projects/${projectId}/export?format=csv&scanId=${activeScanId}`
       );
+      if (!response.ok) {
+        throw new Error('Export request failed.');
+      }
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `${projectName.replace(/\s+/g, '-').toLowerCase()}-checklist.csv`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setError(null);
+    } catch {
+      setError('Unable to export the checklist right now.');
+    }
+  };
+
+  const exportJson = async () => {
+    if (!projectId || !activeScanId) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/projects/${projectId}/export?format=json&scanId=${activeScanId}`
+      );
+      if (!response.ok) {
+        throw new Error('Export request failed.');
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${projectName.replace(/\s+/g, '-').toLowerCase()}-checklist.json`;
       document.body.append(link);
       link.click();
       link.remove();
@@ -246,6 +276,14 @@ export default function ProjectResultsPage({
               className="rounded-md bg-[#173057] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#21416f] disabled:cursor-not-allowed disabled:opacity-60"
             >
               Export CSV
+            </button>
+            <button
+              type="button"
+              onClick={() => void exportJson()}
+              disabled={!activeScanId}
+              className="rounded-md bg-[#173057] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#21416f] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Export JSON
             </button>
             <Link
               href={projectId ? `/projects/${projectId}/run` : '/projects'}
