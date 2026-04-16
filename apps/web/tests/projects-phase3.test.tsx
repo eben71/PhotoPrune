@@ -10,6 +10,9 @@ import { RunSessionProvider } from '../app/state/runSessionStore';
 
 const openPickerMock = vi.fn();
 const routerPushMock = vi.fn();
+let bodyAppendMock: ReturnType<
+  typeof vi.fn<(...nodes: (Node | string)[]) => void>
+>;
 let searchParamsValue = 'scanId=scan-1';
 
 vi.mock('../app/hooks/useGooglePhotosPicker', () => ({
@@ -54,7 +57,10 @@ describe('phase 3 projects pages', () => {
       }
     );
 
-    vi.spyOn(document.body, 'append').mockImplementation(() => undefined);
+    bodyAppendMock = vi.fn<(...nodes: (Node | string)[]) => void>(
+      () => undefined
+    );
+    vi.spyOn(document.body, 'append').mockImplementation(bodyAppendMock);
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(
       () => undefined
     );
@@ -338,6 +344,36 @@ describe('phase 3 projects pages', () => {
     expect(
       screen.getByRole('button', { name: 'Export JSON' })
     ).toBeInTheDocument();
+  });
+
+  it('shows an error instead of downloading when JSON export fails', async () => {
+    const defaultFetch = global.fetch;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string, init?: RequestInit) => {
+        if (input === '/api/projects/p1/export?format=json&scanId=scan-1') {
+          return Promise.resolve(new Response('Unavailable', { status: 503 }));
+        }
+
+        return defaultFetch(input, init);
+      }) as unknown as typeof fetch
+    );
+
+    render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Export JSON' })
+      ).toBeInTheDocument()
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Export JSON' }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Unable to export the checklist right now.')
+      ).toBeInTheDocument()
+    );
+    expect(bodyAppendMock).not.toHaveBeenCalled();
   });
 
   it('creates a project and routes into the saved scan flow', async () => {

@@ -23,6 +23,10 @@ click==8.3.1
     # via
     #   black
     #   uvicorn
+colorama==0.4.6
+    # via
+    #   click
+    #   pytest
 coverage==7.13.1
     # via pytest-cov
 cyclonedx-python-lib==11.6.0
@@ -48,7 +52,7 @@ idna==3.11
     #   requests
 iniconfig==2.3.0
     # via pytest
-librt==0.7.7
+librt==0.9.0
     # via mypy
 license-expression==30.4.4
     # via cyclonedx-python-lib
@@ -58,7 +62,7 @@ mdurl==0.1.2
     # via markdown-it-py
 msgpack==1.1.2
     # via cachecontrol
-mypy==1.19.1
+mypy==1.20.0
     # via photoprune-api (pyproject.toml:dev)
 mypy-extensions==1.1.0
     # via
@@ -76,7 +80,7 @@ pathspec==1.0.3
     # via
     #   black
     #   mypy
-pillow==12.1.1
+pillow==12.2.0
     # via photoprune-api (pyproject.toml)
 pip==26.0
     # via pip-api
@@ -108,7 +112,7 @@ pygments==2.19.2
     #   rich
 pyparsing==3.3.1
     # via pip-requirements-parser
-pytest==8.4.2
+pytest==9.0.3
     # via
     #   photoprune-api (pyproject.toml:dev)
     #   pytest-cov
@@ -118,13 +122,15 @@ python-dotenv==1.0.1
     # via
     #   photoprune-api (pyproject.toml)
     #   pydantic-settings
+pytokens==0.4.1
+    # via black
 requests==2.32.5
     # via
     #   cachecontrol
     #   pip-audit
 rich==14.2.0
     # via pip-audit
-ruff==0.14.11
+ruff==0.15.9
     # via photoprune-api (pyproject.toml:dev)
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib
@@ -136,6 +142,8 @@ tomli-w==1.2.0
     # via pip-audit
 typing-extensions==4.15.0
     # via
+    #   anyio
+    #   cyclonedx-python-lib
     #   fastapi
     #   mypy
     #   pydantic

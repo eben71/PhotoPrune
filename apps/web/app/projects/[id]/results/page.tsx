@@ -199,6 +199,9 @@ export default function ProjectResultsPage({
       const response = await fetch(
         `/api/projects/${projectId}/export?format=csv&scanId=${activeScanId}`
       );
+      if (!response.ok) {
+        throw new Error('Export request failed.');
+      }
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -223,6 +226,9 @@ export default function ProjectResultsPage({
       const response = await fetch(
         `/api/projects/${projectId}/export?format=json&scanId=${activeScanId}`
       );
+      if (!response.ok) {
+        throw new Error('Export request failed.');
+      }
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
