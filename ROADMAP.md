@@ -36,7 +36,7 @@ Delivery focus is now on Phase 3 recurring workflows while preserving the locked
 ### 3.3 Manual Cleanup Guidance
 
 - [x] Surface per-group keep choice and remove-candidate guidance.
-- [x] Support copy-friendly checklists and CSV exports for saved scans.
+- [x] Support copy-friendly checklists and CSV/JSON exports for saved scans.
 - [x] Expose Google Photos deep links for manual action.
 - [x] Keep actions manual-only with no write scopes and no automatic delete or archive behavior.
 

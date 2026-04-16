@@ -256,6 +256,16 @@ def test_export_rejects_scan_from_another_project(monkeypatch, tmp_path):
     assert exported.json() == []
 
 
+def test_export_rejects_unsupported_format(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    project_id = client.post("/api/projects", json={"name": "Campaign"}).json()["id"]
+
+    exported = client.get(f"/api/projects/{project_id}/export?format=xml")
+
+    assert exported.status_code == 400
+    assert exported.json()["detail"] == "format must be one of: json, csv"
+
+
 def test_scan_results_legacy_count_fallback_uses_scan_items(monkeypatch, tmp_path):
     db_path = tmp_path / "projects.db"
     client = _client(monkeypatch, tmp_path)
