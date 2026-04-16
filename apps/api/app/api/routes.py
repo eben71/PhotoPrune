@@ -155,6 +155,11 @@ def export_project(
     format: str = Query(default="json"),
     scan_id: str | None = Query(default=None, alias="scanId"),
 ) -> Response:
+    if format not in {"json", "csv"}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="format must be one of: json, csv",
+        )
     rows = get_project_repo().export_rows(project_id, scan_id=scan_id)
     if format == "csv":
         return Response(

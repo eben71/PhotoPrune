@@ -242,6 +242,14 @@ describe('phase 3 projects pages', () => {
           );
         }
 
+        if (input === '/api/projects/p1/export?format=json&scanId=scan-1') {
+          return Promise.resolve(
+            new Response(JSON.stringify([{ group_fingerprint: 'g1' }]), {
+              headers: { 'Content-Type': 'application/json' }
+            })
+          );
+        }
+
         return Promise.resolve(
           new Response(JSON.stringify({ projectScanId: 'scan-1' }))
         );
@@ -317,6 +325,19 @@ describe('phase 3 projects pages', () => {
       ).toBeInTheDocument()
     );
     expect(screen.getByDisplayValue('Trip cleanup')).toBeInTheDocument();
+  });
+
+  it('shows both CSV and JSON export actions on project results', async () => {
+    render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Export CSV' })
+      ).toBeInTheDocument()
+    );
+    expect(
+      screen.getByRole('button', { name: 'Export JSON' })
+    ).toBeInTheDocument();
   });
 
   it('creates a project and routes into the saved scan flow', async () => {
