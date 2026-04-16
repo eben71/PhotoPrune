@@ -6,13 +6,15 @@ anyio==4.12.1
     # via starlette
 click==8.3.1
     # via uvicorn
+colorama==0.4.6
+    # via click
 fastapi==0.114.0
     # via photoprune-api (pyproject.toml)
 h11==0.16.0
     # via uvicorn
 idna==3.11
     # via anyio
-pillow==12.1.1
+pillow==12.2.0
     # via photoprune-api (pyproject.toml)
 pydantic==2.12.5
     # via
@@ -30,6 +32,7 @@ starlette==0.38.6
     # via fastapi
 typing-extensions==4.15.0
     # via
+    #   anyio
     #   fastapi
     #   pydantic
     #   pydantic-core
