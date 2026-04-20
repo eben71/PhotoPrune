@@ -10,6 +10,7 @@ from app.engine.models import PhotoItem
 from app.engine.normalizer import normalize_photo_items, normalize_picker_payload
 from app.engine.scan import run_scan
 from app.engine.schemas import ScanRequest, ScanResult
+from app.projects.ingestion import UnsupportedProjectSourceError, resolve_project_source
 from app.projects.repository import ProjectRepository, to_csv
 from app.projects.schemas import (
     ProjectCreateRequest,
@@ -17,10 +18,12 @@ from app.projects.schemas import (
     ProjectGroupReviewResponse,
     ProjectListResponse,
     ProjectResponse,
+    ProjectScanDiffResponse,
     ProjectScanRecord,
     ProjectScanRequest,
     ProjectScanResponse,
     ProjectScopeRequest,
+    ProjectScopeResponse,
 )
 from app.projects.scope import ScopeDefinition, resolve_scope
 
@@ -84,7 +87,7 @@ def get_project(project_id: str) -> ProjectResponse:
 
 
 @router.post("/api/projects/{project_id}/scope")
-def set_project_scope(project_id: str, request: ProjectScopeRequest) -> dict[str, object]:
+def set_project_scope(project_id: str, request: ProjectScopeRequest) -> ProjectScopeResponse:
     project = get_project_repo().get_project(project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -92,7 +95,15 @@ def set_project_scope(project_id: str, request: ProjectScopeRequest) -> dict[str
     updated = get_project_repo().set_scope(project_id, resolved)
     if not updated:
         raise HTTPException(status_code=404, detail="Project not found")
-    return {"projectId": project_id, "scope": updated["scope"]}
+    return ProjectScopeResponse(projectId=project_id, scope=updated["scope"])
+
+
+@router.get("/api/projects/{project_id}/scope", response_model=ProjectScopeResponse)
+def get_project_scope(project_id: str) -> ProjectScopeResponse:
+    scope = get_project_repo().get_scope(project_id)
+    if scope is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return ProjectScopeResponse(projectId=project_id, scope=scope)
 
 
 @router.post("/api/projects/{project_id}/scan", response_model=ProjectScanResponse)
@@ -100,6 +111,14 @@ def project_scan(project_id: str, request: ProjectScanRequest) -> ProjectScanRes
     project = get_project_repo().get_project(project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
+
+    try:
+        source = resolve_project_source(request, project.get("scope"))
+    except UnsupportedProjectSourceError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
 
     items, explain_requested = _prepare_scan_items(request)
     settings = get_settings()
@@ -113,8 +132,8 @@ def project_scan(project_id: str, request: ProjectScanRequest) -> ProjectScanRes
     envelope = _to_envelope(scan_result)
     scan_id = get_project_repo().create_scan(
         project_id=project_id,
-        source_type=request.source_type,
-        source_ref=request.source_ref or {"type": request.source_type},
+        source_type=source.source_type,
+        source_ref=source.source_ref,
         scan_result=scan_result,
         input_items=items,
         envelope=envelope,
@@ -134,6 +153,17 @@ def get_project_scan_results(project_id: str, scan_id: str) -> dict[str, object]
         raise HTTPException(status_code=404, detail="Scan not found")
     envelope, reviews = loaded
     return {"projectScanId": scan_id, "envelope": envelope, "reviews": reviews}
+
+
+@router.get(
+    "/api/projects/{project_id}/scans/{scan_id}/diff",
+    response_model=ProjectScanDiffResponse,
+)
+def get_project_scan_diff(project_id: str, scan_id: str) -> ProjectScanDiffResponse:
+    diff = get_project_repo().get_scan_diff(project_id, scan_id)
+    if not diff:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    return ProjectScanDiffResponse(**diff)
 
 
 @router.patch(

@@ -2,7 +2,7 @@
 
 > Purpose: keep delivery focused on a trust-first, review-only product that helps users clean up duplicate and near-duplicate photos without automated deletion.
 
-## Roadmap Snapshot (as of April 10, 2026)
+## Roadmap Snapshot (as of April 20, 2026)
 
 ### Completed Foundations
 
@@ -16,15 +16,16 @@
 
 ### Current Focus
 
-Delivery focus is now on Phase 3 recurring workflows while preserving the locked Phase 2 trust and scope guardrails.
+Phase 3 recurring workflows are implemented for picker-selected projects. The remaining follow-up is real read-only album/set ingestion behind the scoped source seam.
 
-## Phase 3 - Recurring Workflow & Scoped Ingestion (In Progress)
+## Phase 3 - Recurring Workflow & Scoped Ingestion (Complete for Picker Scope)
 
 ### 3.1 Projects & Persistence
 
 - [x] Introduce Projects that users can revisit.
 - [x] Persist review state metadata across sessions without storing image bytes.
 - [x] Resume project progress with clear scan history and saved review state.
+- [x] Store explicit project scope metadata for picker-selected sources.
 
 ### 3.2 Project-Based Review Flow
 
@@ -32,6 +33,10 @@ Delivery focus is now on Phase 3 recurring workflows while preserving the locked
 - [x] Reuse the Phase 2 review shell and group UI for project-based results.
 - [x] Reopen saved scans and continue review work later.
 - [x] Persist per-group `DONE` state and keeper selection across sessions.
+- [x] Run multiple scans in the same project without overwriting prior scan snapshots.
+- [x] Compare a saved scan with the previous scan.
+- [x] Surface `NEW`, `CHANGED`, and `UNCHANGED` groups in project results.
+- [x] Preserve reviewed state for unchanged groups and keep changed groups requiring review.
 
 ### 3.3 Manual Cleanup Guidance
 
@@ -42,16 +47,18 @@ Delivery focus is now on Phase 3 recurring workflows while preserving the locked
 
 ### 3.4 Scoped Ingestion (Read-Only)
 
-- [ ] Add read-only album/set ingestion beyond the current picker flow.
-- [ ] Persist richer derived fingerprints for cross-scan matching.
-- [ ] Run incremental rescans that preserve prior decisions and surface only new or changed groups.
+- [x] Add a scoped source abstraction with picker as the implemented source.
+- [x] Scaffold `album_set` scope metadata without adding write scopes or whole-library reads.
+- [x] Persist group fingerprints and scan membership snapshots for deterministic cross-scan diffing.
+- [x] Run repeat scans that preserve prior decisions for unchanged groups and surface new or changed groups.
+- [ ] Add real read-only album/set ingestion beyond the current picker flow.
 - [ ] Harden resumable behavior for rate limits and partial failures.
 
 ## Next Milestones
 
-1. Complete scoped album/set ingestion without expanding into whole-library reads.
-2. Improve cross-scan matching with richer persisted fingerprints and incremental scan logic.
-3. Validate larger recurring cleanup projects for resume correctness and partial-failure handling.
+1. Plug real read-only album/set ingestion into the scoped source adapter without expanding into whole-library reads.
+2. Validate larger recurring cleanup projects for resume correctness and partial-failure handling.
+3. Improve cross-scan matching only where deterministic persisted fingerprints support it.
 4. Confirm recurring workflow outcomes before expanding beyond the current trust boundaries.
 
 ## Guardrails (Always On)

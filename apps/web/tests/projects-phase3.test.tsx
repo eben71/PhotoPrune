@@ -240,6 +240,39 @@ describe('phase 3 projects pages', () => {
           );
         }
 
+        if (input.includes('/scans/scan-1/diff')) {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                projectId: 'p1',
+                projectScanId: 'scan-1',
+                previousProjectScanId: 'scan-0',
+                summary: {
+                  totalGroups: 1,
+                  new: 1,
+                  changed: 0,
+                  unchanged: 0,
+                  previouslyReviewedUnchanged: 0,
+                  requiresReview: 1
+                },
+                groups: [
+                  {
+                    groupFingerprint: 'g1',
+                    category: 'NEW',
+                    memberMediaItemIds: ['i1', 'i2'],
+                    previousGroupFingerprint: null,
+                    previousMemberMediaItemIds: null,
+                    reviewState: 'UNREVIEWED',
+                    priorReviewStatePreserved: false,
+                    previouslyReviewed: false,
+                    requiresReview: true
+                  }
+                ]
+              })
+            )
+          );
+        }
+
         if (input === '/api/projects/p1/export?format=csv&scanId=scan-1') {
           return Promise.resolve(
             new Response('group_fingerprint,confidence_band\n', {
@@ -344,6 +377,74 @@ describe('phase 3 projects pages', () => {
     expect(
       screen.getByRole('button', { name: 'Export JSON' })
     ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getAllByText('New since last scan').length).toBeGreaterThan(
+        0
+      )
+    );
+  });
+
+  it('renders scan diff categories on project results', async () => {
+    render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
+
+    await waitFor(() =>
+      expect(screen.getAllByText('New since last scan').length).toBeGreaterThan(
+        0
+      )
+    );
+    expect(screen.getByText('Changed since last scan')).toBeInTheDocument();
+    expect(screen.getByText('Previously reviewed')).toBeInTheDocument();
+  });
+
+  it('labels changed groups as needing review', async () => {
+    const defaultFetch = global.fetch;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string, init?: RequestInit) => {
+        if (input.includes('/scans/scan-1/diff')) {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                projectId: 'p1',
+                projectScanId: 'scan-1',
+                previousProjectScanId: 'scan-0',
+                summary: {
+                  totalGroups: 1,
+                  new: 0,
+                  changed: 1,
+                  unchanged: 0,
+                  previouslyReviewedUnchanged: 0,
+                  requiresReview: 1
+                },
+                groups: [
+                  {
+                    groupFingerprint: 'g1',
+                    category: 'CHANGED',
+                    memberMediaItemIds: ['i1', 'i2'],
+                    previousGroupFingerprint: 'old-g1',
+                    previousMemberMediaItemIds: ['i1'],
+                    reviewState: 'UNREVIEWED',
+                    priorReviewStatePreserved: false,
+                    previouslyReviewed: false,
+                    requiresReview: true
+                  }
+                ]
+              })
+            )
+          );
+        }
+
+        return defaultFetch(input, init);
+      }) as unknown as typeof fetch
+    );
+
+    render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Changed since last scan - review recommended')
+      ).toBeInTheDocument()
+    );
   });
 
   it('shows an error instead of downloading when JSON export fails', async () => {
@@ -471,7 +572,9 @@ describe('phase 3 projects pages', () => {
 
     expect(screen.getByText('Done')).toBeInTheDocument();
     expect(screen.getByText('Unreviewed')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'New scan' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Run another scan' })
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: 'Resume latest results' })
     ).toBeInTheDocument();

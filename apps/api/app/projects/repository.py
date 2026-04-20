@@ -47,6 +47,15 @@ class ProjectRepository:
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS project_scopes (
+                    id TEXT PRIMARY KEY,
+                    project_id TEXT NOT NULL UNIQUE,
+                    scope_type TEXT NOT NULL,
+                    scope_ref TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY(project_id) REFERENCES projects(id)
+                );
                 CREATE TABLE IF NOT EXISTS project_scans (
                     id TEXT PRIMARY KEY,
                     project_id TEXT NOT NULL,
@@ -108,6 +117,11 @@ class ProjectRepository:
                 "UPDATE projects SET scope = ? WHERE scope IS NULL",
                 (json.dumps(DEFAULT_SCOPE),),
             )
+            self._backfill_project_scopes(conn)
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_project_scopes_project_id "
+                "ON project_scopes(project_id)"
+            )
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_project_scans_project_id_created_at "
                 "ON project_scans(project_id, created_at DESC)"
@@ -142,9 +156,35 @@ class ProjectRepository:
             return
         conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {definition}")
 
+    def _backfill_project_scopes(self, conn: sqlite3.Connection) -> None:
+        rows = conn.execute("""
+            SELECT p.id, p.scope, p.created_at, p.updated_at
+            FROM projects p
+            LEFT JOIN project_scopes ps ON ps.project_id = p.id
+            WHERE ps.project_id IS NULL
+            """).fetchall()
+        for row in rows:
+            scope = _load_json(row["scope"], DEFAULT_SCOPE)
+            scope_type, scope_ref = _split_scope(scope)
+            conn.execute(
+                """
+                INSERT INTO project_scopes (
+                    id, project_id, scope_type, scope_ref, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(uuid4()),
+                    row["id"],
+                    scope_type,
+                    json.dumps(scope_ref),
+                    row["created_at"],
+                    row["updated_at"],
+                ),
+            )
+
     def create_project(self, name: str, user_id: str = "local-user") -> dict[str, Any]:
         now = _now_iso()
-        project = {
+        project: dict[str, Any] = {
             "id": str(uuid4()),
             "user_id": user_id,
             "name": name,
@@ -164,6 +204,22 @@ class ProjectRepository:
                     "scope": json.dumps(project["scope"]),
                 },
             )
+            scope_type, scope_ref = _split_scope(project["scope"])
+            conn.execute(
+                """
+                INSERT INTO project_scopes (
+                    id, project_id, scope_type, scope_ref, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(uuid4()),
+                    project["id"],
+                    scope_type,
+                    json.dumps(scope_ref),
+                    now,
+                    now,
+                ),
+            )
         return project
 
     def list_projects(self) -> list[dict[str, Any]]:
@@ -178,6 +234,7 @@ class ProjectRepository:
 
     def set_scope(self, project_id: str, scope: dict[str, Any]) -> dict[str, Any] | None:
         now = _now_iso()
+        scope_type, scope_ref = _split_scope(scope)
         with self._conn() as conn:
             cursor = conn.execute(
                 "UPDATE projects SET scope = ?, updated_at = ? WHERE id = ?",
@@ -185,8 +242,36 @@ class ProjectRepository:
             )
             if cursor.rowcount == 0:
                 return None
+            conn.execute(
+                """
+                INSERT INTO project_scopes (
+                    id, project_id, scope_type, scope_ref, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(project_id) DO UPDATE SET
+                    scope_type=excluded.scope_type,
+                    scope_ref=excluded.scope_ref,
+                    updated_at=excluded.updated_at
+                """,
+                (str(uuid4()), project_id, scope_type, json.dumps(scope_ref), now, now),
+            )
             row = conn.execute("SELECT * FROM projects WHERE id = ?", (project_id,)).fetchone()
         return _project_row(row) if row else None
+
+    def get_scope(self, project_id: str) -> dict[str, Any] | None:
+        with self._conn() as conn:
+            row = conn.execute(
+                ("SELECT scope_type, scope_ref FROM project_scopes " "WHERE project_id = ?"),
+                (project_id,),
+            ).fetchone()
+            if row:
+                return _join_scope(row["scope_type"], _load_json(row["scope_ref"], {}))
+            project_row = conn.execute(
+                "SELECT scope FROM projects WHERE id = ?",
+                (project_id,),
+            ).fetchone()
+        if not project_row:
+            return None
+        return _load_scope(project_row["scope"])
 
     def create_scan(
         self,
@@ -492,6 +577,135 @@ class ProjectRepository:
         }
         return envelope, review_map
 
+    def get_scan_diff(self, project_id: str, scan_id: str) -> dict[str, Any] | None:
+        with self._conn() as conn:
+            scan_rows = conn.execute(
+                (
+                    "SELECT id, created_at FROM project_scans WHERE project_id = ? "
+                    "ORDER BY created_at ASC, rowid ASC"
+                ),
+                (project_id,),
+            ).fetchall()
+            scan_ids = [row["id"] for row in scan_rows]
+            if scan_id not in scan_ids:
+                return None
+            scan_index = scan_ids.index(scan_id)
+            previous_scan_id = scan_ids[scan_index - 1] if scan_index > 0 else None
+            current_groups = self._scan_group_snapshots(conn, scan_id)
+            previous_groups = (
+                self._scan_group_snapshots(conn, previous_scan_id) if previous_scan_id else []
+            )
+            current_reviews = self._review_rows_for_groups(conn, project_id, current_groups)
+            previous_reviews = self._review_rows_for_groups(conn, project_id, previous_groups)
+
+        previous_by_fingerprint = {group["group_fingerprint"]: group for group in previous_groups}
+        previous_review_by_fingerprint = previous_reviews
+        diff_groups: list[dict[str, Any]] = []
+        summary = {
+            "totalGroups": 0,
+            "new": 0,
+            "changed": 0,
+            "unchanged": 0,
+            "previouslyReviewedUnchanged": 0,
+            "requiresReview": 0,
+        }
+
+        for group in current_groups:
+            review = current_reviews.get(group["group_fingerprint"], {})
+            previous_group = previous_by_fingerprint.get(group["group_fingerprint"])
+            category = "UNCHANGED" if previous_group else "NEW"
+            if previous_group is None:
+                previous_group = _best_previous_overlap(group, previous_groups)
+                if previous_group is not None:
+                    category = "CHANGED"
+
+            previously_reviewed = category == "UNCHANGED" and str(review.get("state")) == "DONE"
+            prior_review_state_preserved = category == "UNCHANGED" and bool(review)
+            requires_review = category != "UNCHANGED" or not previously_reviewed
+            if category == "CHANGED":
+                prior_review_state_preserved = False
+                requires_review = True
+
+            summary["totalGroups"] += 1
+            summary[category.lower()] += 1
+            if previously_reviewed:
+                summary["previouslyReviewedUnchanged"] += 1
+            if requires_review:
+                summary["requiresReview"] += 1
+
+            previous_review = (
+                previous_review_by_fingerprint.get(previous_group["group_fingerprint"])
+                if previous_group
+                else None
+            )
+            diff_groups.append(
+                {
+                    "group_fingerprint": group["group_fingerprint"],
+                    "category": category,
+                    "member_media_item_ids": group["member_media_item_ids"],
+                    "previous_group_fingerprint": (
+                        previous_group["group_fingerprint"] if previous_group else None
+                    ),
+                    "previous_member_media_item_ids": (
+                        previous_group["member_media_item_ids"] if previous_group else None
+                    ),
+                    "review_state": str(review.get("state") or "UNREVIEWED"),
+                    "previous_review_state": (
+                        str(previous_review.get("state")) if previous_review else None
+                    ),
+                    "prior_review_state_preserved": prior_review_state_preserved,
+                    "previously_reviewed": previously_reviewed,
+                    "requires_review": requires_review,
+                }
+            )
+
+        return {
+            "project_id": project_id,
+            "project_scan_id": scan_id,
+            "previous_project_scan_id": previous_scan_id,
+            "summary": summary,
+            "groups": diff_groups,
+        }
+
+    def _scan_group_snapshots(
+        self, conn: sqlite3.Connection, scan_id: str | None
+    ) -> list[dict[str, Any]]:
+        if scan_id is None:
+            return []
+        rows = conn.execute(
+            (
+                "SELECT group_fingerprint, member_media_item_ids FROM project_groups "
+                "WHERE project_scan_id = ? ORDER BY rowid ASC"
+            ),
+            (scan_id,),
+        ).fetchall()
+        return [
+            {
+                "group_fingerprint": row["group_fingerprint"],
+                "member_media_item_ids": json.loads(row["member_media_item_ids"]),
+            }
+            for row in rows
+        ]
+
+    def _review_rows_for_groups(
+        self,
+        conn: sqlite3.Connection,
+        project_id: str,
+        groups: list[dict[str, Any]],
+    ) -> dict[str, dict[str, Any]]:
+        group_fingerprints = [group["group_fingerprint"] for group in groups]
+        if not group_fingerprints:
+            return {}
+        placeholders = ",".join("?" for _ in group_fingerprints)
+        rows = conn.execute(
+            (
+                "SELECT * FROM project_group_reviews WHERE project_id = ? "
+                f"AND group_fingerprint IN ({placeholders})"
+            ),
+            (project_id, *group_fingerprints),
+        ).fetchall()
+        return {row["group_fingerprint"]: dict(row) for row in rows}
+
     def upsert_review(
         self, project_id: str, group_fingerprint: str, patch: ProjectGroupReviewPatch
     ) -> dict[str, Any] | None:
@@ -607,8 +821,39 @@ class ProjectRepository:
 
 def _project_row(row: sqlite3.Row) -> dict[str, Any]:
     data = dict(row)
-    data["scope"] = _load_json(data.get("scope"), DEFAULT_SCOPE)
+    data["scope"] = _load_scope(data.get("scope"))
     return data
+
+
+def _split_scope(scope: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    scope_type = str(scope.get("type") or "picker")
+    scope_ref = {key: value for key, value in scope.items() if key != "type"}
+    return scope_type, scope_ref
+
+
+def _join_scope(scope_type: str, scope_ref: dict[str, Any]) -> dict[str, Any]:
+    return {"type": scope_type, **scope_ref}
+
+
+def _load_scope(value: str | None) -> dict[str, Any]:
+    loaded = _load_json(value, DEFAULT_SCOPE)
+    return loaded if isinstance(loaded, dict) else DEFAULT_SCOPE
+
+
+def _best_previous_overlap(
+    current_group: dict[str, Any],
+    previous_groups: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    current_members = set(current_group["member_media_item_ids"])
+    best_group: dict[str, Any] | None = None
+    best_overlap = 0
+    for previous_group in previous_groups:
+        previous_members = set(previous_group["member_media_item_ids"])
+        overlap = len(current_members.intersection(previous_members))
+        if overlap > best_overlap:
+            best_group = previous_group
+            best_overlap = overlap
+    return best_group if best_overlap > 0 else None
 
 
 def _group_rows(scan_result: ScanResult) -> list[dict[str, Any]]:

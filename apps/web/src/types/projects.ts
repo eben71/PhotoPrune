@@ -50,8 +50,39 @@ export const ProjectScanResultsResponseSchema = z.object({
   reviews: z.record(z.string(), ReviewStateSchema)
 });
 
+export const ProjectScanDiffGroupSchema = z.object({
+  groupFingerprint: z.string(),
+  category: z.enum(['NEW', 'CHANGED', 'UNCHANGED']),
+  memberMediaItemIds: z.array(z.string()),
+  previousGroupFingerprint: z.string().nullable().optional(),
+  previousMemberMediaItemIds: z.array(z.string()).nullable().optional(),
+  reviewState: z.enum(['UNREVIEWED', 'IN_PROGRESS', 'DONE', 'SNOOZED']),
+  priorReviewStatePreserved: z.boolean(),
+  previouslyReviewed: z.boolean(),
+  requiresReview: z.boolean()
+});
+
+export const ProjectScanDiffResponseSchema = z.object({
+  projectId: z.string(),
+  projectScanId: z.string(),
+  previousProjectScanId: z.string().nullable(),
+  summary: z.object({
+    totalGroups: z.number(),
+    new: z.number(),
+    changed: z.number(),
+    unchanged: z.number(),
+    previouslyReviewedUnchanged: z.number(),
+    requiresReview: z.number()
+  }),
+  groups: z.array(ProjectScanDiffGroupSchema)
+});
+
 export type Project = z.infer<typeof ProjectSchema>;
 export type ProjectScanRecord = z.infer<typeof ProjectScanRecordSchema>;
 export type ProjectScanResultsResponse = z.infer<
   typeof ProjectScanResultsResponseSchema
+>;
+export type ProjectScanDiffGroup = z.infer<typeof ProjectScanDiffGroupSchema>;
+export type ProjectScanDiffResponse = z.infer<
+  typeof ProjectScanDiffResponseSchema
 >;

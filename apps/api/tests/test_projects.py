@@ -69,6 +69,58 @@ def _fake_scan_result_with_ids(
     )
 
 
+def _fake_scan_result_with_group_ids(*ids: str) -> ScanResult:
+    summaries = [
+        PhotoItemSummary(
+            id=item_id,
+            createTime=f"2025-01-01T00:00:0{index}Z",
+            filename=f"{item_id}.jpg",
+            mimeType="image/jpeg",
+            width=100,
+            height=100,
+            googlePhotosDeepLink=f"https://photos.google.com/photo/{item_id}",
+        )
+        for index, item_id in enumerate(ids)
+    ]
+    return ScanResult(
+        runId=f"run-{'-'.join(ids)}",
+        inputCount=len(ids),
+        stageMetrics=StageMetrics(timingsMs={"group": 1.0}, counts={"downloads": len(ids)}),
+        costEstimate=CostEstimate(
+            totalCost=0.01, downloadCost=0.0, hashCost=0.0, comparisonCost=0.0
+        ),
+        groupsExact=[
+            GroupResult(
+                groupId=f"group-{'-'.join(ids)}",
+                category="EXACT",
+                items=summaries,
+                representativePair=GroupRepresentativePair(
+                    earliest=summaries[0], latest=summaries[-1]
+                ),
+                moreCount=max(0, len(summaries) - 2),
+                explanation="exact",
+                googlePhotosDeepLinks=[
+                    f"https://photos.google.com/photo/{item_id}" for item_id in ids
+                ],
+            )
+        ],
+        groupsVerySimilar=[],
+        groupsPossiblySimilar=[],
+    )
+
+
+def _photo_payloads(*ids: str) -> list[dict[str, str]]:
+    return [
+        {
+            "id": item_id,
+            "createTime": f"2025-01-01T00:00:0{index}Z",
+            "filename": f"{item_id}.jpg",
+            "mimeType": "image/jpeg",
+        }
+        for index, item_id in enumerate(ids)
+    ]
+
+
 def _client(monkeypatch, tmp_path):
     monkeypatch.setenv("PROJECT_DB_PATH", str(tmp_path / "projects.db"))
     config.get_settings.cache_clear()
@@ -112,6 +164,10 @@ def test_project_scope_persists(monkeypatch, tmp_path):
     fetched = client.get(f"/api/projects/{project_id}")
     assert fetched.status_code == 200
     assert fetched.json()["scope"]["type"] == "album_set"
+
+    fetched_scope = client.get(f"/api/projects/{project_id}/scope")
+    assert fetched_scope.status_code == 200
+    assert fetched_scope.json()["scope"]["albumIds"] == ["album-1", "album-2"]
 
 
 def test_project_scan_persists_groups_and_reviews(monkeypatch, tmp_path):
@@ -174,6 +230,108 @@ def test_project_scan_results_are_scoped_to_requested_scan(monkeypatch, tmp_path
 
     assert first_item_ids == {"item-a", "item-b"}
     assert first_results["envelope"]["run"]["selection"]["requestedCount"] == 2
+
+
+def test_scan_diff_preserves_reviewed_unchanged_groups(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    scans = [
+        _fake_scan_result_with_group_ids("item-a", "item-b"),
+        _fake_scan_result_with_group_ids("item-a", "item-b"),
+    ]
+
+    def _next_scan(*_args, **_kwargs):
+        return scans.pop(0)
+
+    monkeypatch.setattr("app.api.routes.run_scan", _next_scan)
+    project_id = client.post("/api/projects", json={"name": "Campaign"}).json()["id"]
+    first_scan_id = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={"photoItems": _photo_payloads("item-a", "item-b")},
+    ).json()["projectScanId"]
+    first_results = client.get(f"/api/projects/{project_id}/scans/{first_scan_id}/results").json()
+    group_id = first_results["envelope"]["results"]["groups"][0]["groupId"]
+    client.patch(
+        f"/api/projects/{project_id}/groups/{group_id}/review",
+        json={"state": "DONE", "keepMediaItemId": "item-a"},
+    )
+
+    second_scan_id = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={"photoItems": _photo_payloads("item-a", "item-b")},
+    ).json()["projectScanId"]
+
+    diff = client.get(f"/api/projects/{project_id}/scans/{second_scan_id}/diff")
+    assert diff.status_code == 200
+    assert diff.json()["summary"]["unchanged"] == 1
+    assert diff.json()["summary"]["previouslyReviewedUnchanged"] == 1
+    assert diff.json()["summary"]["requiresReview"] == 0
+    assert diff.json()["groups"][0]["category"] == "UNCHANGED"
+    assert diff.json()["groups"][0]["priorReviewStatePreserved"] is True
+
+    second_results = client.get(f"/api/projects/{project_id}/scans/{second_scan_id}/results").json()
+    assert second_results["reviews"][group_id]["state"] == "DONE"
+
+
+def test_scan_diff_marks_changed_groups_for_review(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    scans = [
+        _fake_scan_result_with_group_ids("item-a", "item-b"),
+        _fake_scan_result_with_group_ids("item-a", "item-b", "item-c"),
+    ]
+
+    def _next_scan(*_args, **_kwargs):
+        return scans.pop(0)
+
+    monkeypatch.setattr("app.api.routes.run_scan", _next_scan)
+    project_id = client.post("/api/projects", json={"name": "Campaign"}).json()["id"]
+    first_scan_id = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={"photoItems": _photo_payloads("item-a", "item-b")},
+    ).json()["projectScanId"]
+    first_results = client.get(f"/api/projects/{project_id}/scans/{first_scan_id}/results").json()
+    first_group_id = first_results["envelope"]["results"]["groups"][0]["groupId"]
+    client.patch(
+        f"/api/projects/{project_id}/groups/{first_group_id}/review",
+        json={"state": "DONE", "keepMediaItemId": "item-a"},
+    )
+
+    second_scan_id = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={"photoItems": _photo_payloads("item-a", "item-b", "item-c")},
+    ).json()["projectScanId"]
+
+    diff = client.get(f"/api/projects/{project_id}/scans/{second_scan_id}/diff")
+    assert diff.status_code == 200
+    assert diff.json()["summary"]["changed"] == 1
+    assert diff.json()["summary"]["requiresReview"] == 1
+    assert diff.json()["groups"][0]["category"] == "CHANGED"
+    assert diff.json()["groups"][0]["priorReviewStatePreserved"] is False
+    assert diff.json()["groups"][0]["previousGroupFingerprint"] == first_group_id
+
+    second_results = client.get(f"/api/projects/{project_id}/scans/{second_scan_id}/results").json()
+    second_group_id = second_results["envelope"]["results"]["groups"][0]["groupId"]
+    assert second_group_id != first_group_id
+    assert second_results["reviews"][second_group_id]["state"] == "UNREVIEWED"
+
+
+def test_scan_diff_marks_first_scan_groups_as_new(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    monkeypatch.setattr(
+        "app.api.routes.run_scan",
+        lambda *_args, **_kwargs: _fake_scan_result_with_group_ids("item-a", "item-b"),
+    )
+    project_id = client.post("/api/projects", json={"name": "Campaign"}).json()["id"]
+    scan_id = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={"photoItems": _photo_payloads("item-a", "item-b")},
+    ).json()["projectScanId"]
+
+    diff = client.get(f"/api/projects/{project_id}/scans/{scan_id}/diff")
+
+    assert diff.status_code == 200
+    assert diff.json()["previousProjectScanId"] is None
+    assert diff.json()["summary"]["new"] == 1
+    assert diff.json()["groups"][0]["category"] == "NEW"
 
 
 def test_review_patch_and_export(monkeypatch, tmp_path):
