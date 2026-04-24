@@ -75,7 +75,7 @@ describe('engineAdapter', () => {
           new Promise((resolve) => {
             resolveFetch = resolve;
           })
-      ) as unknown as typeof fetch
+      )
     );
     const adapter = await loadAdapter({
       NODE_ENV: 'development'
@@ -107,7 +107,7 @@ describe('engineAdapter', () => {
               costEstimate: { totalCost: 0.5 }
             })
         })
-      ) as unknown as typeof fetch
+      )
     );
     const adapter = await loadAdapter({
       NODE_ENV: 'development'
@@ -136,7 +136,7 @@ describe('engineAdapter', () => {
               costEstimate: { totalCost: 0.02 }
             })
         })
-      ) as unknown as typeof fetch
+      )
     );
     const adapter = await loadAdapter({
       NODE_ENV: 'development'
@@ -157,7 +157,7 @@ describe('engineAdapter', () => {
     vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
     vi.stubGlobal(
       'fetch',
-      vi.fn(() => new Promise(() => undefined)) as unknown as typeof fetch
+      vi.fn(() => new Promise(() => undefined))
     );
     const adapter = await loadAdapter({
       NODE_ENV: 'development'
@@ -189,7 +189,7 @@ describe('engineAdapter', () => {
           status: 500,
           json: () => Promise.resolve({ detail: 'Internal server error' })
         })
-      ) as unknown as typeof fetch
+      )
     );
     const adapter = await loadAdapter({
       NODE_ENV: 'development'
@@ -221,7 +221,7 @@ describe('engineAdapter', () => {
               ]
             })
         })
-      ) as unknown as typeof fetch
+      )
     );
     const adapter = await loadAdapter({
       NODE_ENV: 'development'
@@ -238,7 +238,7 @@ describe('engineAdapter', () => {
 
   it('prefers INTERNAL_API_BASE_URL for server-side scan requests', async () => {
     const fetchMock = vi.fn(() => new Promise(() => undefined));
-    vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch);
+    vi.stubGlobal('fetch', fetchMock);
     const adapter = await loadAdapter({
       NODE_ENV: 'development',
       INTERNAL_API_BASE_URL: 'http://api:8000',
@@ -261,7 +261,7 @@ describe('engineAdapter', () => {
         status: 200,
         json: () => Promise.resolve(buildScanResult())
       });
-    vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch);
+    vi.stubGlobal('fetch', fetchMock);
     const adapter = await loadAdapter({
       NODE_ENV: 'development',
       INTERNAL_API_BASE_URL: 'http://api:8000',
@@ -287,7 +287,7 @@ describe('engineAdapter', () => {
         json: () => Promise.resolve(buildScanResult())
       })
     );
-    vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch);
+    vi.stubGlobal('fetch', fetchMock);
     const adapter = await loadAdapter({
       NODE_ENV: 'development',
       NEXT_PUBLIC_PHASE2_RUN_MODE: 'fixture'
@@ -307,7 +307,7 @@ describe('engineAdapter', () => {
   it('returns a running envelope while awaiting the scan', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(() => new Promise(() => undefined)) as unknown as typeof fetch
+      vi.fn(() => new Promise(() => undefined))
     );
     const adapter = await loadAdapter({
       NODE_ENV: 'development'

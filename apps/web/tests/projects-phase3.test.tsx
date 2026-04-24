@@ -259,7 +259,7 @@ describe('phase 3 projects pages', () => {
         return Promise.resolve(
           new Response(JSON.stringify({ projectScanId: 'scan-1' }))
         );
-      }) as unknown as typeof fetch
+      })
     );
   });
 
@@ -283,7 +283,7 @@ describe('phase 3 projects pages', () => {
             })
           )
         )
-      ) as unknown as typeof fetch
+      )
     );
 
     render(<ProjectsPage />);
@@ -313,7 +313,7 @@ describe('phase 3 projects pages', () => {
         }
 
         return Promise.resolve(new Response(JSON.stringify({})));
-      }) as unknown as typeof fetch
+      })
     );
 
     render(<NewProjectPage />);
@@ -356,7 +356,7 @@ describe('phase 3 projects pages', () => {
         }
 
         return defaultFetch(input, init);
-      }) as unknown as typeof fetch
+      })
     );
 
     render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
@@ -502,7 +502,7 @@ describe('phase 3 projects pages', () => {
         }
 
         return Promise.resolve(new Response(JSON.stringify({})));
-      }) as unknown as typeof fetch
+      })
     );
 
     render(<ProjectDetailPage params={Promise.resolve({ id: 'p1' })} />);
