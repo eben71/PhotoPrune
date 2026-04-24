@@ -361,7 +361,9 @@ describe('phase 3 projects pages', () => {
         const requestUrl = getFetchInputUrl(input);
         if (
           requestUrl === '/api/projects/p1/export?format=json&scanId=scan-1' ||
-          requestUrl.endsWith('/api/projects/p1/export?format=json&scanId=scan-1')
+          requestUrl.endsWith(
+            '/api/projects/p1/export?format=json&scanId=scan-1'
+          )
         ) {
           return Promise.resolve(new Response('Unavailable', { status: 503 }));
         }
@@ -377,7 +379,9 @@ describe('phase 3 projects pages', () => {
         screen.getByRole('button', { name: 'Export JSON' })
       ).toBeInTheDocument()
     );
-    const exportJsonButton = screen.getByRole('button', { name: 'Export JSON' });
+    const exportJsonButton = screen.getByRole('button', {
+      name: 'Export JSON'
+    });
     await waitFor(() => expect(exportJsonButton).not.toBeDisabled());
     fireEvent.click(exportJsonButton);
 
