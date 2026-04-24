@@ -398,10 +398,17 @@ describe('phase 3 projects pages', () => {
 
   it('labels changed groups as needing review', async () => {
     const defaultFetch = global.fetch;
+    const getFetchInputUrl = (input: RequestInfo | URL) =>
+      input instanceof Request
+        ? input.url
+        : input instanceof URL
+          ? input.toString()
+          : String(input);
+
     vi.stubGlobal(
       'fetch',
-      vi.fn((input: string, init?: RequestInit) => {
-        if (input.includes('/scans/scan-1/diff')) {
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        if (getFetchInputUrl(input).includes('/scans/scan-1/diff')) {
           return Promise.resolve(
             new Response(
               JSON.stringify({
@@ -435,7 +442,7 @@ describe('phase 3 projects pages', () => {
         }
 
         return defaultFetch(input, init);
-      }) as unknown as typeof fetch
+      })
     );
 
     render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
