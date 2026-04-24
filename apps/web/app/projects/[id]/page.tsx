@@ -131,7 +131,7 @@ export default function ProjectDetailPage({
                 href={`/projects/${projectId}/run`}
                 className="action-button-primary px-8 py-3.5 text-sm"
               >
-                New scan
+                Run another scan
               </Link>
             ) : null}
             {projectId && scans[0] ? (

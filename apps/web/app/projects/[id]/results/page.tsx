@@ -10,6 +10,9 @@ import { ReviewShell } from '../../../components/ReviewShell';
 import { trustCopy } from '../../../copy/trustCopy';
 import type { Group, Item } from '../../../../src/types/phase2Envelope';
 import {
+  type ProjectScanDiffGroup,
+  type ProjectScanDiffResponse,
+  ProjectScanDiffResponseSchema,
   type ProjectScanRecord,
   ProjectScanRecordSchema,
   ProjectScanResultsResponseSchema,
@@ -36,6 +39,7 @@ export default function ProjectResultsPage({
   const [activeScanId, setActiveScanId] = useState<string | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
   const [reviews, setReviews] = useState<Record<string, Review>>({});
+  const [diff, setDiff] = useState<ProjectScanDiffResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyGroupId, setBusyGroupId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -90,6 +94,7 @@ export default function ProjectResultsPage({
     if (!activeScanId) {
       setGroups([]);
       setReviews({});
+      setDiff(null);
       setIsLoading(false);
       return;
     }
@@ -105,18 +110,26 @@ export default function ProjectResultsPage({
         const payload = ProjectScanResultsResponseSchema.parse(
           await response.json()
         );
+        const diffResponse = await fetch(
+          `/api/projects/${projectId}/scans/${activeScanId}/diff`
+        );
+        const diffPayload = ProjectScanDiffResponseSchema.parse(
+          await diffResponse.json()
+        );
         if (cancelled) {
           return;
         }
 
         setGroups(payload.envelope.results.groups);
         setReviews(payload.reviews);
+        setDiff(diffPayload);
         setError(null);
       } catch {
         if (!cancelled) {
           setError('Unable to load saved results right now.');
           setGroups([]);
           setReviews({});
+          setDiff(null);
         }
       } finally {
         if (!cancelled) {
@@ -138,6 +151,25 @@ export default function ProjectResultsPage({
   const remainingCount = Math.max(0, groups.length - doneCount);
   const activeScan =
     scanRecords.find((scan) => scan.id === activeScanId) ?? null;
+  const diffByGroup = useMemo(() => {
+    return new Map(
+      (diff?.groups ?? []).map((groupDiff) => [
+        groupDiff.groupFingerprint,
+        groupDiff
+      ])
+    );
+  }, [diff]);
+  const orderedGroups = useMemo(() => {
+    const priority = { CHANGED: 0, NEW: 1, UNCHANGED: 2 } as const;
+    return [...groups].sort((left, right) => {
+      const leftDiff = diffByGroup.get(left.groupId);
+      const rightDiff = diffByGroup.get(right.groupId);
+      return (
+        (priority[leftDiff?.category ?? 'UNCHANGED'] ?? 2) -
+        (priority[rightDiff?.category ?? 'UNCHANGED'] ?? 2)
+      );
+    });
+  }, [diffByGroup, groups]);
 
   const updateReview = async (
     groupId: string,
@@ -378,6 +410,28 @@ export default function ProjectResultsPage({
               </article>
             </section>
 
+            {diff ? (
+              <section className="mb-10 grid gap-5 lg:grid-cols-3">
+                <DiffSummaryCard
+                  label="New since last scan"
+                  count={diff.summary.new}
+                  tone="primary"
+                />
+                <DiffSummaryCard
+                  label="Changed since last scan"
+                  count={diff.summary.changed}
+                  detail="Review recommended"
+                  tone="secondary"
+                />
+                <DiffSummaryCard
+                  label="Previously reviewed"
+                  count={diff.summary.previouslyReviewedUnchanged}
+                  detail="Unchanged groups stay done"
+                  tone="muted"
+                />
+              </section>
+            ) : null}
+
             <section className="mt-10">
               <GroupList
                 groups={groups}
@@ -387,7 +441,7 @@ export default function ProjectResultsPage({
             </section>
 
             <section className="mt-10 space-y-5">
-              {groups.map((group, index) => {
+              {orderedGroups.map((group, index) => {
                 const keepId =
                   reviews[group.groupId]?.keep_media_item_id ??
                   group.representativeItemIds[0];
@@ -395,11 +449,16 @@ export default function ProjectResultsPage({
                   (item) => item.itemId !== keepId
                 );
                 const state = reviews[group.groupId]?.state ?? 'UNREVIEWED';
+                const groupDiff = diffByGroup.get(group.groupId);
+                const isPreviouslyReviewed =
+                  groupDiff?.previouslyReviewed === true;
 
                 return (
                   <article
                     key={`${group.groupId}-manual`}
-                    className="surface-panel rounded-[1rem] px-8 py-8"
+                    className={`surface-panel rounded-[1rem] px-8 py-8 ${
+                      isPreviouslyReviewed ? 'opacity-75' : ''
+                    }`}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-6">
                       <div className="max-w-[680px]">
@@ -419,15 +478,18 @@ export default function ProjectResultsPage({
                         </p>
                       </div>
 
-                      <span
-                        className={`rounded-full px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.16em] ${
-                          state === 'DONE'
-                            ? 'bg-[rgba(90,218,206,0.12)] text-[var(--pp-primary)]'
-                            : 'bg-[#22304a] text-[#96a8cf]'
-                        }`}
-                      >
-                        {state === 'DONE' ? 'Done' : 'Unreviewed'}
-                      </span>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <DiffBadge groupDiff={groupDiff} />
+                        <span
+                          className={`rounded-full px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.16em] ${
+                            state === 'DONE'
+                              ? 'bg-[rgba(90,218,206,0.12)] text-[var(--pp-primary)]'
+                              : 'bg-[#22304a] text-[#96a8cf]'
+                          }`}
+                        >
+                          {state === 'DONE' ? 'Done' : 'Unreviewed'}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="mt-8 grid gap-4 xl:grid-cols-2">
@@ -481,6 +543,79 @@ export default function ProjectResultsPage({
         ) : null}
       </div>
     </ReviewShell>
+  );
+}
+
+function DiffSummaryCard({
+  label,
+  count,
+  detail,
+  tone
+}: {
+  label: string;
+  count: number;
+  detail?: string;
+  tone: 'primary' | 'secondary' | 'muted';
+}) {
+  const toneClass =
+    tone === 'primary'
+      ? 'text-[var(--pp-primary)]'
+      : tone === 'secondary'
+        ? 'text-[var(--pp-secondary)]'
+        : 'text-[#96a8cf]';
+
+  return (
+    <article className="surface-panel rounded-[1rem] px-6 py-7">
+      <p
+        className={`text-[0.62rem] font-bold uppercase tracking-[0.18em] ${toneClass}`}
+      >
+        {label}
+      </p>
+      <p className="mt-3 text-[3rem] font-black tracking-[-0.05em] text-white">
+        {count}
+      </p>
+      {detail ? (
+        <p className="mt-3 text-sm leading-7 text-[var(--pp-on-surface-muted)]">
+          {detail}
+        </p>
+      ) : null}
+    </article>
+  );
+}
+
+function DiffBadge({
+  groupDiff
+}: {
+  groupDiff: ProjectScanDiffGroup | undefined;
+}) {
+  if (groupDiff?.category === 'NEW') {
+    return (
+      <span className="rounded-full bg-[rgba(90,218,206,0.12)] px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.16em] text-[var(--pp-primary)]">
+        New since last scan
+      </span>
+    );
+  }
+
+  if (groupDiff?.category === 'CHANGED') {
+    return (
+      <span className="rounded-full bg-[rgba(255,207,112,0.16)] px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.16em] text-[#ffd982]">
+        Changed since last scan - review recommended
+      </span>
+    );
+  }
+
+  if (groupDiff?.previouslyReviewed) {
+    return (
+      <span className="rounded-full bg-[#22304a] px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.16em] text-[#96a8cf]">
+        Previously reviewed
+      </span>
+    );
+  }
+
+  return (
+    <span className="rounded-full bg-[#22304a] px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.16em] text-[#96a8cf]">
+      Unchanged
+    </span>
   );
 }
 

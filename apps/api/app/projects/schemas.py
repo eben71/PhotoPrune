@@ -46,6 +46,39 @@ class ProjectScanResult(BaseModel):
     reviews: dict[str, Any]
 
 
+class ProjectScopeResponse(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    project_id: str = Field(alias="projectId")
+    scope: dict[str, Any]
+
+
+class ProjectScanDiffGroup(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    group_fingerprint: str = Field(alias="groupFingerprint")
+    category: Literal["NEW", "CHANGED", "UNCHANGED"]
+    member_media_item_ids: list[str] = Field(alias="memberMediaItemIds")
+    previous_group_fingerprint: str | None = Field(default=None, alias="previousGroupFingerprint")
+    previous_member_media_item_ids: list[str] | None = Field(
+        default=None, alias="previousMemberMediaItemIds"
+    )
+    review_state: str = Field(alias="reviewState")
+    prior_review_state_preserved: bool = Field(alias="priorReviewStatePreserved")
+    previously_reviewed: bool = Field(alias="previouslyReviewed")
+    requires_review: bool = Field(alias="requiresReview")
+
+
+class ProjectScanDiffResponse(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    project_id: str = Field(alias="projectId")
+    project_scan_id: str = Field(alias="projectScanId")
+    previous_project_scan_id: str | None = Field(alias="previousProjectScanId")
+    summary: dict[str, int]
+    groups: list[ProjectScanDiffGroup]
+
+
 class ProjectGroupReviewPatch(BaseModel):
     state: Literal["UNREVIEWED", "IN_PROGRESS", "DONE", "SNOOZED"] | None = None
     keep_media_item_id: str | None = Field(default=None, alias="keepMediaItemId")
