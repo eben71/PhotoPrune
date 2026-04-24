@@ -292,7 +292,7 @@ describe('phase 3 projects pages', () => {
         return Promise.resolve(
           new Response(JSON.stringify({ projectScanId: 'scan-1' }))
         );
-      }) as unknown as typeof fetch
+      })
     );
   });
 
@@ -316,7 +316,7 @@ describe('phase 3 projects pages', () => {
             })
           )
         )
-      ) as unknown as typeof fetch
+      )
     );
 
     render(<ProjectsPage />);
@@ -346,7 +346,7 @@ describe('phase 3 projects pages', () => {
         }
 
         return Promise.resolve(new Response(JSON.stringify({})));
-      }) as unknown as typeof fetch
+      })
     );
 
     render(<NewProjectPage />);
@@ -449,15 +449,28 @@ describe('phase 3 projects pages', () => {
 
   it('shows an error instead of downloading when JSON export fails', async () => {
     const defaultFetch = global.fetch;
+    const getFetchInputUrl = (input: RequestInfo | URL) =>
+      input instanceof Request
+        ? input.url
+        : input instanceof URL
+          ? input.toString()
+          : String(input);
+
     vi.stubGlobal(
       'fetch',
-      vi.fn((input: string, init?: RequestInit) => {
-        if (input === '/api/projects/p1/export?format=json&scanId=scan-1') {
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const requestUrl = getFetchInputUrl(input);
+        if (
+          requestUrl === '/api/projects/p1/export?format=json&scanId=scan-1' ||
+          requestUrl.endsWith(
+            '/api/projects/p1/export?format=json&scanId=scan-1'
+          )
+        ) {
           return Promise.resolve(new Response('Unavailable', { status: 503 }));
         }
 
         return defaultFetch(input, init);
-      }) as unknown as typeof fetch
+      })
     );
 
     render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
@@ -467,7 +480,11 @@ describe('phase 3 projects pages', () => {
         screen.getByRole('button', { name: 'Export JSON' })
       ).toBeInTheDocument()
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Export JSON' }));
+    const exportJsonButton = screen.getByRole('button', {
+      name: 'Export JSON'
+    });
+    await waitFor(() => expect(exportJsonButton).not.toBeDisabled());
+    fireEvent.click(exportJsonButton);
 
     await waitFor(() =>
       expect(
@@ -605,7 +622,7 @@ describe('phase 3 projects pages', () => {
         }
 
         return Promise.resolve(new Response(JSON.stringify({})));
-      }) as unknown as typeof fetch
+      })
     );
 
     render(<ProjectDetailPage params={Promise.resolve({ id: 'p1' })} />);
