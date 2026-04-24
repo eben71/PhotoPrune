@@ -56,7 +56,7 @@ describe('run API lifecycle', () => {
               groupsPossiblySimilar: []
             })
         })
-      ) as unknown as typeof fetch
+      )
     );
     const request = new Request('http://localhost/api/run', {
       method: 'POST',
@@ -97,7 +97,7 @@ describe('run API lifecycle', () => {
               groupsPossiblySimilar: []
             })
         })
-      ) as unknown as typeof fetch
+      )
     );
     const request = new Request('http://localhost/api/run', {
       method: 'POST',

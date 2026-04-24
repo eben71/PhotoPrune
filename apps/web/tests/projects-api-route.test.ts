@@ -10,9 +10,7 @@ describe('projects API route', () => {
   it('returns a 503 json error when the upstream API is unavailable', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(() =>
-        Promise.reject(new Error('connect ECONNREFUSED'))
-      ) as unknown as typeof fetch
+      vi.fn(() => Promise.reject(new Error('connect ECONNREFUSED')))
     );
 
     const response = await POST(
