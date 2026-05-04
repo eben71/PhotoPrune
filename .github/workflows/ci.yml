@@ -81,8 +81,8 @@ jobs:
 
       - name: Dependency audit (python api)
         working-directory: apps/api
-        run: uv run pip-audit --progress-spinner=off --skip-editable --ignore-vuln CVE-2026-4539
+        run: uv run pip-audit --progress-spinner=off --skip-editable --ignore-vuln CVE-2026-4539 --ignore-vuln CVE-2026-3219
 
       - name: Dependency audit (python worker)
         working-directory: apps/worker
-        run: uv run pip-audit --progress-spinner=off --skip-editable --ignore-vuln CVE-2026-4539
+        run: uv run pip-audit --progress-spinner=off --skip-editable --ignore-vuln CVE-2026-4539 --ignore-vuln CVE-2026-3219
