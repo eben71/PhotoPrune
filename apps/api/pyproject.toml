@@ -13,6 +13,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "pip<26",
     "ruff==0.15.11",
     "black==26.3.1",
     "mypy==1.20.2",
