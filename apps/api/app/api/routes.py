@@ -4,6 +4,7 @@ from functools import lru_cache
 from typing import Any
 
 from fastapi import APIRouter, Header, HTTPException, Query, Response, status
+from pydantic import ValidationError
 
 from app.core.config import get_settings
 from app.engine.models import PhotoItem
@@ -128,11 +129,19 @@ def project_scan(project_id: str, request: ProjectScanRequest) -> ProjectScanRes
 
     scan_request = request
     if source.photo_items is not None:
-        scan_request = ProjectScanRequest(
-            photoItems=source.photo_items,
-            sourceType=request.source_type,
-            sourceRef=request.source_ref,
-        )
+        try:
+            scan_request = ProjectScanRequest.model_validate(
+                {
+                    "photoItems": source.photo_items,
+                    "sourceType": request.source_type,
+                    "sourceRef": request.source_ref,
+                }
+            )
+        except ValidationError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=exc.errors(),
+            ) from exc
     items, explain_requested = _prepare_scan_items(scan_request)
     settings = get_settings()
     try:
@@ -158,9 +167,12 @@ def project_scan(project_id: str, request: ProjectScanRequest) -> ProjectScanRes
         input_items=items,
         envelope=envelope,
     )
-    if source.source_type == "album_set" and source.resume_token is not None:
+    if source.source_type == "album_set" and "resumeToken" in source.source_ref:
         next_scope = dict(project.get("scope") or {"type": "album_set"})
-        next_scope["resumeToken"] = source.resume_token
+        if source.resume_token is None:
+            next_scope.pop("resumeToken", None)
+        else:
+            next_scope["resumeToken"] = source.resume_token
         get_project_repo().set_scope(project_id, next_scope)
     return ProjectScanResponse(projectScanId=scan_id, envelope=envelope)
 
@@ -224,7 +236,7 @@ def export_project(
     return Response(content=json.dumps(rows), media_type="application/json")
 
 
-def _to_envelope(scan_result: ScanResult) -> dict[str, object]:
+def _to_envelope(scan_result: ScanResult) -> dict[str, Any]:
     groups: list[dict[str, Any]] = []
     for bucket, confidence, reason, group_type in [
         (scan_result.groups_exact, "HIGH", ["HASH_MATCH"], "EXACT"),

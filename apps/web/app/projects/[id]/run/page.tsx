@@ -75,6 +75,11 @@ export default function ProjectRunPage({
     }
 
     const isAlbumScope = scopeLabel === trustCopy.projects.scopeAlbumSet;
+    const albumMediaItems = mediaIdsInput
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean)
+      .map((id) => ({ id, createTime: new Date().toISOString() }));
     const response = await fetch(`/api/projects/${projectId}/scan`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -87,11 +92,9 @@ export default function ProjectRunPage({
                 .split(',')
                 .map((id) => id.trim())
                 .filter(Boolean),
-              mediaItems: mediaIdsInput
-                .split(',')
-                .map((id) => id.trim())
-                .filter(Boolean)
-                .map((id) => ({ id, createTime: new Date().toISOString() }))
+              ...(albumMediaItems.length > 0
+                ? { mediaItems: albumMediaItems }
+                : {})
             }
           : { type: 'picker' },
         photoItems: state.selection.map((item) => ({

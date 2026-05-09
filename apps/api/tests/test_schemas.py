@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from app.engine.schemas import ScanRequest
+from app.projects.schemas import ProjectScanRequest
 
 
 def test_scan_request_parses_photo_items_by_alias():
@@ -29,3 +30,37 @@ def test_scan_request_parses_picker_payload_by_alias():
     request = ScanRequest.model_validate(payload)
 
     assert request.picker_payload == {"mediaItems": []}
+
+
+def test_project_scan_request_allows_album_set_source_ref_media_items():
+    request = ProjectScanRequest.model_validate(
+        {
+            "sourceType": "album_set",
+            "sourceRef": {
+                "type": "album_set",
+                "mediaItems": [{"id": "item-1", "createTime": "2025-01-01T00:00:00Z"}],
+            },
+        }
+    )
+
+    assert request.source_type == "album_set"
+    assert request.source_ref is not None
+    assert request.source_ref["mediaItems"][0]["id"] == "item-1"
+
+
+def test_project_scan_request_allows_album_set_source_ref_paged_media_items():
+    request = ProjectScanRequest.model_validate(
+        {
+            "sourceType": "album_set",
+            "sourceRef": {
+                "type": "album_set",
+                "pagedMediaItems": [
+                    {"items": [{"id": "item-1", "createTime": "2025-01-01T00:00:00Z"}]}
+                ],
+            },
+        }
+    )
+
+    assert request.source_type == "album_set"
+    assert request.source_ref is not None
+    assert request.source_ref["pagedMediaItems"][0]["items"][0]["id"] == "item-1"
