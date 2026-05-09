@@ -495,3 +495,78 @@ def test_scan_results_legacy_count_fallback_uses_scan_items(monkeypatch, tmp_pat
 
     assert first_results.status_code == 200
     assert first_results.json()["envelope"]["run"]["selection"]["requestedCount"] == 2
+
+
+def test_album_set_scan_accepts_source_ref_media_items_without_top_level_payload(
+    monkeypatch, tmp_path
+):
+    client = _client(monkeypatch, tmp_path)
+    seen_item_ids: list[list[str]] = []
+
+    def _scan(items, *_args, **_kwargs):
+        seen_item_ids.append([item.id for item in items])
+        return _fake_scan_result_with_ids("item-1", "item-2", input_count=len(items))
+
+    monkeypatch.setattr("app.api.routes.run_scan", _scan)
+    project_id = client.post("/api/projects", json={"name": "Album cleanup"}).json()["id"]
+    client.post(
+        f"/api/projects/{project_id}/scope",
+        json={"type": "album_set", "albumIds": ["album-1"]},
+    )
+
+    scan = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={
+            "sourceType": "album_set",
+            "sourceRef": {
+                "type": "album_set",
+                "albumIds": ["album-1"],
+                "mediaItems": _photo_payloads("item-1", "item-2"),
+            },
+        },
+    )
+
+    assert scan.status_code == 200
+    assert seen_item_ids == [["item-1", "item-2"]]
+
+
+def test_album_set_scan_resumes_from_persisted_scope_token(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    seen_item_ids: list[list[str]] = []
+
+    def _scan(items, *_args, **_kwargs):
+        seen_item_ids.append([item.id for item in items])
+        return _fake_scan_result_with_ids(items[0].id, items[0].id, input_count=len(items))
+
+    monkeypatch.setattr("app.api.routes.run_scan", _scan)
+    project_id = client.post("/api/projects", json={"name": "Album cleanup"}).json()["id"]
+    client.post(
+        f"/api/projects/{project_id}/scope",
+        json={"type": "album_set", "albumIds": ["album-1"]},
+    )
+    source_ref = {
+        "type": "album_set",
+        "albumIds": ["album-1"],
+        "pageLimit": 1,
+        "pagedMediaItems": [
+            {"items": _photo_payloads("item-1")},
+            {"items": _photo_payloads("item-2")},
+        ],
+    }
+
+    first_scan = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={"sourceType": "album_set", "sourceRef": source_ref},
+    )
+    assert first_scan.status_code == 200
+    assert first_scan.json()["envelope"]["run"]["status"] == "PARTIAL"
+    assert client.get(f"/api/projects/{project_id}/scope").json()["scope"]["resumeToken"] == "1"
+
+    resumed_scan = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={"sourceType": "album_set", "sourceRef": source_ref, "resume": True},
+    )
+
+    assert resumed_scan.status_code == 200
+    assert seen_item_ids == [["item-1"], ["item-2"]]
+    assert "resumeToken" not in client.get(f"/api/projects/{project_id}/scope").json()["scope"]

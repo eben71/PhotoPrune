@@ -549,6 +549,81 @@ describe('phase 3 projects pages', () => {
     );
   });
 
+  it('omits empty album mediaItems when starting an album-scoped project scan', async () => {
+    const scanBodies: unknown[] = [];
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string, init?: RequestInit) => {
+        if (input === '/api/projects/p1') {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                id: 'p1',
+                userId: 'local-user',
+                name: 'Album trip',
+                status: 'active',
+                scope: { type: 'album_set', albumIds: ['album-1'] },
+                createdAt: '2025-01-01T00:00:00Z',
+                updatedAt: '2025-01-01T00:00:00Z'
+              })
+            )
+          );
+        }
+
+        if (input === '/api/projects/p1/scan') {
+          scanBodies.push(JSON.parse(init?.body as string));
+          return Promise.resolve(
+            new Response(JSON.stringify({ projectScanId: 'scan-1' }))
+          );
+        }
+
+        return Promise.resolve(
+          new Response(JSON.stringify({ projectScanId: 'scan-1' }))
+        );
+      })
+    );
+
+    render(
+      <RunSessionProvider>
+        <ProjectRunPage params={Promise.resolve({ id: 'p1' })} />
+      </RunSessionProvider>
+    );
+
+    openPickerMock.mockResolvedValue([
+      {
+        id: 'i1',
+        baseUrl: 'https://placehold.co/300',
+        filename: 'a.jpg',
+        mimeType: 'image/jpeg',
+        createTime: '2025-01-01T00:00:00Z'
+      }
+    ]);
+
+    await screen.findByText(
+      'Album set scope saved for later read-only ingestion'
+    );
+    fireEvent.change(screen.getByLabelText('Album IDs (comma-separated)'), {
+      target: { value: 'album-1' }
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Select from Google Photos' })
+    );
+
+    const startButton = await screen.findByText('Start saved scan');
+    await waitFor(() => expect(startButton).not.toBeDisabled());
+    fireEvent.click(startButton);
+
+    await waitFor(() => expect(scanBodies).toHaveLength(1));
+    expect(scanBodies[0]).toMatchObject({
+      sourceType: 'album_set',
+      sourceRef: { type: 'album_set', albumIds: ['album-1'] }
+    });
+    expect(
+      (scanBodies[0] as { sourceRef: Record<string, unknown> }).sourceRef
+    ).not.toHaveProperty('mediaItems');
+  });
+
   it('results page loads saved state and marks a group done', async () => {
     const fetchSpy = vi.spyOn(global, 'fetch');
 
