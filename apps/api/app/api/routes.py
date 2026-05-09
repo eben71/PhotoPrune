@@ -4,6 +4,7 @@ from functools import lru_cache
 from typing import Any
 
 from fastapi import APIRouter, Header, HTTPException, Query, Response, status
+from pydantic import ValidationError
 
 from app.core.config import get_settings
 from app.engine.models import PhotoItem
@@ -128,13 +129,19 @@ def project_scan(project_id: str, request: ProjectScanRequest) -> ProjectScanRes
 
     scan_request = request
     if source.photo_items is not None:
-        scan_request = ProjectScanRequest.model_validate(
-            {
-                "photoItems": source.photo_items,
-                "sourceType": request.source_type,
-                "sourceRef": request.source_ref,
-            }
-        )
+        try:
+            scan_request = ProjectScanRequest.model_validate(
+                {
+                    "photoItems": source.photo_items,
+                    "sourceType": request.source_type,
+                    "sourceRef": request.source_ref,
+                }
+            )
+        except ValidationError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=exc.errors(),
+            ) from exc
     items, explain_requested = _prepare_scan_items(scan_request)
     settings = get_settings()
     try:

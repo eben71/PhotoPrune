@@ -570,3 +570,61 @@ def test_album_set_scan_resumes_from_persisted_scope_token(monkeypatch, tmp_path
     assert resumed_scan.status_code == 200
     assert seen_item_ids == [["item-1"], ["item-2"]]
     assert "resumeToken" not in client.get(f"/api/projects/{project_id}/scope").json()["scope"]
+
+
+def test_album_set_scan_rejects_invalid_source_ref_media_items(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    run_scan_called = False
+
+    def _scan(*_args, **_kwargs):
+        nonlocal run_scan_called
+        run_scan_called = True
+        return _fake_scan_result()
+
+    monkeypatch.setattr("app.api.routes.run_scan", _scan)
+    project_id = client.post("/api/projects", json={"name": "Album cleanup"}).json()["id"]
+
+    scan = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={
+            "sourceType": "album_set",
+            "sourceRef": {
+                "type": "album_set",
+                "albumIds": ["album-1"],
+                "mediaItems": [{"id": "bad"}],
+            },
+        },
+    )
+
+    assert scan.status_code == 422
+    assert run_scan_called is False
+    assert scan.json()["detail"][0]["loc"] == ["photoItems", 0, "createTime"]
+
+
+def test_album_set_scan_rejects_invalid_source_ref_paged_media_items(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    run_scan_called = False
+
+    def _scan(*_args, **_kwargs):
+        nonlocal run_scan_called
+        run_scan_called = True
+        return _fake_scan_result()
+
+    monkeypatch.setattr("app.api.routes.run_scan", _scan)
+    project_id = client.post("/api/projects", json={"name": "Album cleanup"}).json()["id"]
+
+    scan = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={
+            "sourceType": "album_set",
+            "sourceRef": {
+                "type": "album_set",
+                "albumIds": ["album-1"],
+                "pagedMediaItems": [{"items": [{"id": "bad"}]}],
+            },
+        },
+    )
+
+    assert scan.status_code == 422
+    assert run_scan_called is False
+    assert scan.json()["detail"][0]["loc"] == ["photoItems", 0, "createTime"]
