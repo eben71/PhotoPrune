@@ -24,7 +24,7 @@ The Phase 2 trust-first review foundation remains locked:
 - plain-English guidance for manual review actions
 - no hidden destructive behavior
 
-Real read-only album/set ingestion is not implemented yet. A scoped source adapter is in place so future album/set support can plug in without adding write scopes or whole-library enumeration.
+PhotoPrune now supports read-only album/set ingestion through the scoped source adapter. Projects can store album IDs and optional media item IDs, and album scans can resume from persisted checkpoints after partial pagination runs. The app still does not request write scopes, store image bytes, or perform automatic deletion.
 
 ## Product Principles
 

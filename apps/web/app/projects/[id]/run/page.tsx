@@ -28,6 +28,8 @@ export default function ProjectRunPage({
     trustCopy.projects.scopePicker
   );
   const [error, setError] = useState<string | null>(null);
+  const [albumIdsInput, setAlbumIdsInput] = useState('');
+  const [mediaIdsInput, setMediaIdsInput] = useState('');
   const { state, setSelection } = useRunSession();
   const { openPicker, isLoading, error: pickerError } = useGooglePhotosPicker();
 
@@ -72,12 +74,29 @@ export default function ProjectRunPage({
       return;
     }
 
+    const isAlbumScope = scopeLabel === trustCopy.projects.scopeAlbumSet;
+    const albumMediaItems = mediaIdsInput
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean)
+      .map((id) => ({ id, createTime: new Date().toISOString() }));
     const response = await fetch(`/api/projects/${projectId}/scan`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        sourceType: 'picker',
-        sourceRef: { type: 'picker' },
+        sourceType: isAlbumScope ? 'album_set' : 'picker',
+        sourceRef: isAlbumScope
+          ? {
+              type: 'album_set',
+              albumIds: albumIdsInput
+                .split(',')
+                .map((id) => id.trim())
+                .filter(Boolean),
+              ...(albumMediaItems.length > 0
+                ? { mediaItems: albumMediaItems }
+                : {})
+            }
+          : { type: 'picker' },
         photoItems: state.selection.map((item) => ({
           id: item.id,
           createTime: item.createTime,
@@ -169,6 +188,26 @@ export default function ProjectRunPage({
                 Start saved scan
               </button>
             </div>
+            {scopeLabel === trustCopy.projects.scopeAlbumSet ? (
+              <div className="mt-6 grid gap-4">
+                <label className="text-sm text-[var(--pp-paper-muted)]">
+                  Album IDs (comma-separated)
+                  <input
+                    value={albumIdsInput}
+                    onChange={(event) => setAlbumIdsInput(event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-[rgba(99,118,155,0.18)] bg-[rgba(6,12,24,0.35)] px-4 py-3 text-sm text-[var(--pp-on-background)]"
+                  />
+                </label>
+                <label className="text-sm text-[var(--pp-paper-muted)]">
+                  Optional media item IDs (comma-separated)
+                  <input
+                    value={mediaIdsInput}
+                    onChange={(event) => setMediaIdsInput(event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-[rgba(99,118,155,0.18)] bg-[rgba(6,12,24,0.35)] px-4 py-3 text-sm text-[var(--pp-on-background)]"
+                  />
+                </label>
+              </div>
+            ) : null}
           </article>
 
           <article className="surface-panel rounded-[1rem] px-6 py-7">

@@ -16,9 +16,9 @@
 
 ### Current Focus
 
-Phase 3 recurring workflows are implemented for picker-selected projects. The remaining follow-up is real read-only album/set ingestion behind the scoped source seam.
+Phase 3 recurring workflows are implemented for picker-selected and album/set-scoped projects with resumable ingestion checkpoints.
 
-## Phase 3 - Recurring Workflow & Scoped Ingestion (Complete for Picker Scope)
+## Phase 3 - Recurring Workflow & Scoped Ingestion (Complete)
 
 ### 3.1 Projects & Persistence
 
@@ -51,12 +51,12 @@ Phase 3 recurring workflows are implemented for picker-selected projects. The re
 - [x] Scaffold `album_set` scope metadata without adding write scopes or whole-library reads.
 - [x] Persist group fingerprints and scan membership snapshots for deterministic cross-scan diffing.
 - [x] Run repeat scans that preserve prior decisions for unchanged groups and surface new or changed groups.
-- [ ] Add real read-only album/set ingestion beyond the current picker flow.
+- [x] Add read-only album/set ingestion with persisted scope metadata and resumable page checkpoints.
 - [ ] Harden resumable behavior for rate limits and partial failures.
 
 ## Next Milestones
 
-1. Plug real read-only album/set ingestion into the scoped source adapter without expanding into whole-library reads.
+1. Continue hardening quota/backoff strategies for very large album scans.
 2. Validate larger recurring cleanup projects for resume correctness and partial-failure handling.
 3. Improve cross-scan matching only where deterministic persisted fingerprints support it.
 4. Confirm recurring workflow outcomes before expanding beyond the current trust boundaries.

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.engine.schemas import ScanRequest
 
@@ -101,11 +101,28 @@ class ProjectGroupReviewResponse(BaseModel):
 class ProjectScopeRequest(BaseModel):
     type: Literal["picker", "album_set"]
     album_ids: list[str] | None = Field(default=None, alias="albumIds")
+    media_item_ids: list[str] | None = Field(default=None, alias="mediaItemIds")
 
 
 class ProjectScanRequest(ScanRequest):
     source_type: Literal["picker", "album_set"] = Field(default="picker", alias="sourceType")
     source_ref: dict[str, Any] | None = Field(default=None, alias="sourceRef")
+    resume: bool = False
+
+    @model_validator(mode="after")
+    def validate_payload(self) -> ProjectScanRequest:
+        if self.photo_items or self.picker_payload:
+            return self
+        if self.source_type == "album_set" and self.source_ref:
+            allowed_source_ref_keys = {
+                "albumIds",
+                "mediaItemIds",
+                "mediaItems",
+                "pagedMediaItems",
+            }
+            if any(key in self.source_ref for key in allowed_source_ref_keys):
+                return self
+        raise ValueError("photo_items or picker_payload is required")
 
 
 class ProjectListResponse(BaseModel):
