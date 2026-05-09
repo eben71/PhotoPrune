@@ -101,11 +101,13 @@ class ProjectGroupReviewResponse(BaseModel):
 class ProjectScopeRequest(BaseModel):
     type: Literal["picker", "album_set"]
     album_ids: list[str] | None = Field(default=None, alias="albumIds")
+    media_item_ids: list[str] | None = Field(default=None, alias="mediaItemIds")
 
 
 class ProjectScanRequest(ScanRequest):
     source_type: Literal["picker", "album_set"] = Field(default="picker", alias="sourceType")
     source_ref: dict[str, Any] | None = Field(default=None, alias="sourceRef")
+    resume: bool = False
 
 
 class ProjectListResponse(BaseModel):

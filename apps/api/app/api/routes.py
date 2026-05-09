@@ -91,7 +91,13 @@ def set_project_scope(project_id: str, request: ProjectScopeRequest) -> ProjectS
     project = get_project_repo().get_project(project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    resolved = resolve_scope(ScopeDefinition(type=request.type, album_ids=request.album_ids or []))
+    resolved = resolve_scope(
+        ScopeDefinition(
+            type=request.type,
+            album_ids=request.album_ids or [],
+            media_item_ids=request.media_item_ids or [],
+        )
+    )
     updated = get_project_repo().set_scope(project_id, resolved)
     if not updated:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -120,7 +126,14 @@ def project_scan(project_id: str, request: ProjectScanRequest) -> ProjectScanRes
             detail=str(exc),
         ) from exc
 
-    items, explain_requested = _prepare_scan_items(request)
+    scan_request = request
+    if source.photo_items is not None:
+        scan_request = ProjectScanRequest(
+            photoItems=source.photo_items,
+            sourceType=request.source_type,
+            sourceRef=request.source_ref,
+        )
+    items, explain_requested = _prepare_scan_items(scan_request)
     settings = get_settings()
     try:
         scan_result = run_scan(items, settings, explain=explain_requested or settings.scan_explain)
@@ -130,6 +143,13 @@ def project_scan(project_id: str, request: ProjectScanRequest) -> ProjectScanRes
             detail=str(exc),
         ) from exc
     envelope = _to_envelope(scan_result)
+    if source.warning:
+        warnings = envelope["telemetry"].get("warnings", [])
+        warnings.append(source.warning)
+        envelope["telemetry"]["warnings"] = warnings
+    if source.partial:
+        envelope["run"]["status"] = "PARTIAL"
+        envelope["progress"]["message"] = "Scan paused. Resume to continue."
     scan_id = get_project_repo().create_scan(
         project_id=project_id,
         source_type=source.source_type,
@@ -138,6 +158,10 @@ def project_scan(project_id: str, request: ProjectScanRequest) -> ProjectScanRes
         input_items=items,
         envelope=envelope,
     )
+    if source.source_type == "album_set" and source.resume_token is not None:
+        next_scope = dict(project.get("scope") or {"type": "album_set"})
+        next_scope["resumeToken"] = source.resume_token
+        get_project_repo().set_scope(project_id, next_scope)
     return ProjectScanResponse(projectScanId=scan_id, envelope=envelope)
 
 

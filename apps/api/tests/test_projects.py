@@ -158,7 +158,8 @@ def test_project_scope_persists(monkeypatch, tmp_path):
     assert updated.json()["scope"] == {
         "type": "album_set",
         "albumIds": ["album-1", "album-2"],
-        "status": "stub",
+        "mediaItemIds": [],
+        "status": "ready",
     }
 
     fetched = client.get(f"/api/projects/{project_id}")
@@ -168,6 +169,28 @@ def test_project_scope_persists(monkeypatch, tmp_path):
     fetched_scope = client.get(f"/api/projects/{project_id}/scope")
     assert fetched_scope.status_code == 200
     assert fetched_scope.json()["scope"]["albumIds"] == ["album-1", "album-2"]
+
+
+def test_album_set_scan_accepts_media_items(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    monkeypatch.setattr("app.api.routes.run_scan", lambda *_args, **_kwargs: _fake_scan_result())
+    project_id = client.post("/api/projects", json={"name": "Album cleanup"}).json()["id"]
+    client.post(
+        f"/api/projects/{project_id}/scope",
+        json={"type": "album_set", "albumIds": ["album-1"], "mediaItemIds": ["item-1", "item-2"]},
+    )
+    scan = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={
+            "sourceType": "album_set",
+            "sourceRef": {
+                "type": "album_set",
+                "albumIds": ["album-1"],
+                "mediaItems": _photo_payloads("item-1", "item-2"),
+            },
+        },
+    )
+    assert scan.status_code == 200
 
 
 def test_project_scan_persists_groups_and_reviews(monkeypatch, tmp_path):

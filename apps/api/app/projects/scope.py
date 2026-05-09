@@ -8,6 +8,7 @@ from typing import Protocol
 class ScopeDefinition:
     type: str
     album_ids: list[str]
+    media_item_ids: list[str]
 
 
 class ScopeProvider(Protocol):
@@ -21,9 +22,12 @@ class PickerScopeProvider:
 
 class AlbumSetScopeProvider:
     def resolve(self, definition: ScopeDefinition) -> dict[str, object]:
-        # TODO(phase-3.4): Replace this stub with read-only album ingestion.
-        # TODO(phase-3.4): Support incremental scans that preserve prior decisions.
-        return {"type": "album_set", "albumIds": definition.album_ids, "status": "stub"}
+        return {
+            "type": "album_set",
+            "albumIds": definition.album_ids,
+            "mediaItemIds": definition.media_item_ids,
+            "status": "ready",
+        }
 
 
 def resolve_scope(definition: ScopeDefinition) -> dict[str, object]:
