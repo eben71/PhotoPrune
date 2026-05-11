@@ -11,7 +11,11 @@ from app.engine.models import PhotoItem
 from app.engine.normalizer import normalize_photo_items, normalize_picker_payload
 from app.engine.scan import run_scan
 from app.engine.schemas import ScanRequest, ScanResult
-from app.projects.ingestion import UnsupportedProjectSourceError, resolve_project_source
+from app.projects.ingestion import (
+    ProjectSourceUnavailableError,
+    UnsupportedProjectSourceError,
+    resolve_project_source,
+)
 from app.projects.repository import ProjectRepository, to_csv
 from app.projects.schemas import (
     ProjectCreateRequest,
@@ -119,11 +123,33 @@ def project_scan(project_id: str, request: ProjectScanRequest) -> ProjectScanRes
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
+    def _write_album_checkpoint(resume_token: str | None) -> None:
+        next_scope = dict(project.get("scope") or {"type": "album_set"})
+        if resume_token is None:
+            next_scope.pop("resumeToken", None)
+        else:
+            next_scope["resumeToken"] = resume_token
+        get_project_repo().set_scope(project_id, next_scope)
+        project["scope"] = next_scope
+
     try:
-        source = resolve_project_source(request, project.get("scope"))
+        source = resolve_project_source(
+            request,
+            project.get("scope"),
+            checkpoint_writer=(
+                _write_album_checkpoint if request.source_type == "album_set" else None
+            ),
+        )
     except UnsupportedProjectSourceError as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+    except ProjectSourceUnavailableError as exc:
+        if request.source_type == "album_set":
+            _write_album_checkpoint(exc.resume_token)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=str(exc),
         ) from exc
 

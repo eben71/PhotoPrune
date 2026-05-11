@@ -16,6 +16,8 @@ from app.engine.schemas import (
     StageMetrics,
 )
 from app.main import create_app
+from app.projects import ingestion
+from app.projects.schemas import ProjectScanRequest
 
 
 def _fake_scan_result() -> ScanResult:
@@ -628,3 +630,327 @@ def test_album_set_scan_rejects_invalid_source_ref_paged_media_items(monkeypatch
     assert scan.status_code == 422
     assert run_scan_called is False
     assert scan.json()["detail"][0]["loc"] == ["photoItems", 0, "createTime"]
+
+
+def test_album_set_scan_uses_real_backoff_by_default(monkeypatch):
+    delays: list[float] = []
+    monkeypatch.setattr(ingestion.time, "sleep", lambda seconds: delays.append(seconds))
+
+    source = ingestion.resolve_project_source(
+        ProjectScanRequest.model_validate(
+            {
+                "sourceType": "album_set",
+                "sourceRef": {
+                    "type": "album_set",
+                    "albumIds": ["album-1"],
+                    "pagedMediaItems": [
+                        {
+                            "errorStatus": 429,
+                            "failuresBeforeSuccess": 1,
+                            "items": _photo_payloads("item-1"),
+                        }
+                    ],
+                },
+            }
+        ),
+        {"type": "album_set", "albumIds": ["album-1"]},
+    )
+
+    assert delays == [0.1]
+    assert [item["id"] for item in source.photo_items or []] == ["item-1"]
+
+
+def test_album_set_scan_can_disable_backoff_sleep_for_tests(monkeypatch):
+    def _fail_sleep(_seconds: float) -> None:
+        raise AssertionError("sleep should be disabled")
+
+    monkeypatch.setattr(ingestion.time, "sleep", _fail_sleep)
+
+    source = ingestion.resolve_project_source(
+        ProjectScanRequest.model_validate(
+            {
+                "sourceType": "album_set",
+                "sourceRef": {
+                    "type": "album_set",
+                    "albumIds": ["album-1"],
+                    "disableBackoffSleep": True,
+                    "pagedMediaItems": [
+                        {
+                            "errorStatus": 503,
+                            "failuresBeforeSuccess": 1,
+                            "items": _photo_payloads("item-1"),
+                        }
+                    ],
+                },
+            }
+        ),
+        {"type": "album_set", "albumIds": ["album-1"]},
+    )
+
+    assert [item["id"] for item in source.photo_items or []] == ["item-1"]
+
+
+def test_album_set_scan_retries_rate_limited_pages_and_dedupes_items(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    seen_item_ids: list[list[str]] = []
+
+    def _scan(items, *_args, **_kwargs):
+        seen_item_ids.append([item.id for item in items])
+        return _fake_scan_result_with_ids(items[0].id, items[-1].id, input_count=len(items))
+
+    monkeypatch.setattr("app.api.routes.run_scan", _scan)
+    project_id = client.post("/api/projects", json={"name": "Large album"}).json()["id"]
+    client.post(
+        f"/api/projects/{project_id}/scope",
+        json={"type": "album_set", "albumIds": ["album-1"]},
+    )
+
+    scan = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={
+            "sourceType": "album_set",
+            "sourceRef": {
+                "type": "album_set",
+                "albumIds": ["album-1"],
+                "maxRetryAttempts": 3,
+                "pagedMediaItems": [
+                    {"items": _photo_payloads("item-1")},
+                    {
+                        "errorStatus": 429,
+                        "failuresBeforeSuccess": 2,
+                        "retryAfterSeconds": 0,
+                        "items": _photo_payloads("item-2", "item-1"),
+                    },
+                    {"items": _photo_payloads("item-3")},
+                ],
+            },
+        },
+    )
+
+    assert scan.status_code == 200
+    assert seen_item_ids == [["item-1", "item-2", "item-3"]]
+    assert "resumeToken" not in client.get(f"/api/projects/{project_id}/scope").json()["scope"]
+
+    with sqlite3.connect(tmp_path / "projects.db") as conn:
+        item_count = conn.execute(
+            "SELECT COUNT(*) FROM project_items WHERE project_id = ?",
+            (project_id,),
+        ).fetchone()[0]
+    assert item_count == 3
+
+
+def test_album_set_scan_checkpoints_partial_failure_and_resumes(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    seen_item_ids: list[list[str]] = []
+
+    def _scan(items, *_args, **_kwargs):
+        seen_item_ids.append([item.id for item in items])
+        return _fake_scan_result_with_ids(items[0].id, items[-1].id, input_count=len(items))
+
+    monkeypatch.setattr("app.api.routes.run_scan", _scan)
+    project_id = client.post("/api/projects", json={"name": "Interrupted album"}).json()["id"]
+    client.post(
+        f"/api/projects/{project_id}/scope",
+        json={"type": "album_set", "albumIds": ["album-1"]},
+    )
+    interrupted_source = {
+        "type": "album_set",
+        "albumIds": ["album-1"],
+        "maxRetryAttempts": 2,
+        "pagedMediaItems": [
+            {"items": _photo_payloads("item-1")},
+            {"errorStatus": 503, "items": _photo_payloads("item-2")},
+            {"items": _photo_payloads("item-3")},
+        ],
+    }
+
+    first_scan = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={"sourceType": "album_set", "sourceRef": interrupted_source},
+    )
+
+    assert first_scan.status_code == 200
+    assert first_scan.json()["envelope"]["run"]["status"] == "PARTIAL"
+    assert seen_item_ids == [["item-1"]]
+    assert client.get(f"/api/projects/{project_id}/scope").json()["scope"]["resumeToken"] == "1"
+
+    resumed_source = {
+        **interrupted_source,
+        "pagedMediaItems": [
+            {"items": _photo_payloads("item-1")},
+            {"items": _photo_payloads("item-2")},
+            {"items": _photo_payloads("item-3")},
+        ],
+    }
+    resumed_scan = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={"sourceType": "album_set", "sourceRef": resumed_source, "resume": True},
+    )
+
+    assert resumed_scan.status_code == 200
+    assert seen_item_ids == [["item-1"], ["item-2", "item-3"]]
+    assert "resumeToken" not in client.get(f"/api/projects/{project_id}/scope").json()["scope"]
+
+    with sqlite3.connect(tmp_path / "projects.db") as conn:
+        item_count = conn.execute(
+            "SELECT COUNT(*) FROM project_items WHERE project_id = ?",
+            (project_id,),
+        ).fetchone()[0]
+    assert item_count == 3
+
+
+def test_album_set_scan_persists_checkpoint_when_first_page_is_rate_limited(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    run_scan_called = False
+
+    def _scan(*_args, **_kwargs):
+        nonlocal run_scan_called
+        run_scan_called = True
+        return _fake_scan_result()
+
+    monkeypatch.setattr("app.api.routes.run_scan", _scan)
+    project_id = client.post("/api/projects", json={"name": "Rate limited album"}).json()["id"]
+    client.post(
+        f"/api/projects/{project_id}/scope",
+        json={"type": "album_set", "albumIds": ["album-1"]},
+    )
+
+    scan = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={
+            "sourceType": "album_set",
+            "sourceRef": {
+                "type": "album_set",
+                "albumIds": ["album-1"],
+                "maxRetryAttempts": 1,
+                "pagedMediaItems": [{"errorStatus": 429, "items": _photo_payloads("item-1")}],
+            },
+        },
+    )
+
+    assert scan.status_code == 503
+    assert run_scan_called is False
+    assert client.get(f"/api/projects/{project_id}/scope").json()["scope"]["resumeToken"] == "0"
+
+
+def test_large_album_rescans_diff_new_changed_and_unchanged_groups(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    scans = [
+        _scan_result_for_groups(
+            ["keep-a", "keep-b"],
+            ["changed-a", "changed-b"],
+            ["old-a", "old-b"],
+            input_count=300,
+        ),
+        _scan_result_for_groups(
+            ["keep-a", "keep-b"],
+            ["changed-a", "changed-b", "changed-c"],
+            ["new-a", "new-b"],
+            input_count=302,
+        ),
+    ]
+
+    def _next_scan(*_args, **_kwargs):
+        return scans.pop(0)
+
+    monkeypatch.setattr("app.api.routes.run_scan", _next_scan)
+    project_id = client.post("/api/projects", json={"name": "Large recurring album"}).json()["id"]
+    client.post(
+        f"/api/projects/{project_id}/scope",
+        json={"type": "album_set", "albumIds": ["album-1"]},
+    )
+    first_source = _large_album_source("album-1", 300)
+    second_source = _large_album_source("album-1", 302)
+
+    first_scan_id = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={"sourceType": "album_set", "sourceRef": first_source},
+    ).json()["projectScanId"]
+    first_results = client.get(f"/api/projects/{project_id}/scans/{first_scan_id}/results").json()
+    unchanged_group_id = first_results["envelope"]["results"]["groups"][0]["groupId"]
+    client.patch(
+        f"/api/projects/{project_id}/groups/{unchanged_group_id}/review",
+        json={"state": "DONE", "keepMediaItemId": "keep-a"},
+    )
+
+    second_scan_id = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={"sourceType": "album_set", "sourceRef": second_source},
+    ).json()["projectScanId"]
+
+    diff = client.get(f"/api/projects/{project_id}/scans/{second_scan_id}/diff")
+    assert diff.status_code == 200
+    assert diff.json()["summary"]["unchanged"] == 1
+    assert diff.json()["summary"]["changed"] == 1
+    assert diff.json()["summary"]["new"] == 1
+    assert diff.json()["summary"]["previouslyReviewedUnchanged"] == 1
+    assert diff.json()["summary"]["requiresReview"] == 2
+    by_category = {group["category"]: group for group in diff.json()["groups"]}
+    assert by_category["UNCHANGED"]["priorReviewStatePreserved"] is True
+    assert by_category["UNCHANGED"]["reviewState"] == "DONE"
+    assert by_category["CHANGED"]["requiresReview"] is True
+    assert by_category["NEW"]["requiresReview"] is True
+
+
+def _scan_result_for_groups(*groups: list[str], input_count: int) -> ScanResult:
+    results = []
+    for group_index, ids in enumerate(groups):
+        summaries = [
+            PhotoItemSummary(
+                id=item_id,
+                createTime=f"2025-01-01T00:{group_index:02d}:{item_index:02d}Z",
+                filename=f"{item_id}.jpg",
+                mimeType="image/jpeg",
+                width=100,
+                height=100,
+                googlePhotosDeepLink=f"https://photos.google.com/photo/{item_id}",
+            )
+            for item_index, item_id in enumerate(ids)
+        ]
+        results.append(
+            GroupResult(
+                groupId=f"group-{group_index}",
+                category="EXACT",
+                items=summaries,
+                representativePair=GroupRepresentativePair(
+                    earliest=summaries[0], latest=summaries[-1]
+                ),
+                moreCount=max(0, len(summaries) - 2),
+                explanation="exact",
+                googlePhotosDeepLinks=[
+                    f"https://photos.google.com/photo/{item_id}" for item_id in ids
+                ],
+            )
+        )
+    return ScanResult(
+        runId=f"run-{input_count}",
+        inputCount=input_count,
+        stageMetrics=StageMetrics(timingsMs={"group": 1.0}, counts={"downloads": input_count}),
+        costEstimate=CostEstimate(
+            totalCost=0.01, downloadCost=0.0, hashCost=0.0, comparisonCost=0.0
+        ),
+        groupsExact=results,
+        groupsVerySimilar=[],
+        groupsPossiblySimilar=[],
+    )
+
+
+def _large_album_source(album_id: str, count: int) -> dict[str, object]:
+    return {
+        "type": "album_set",
+        "albumIds": [album_id],
+        "pagedMediaItems": [
+            {
+                "items": [
+                    {
+                        "id": f"large-{item_index}",
+                        "createTime": "2025-01-01T00:00:00Z",
+                        "filename": f"large-{item_index}.jpg",
+                        "mimeType": "image/jpeg",
+                    }
+                    for item_index in range(index, min(index + 25, count))
+                ]
+            }
+            for index in range(0, count, 25)
+        ],
+    }

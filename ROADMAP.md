@@ -2,7 +2,7 @@
 
 > Purpose: keep delivery focused on a trust-first, review-only product that helps users clean up duplicate and near-duplicate photos without automated deletion.
 
-## Roadmap Snapshot (as of April 20, 2026)
+## Roadmap Snapshot (as of May 9, 2026)
 
 ### Completed Foundations
 
@@ -16,7 +16,7 @@
 
 ### Current Focus
 
-Phase 3 recurring workflows are implemented for picker-selected and album/set-scoped projects with resumable ingestion checkpoints.
+Phase 3 recurring workflows are complete for picker-selected and album/set-scoped projects, including retryable album/set ingestion, resumable page checkpoints, large-project rescan validation, and deterministic scan diffs.
 
 ## Phase 3 - Recurring Workflow & Scoped Ingestion (Complete)
 
@@ -52,14 +52,20 @@ Phase 3 recurring workflows are implemented for picker-selected and album/set-sc
 - [x] Persist group fingerprints and scan membership snapshots for deterministic cross-scan diffing.
 - [x] Run repeat scans that preserve prior decisions for unchanged groups and surface new or changed groups.
 - [x] Add read-only album/set ingestion with persisted scope metadata and resumable page checkpoints.
-- [ ] Harden resumable behavior for rate limits and partial failures.
+- [x] Harden resumable behavior for rate limits and partial failures.
+
+## Phase 3 Reliability Notes
+
+- Album/set ingestion retries temporary Google Photos API failures such as rate limits, timeouts, and server errors with exponential backoff before pausing.
+- Page checkpoints are persisted after each successful page fetch and when a retryable partial failure pauses ingestion, so reruns can resume from the last unfinished page without re-adding already-ingested project items.
+- Large recurring album validation covers multi-page albums across repeat scans, including `NEW`, `CHANGED`, and `UNCHANGED` diff categories and preserved `DONE` state for unchanged groups.
+- Operational limit: production scans still honor the configured per-run scan limit (`SCAN_MAX_PHOTOS`) and consent threshold. Very large albums should continue via resumable page checkpoints rather than expanding scope or requiring write access.
+- Known edge case: intentionally chunked partial scans are saved as partial scan snapshots; scan diffs compare saved snapshots, while project item storage deduplicates repeated media IDs across resumes and rescans.
 
 ## Next Milestones
 
-1. Continue hardening quota/backoff strategies for very large album scans.
-2. Validate larger recurring cleanup projects for resume correctness and partial-failure handling.
-3. Improve cross-scan matching only where deterministic persisted fingerprints support it.
-4. Confirm recurring workflow outcomes before expanding beyond the current trust boundaries.
+1. Improve cross-scan matching only where deterministic persisted fingerprints support it.
+2. Confirm recurring workflow outcomes before expanding beyond the current trust boundaries.
 
 ## Guardrails (Always On)
 
