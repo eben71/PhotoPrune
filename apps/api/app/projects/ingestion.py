@@ -114,7 +114,7 @@ class AlbumSetSourceAdapter:
             )
         page_limit = int(source_ref.get("pageLimit") or len(paged))
         retry_policy = _RetryPolicy.from_source_ref(source_ref)
-        sleep = _sleep if source_ref.get("disableBackoffSleep", True) else time.sleep
+        sleep = _sleep if source_ref.get("disableBackoffSleep", False) else time.sleep
 
         photo_items: list[dict[str, Any]] = []
         next_token: str | None = str(start) if start < len(paged) else None
@@ -178,11 +178,17 @@ class _RetryPolicy:
 
     @classmethod
     def from_source_ref(cls, source_ref: dict[str, Any]) -> _RetryPolicy:
+        base_delay = source_ref.get("retryBaseDelaySeconds")
+        max_delay = source_ref.get("retryMaxDelaySeconds")
         return cls(
             max_attempts=max(1, int(source_ref.get("maxRetryAttempts") or cls.max_attempts)),
-            base_delay_seconds=max(0.0, float(source_ref.get("retryBaseDelaySeconds") or 0.0)),
+            base_delay_seconds=max(
+                0.0,
+                float(base_delay) if base_delay is not None else cls.base_delay_seconds,
+            ),
             max_delay_seconds=max(
-                0.0, float(source_ref.get("retryMaxDelaySeconds") or cls.max_delay_seconds)
+                0.0,
+                float(max_delay) if max_delay is not None else cls.max_delay_seconds,
             ),
         )
 

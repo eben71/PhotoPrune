@@ -16,6 +16,8 @@ from app.engine.schemas import (
     StageMetrics,
 )
 from app.main import create_app
+from app.projects import ingestion
+from app.projects.schemas import ProjectScanRequest
 
 
 def _fake_scan_result() -> ScanResult:
@@ -628,6 +630,64 @@ def test_album_set_scan_rejects_invalid_source_ref_paged_media_items(monkeypatch
     assert scan.status_code == 422
     assert run_scan_called is False
     assert scan.json()["detail"][0]["loc"] == ["photoItems", 0, "createTime"]
+
+
+def test_album_set_scan_uses_real_backoff_by_default(monkeypatch):
+    delays: list[float] = []
+    monkeypatch.setattr(ingestion.time, "sleep", lambda seconds: delays.append(seconds))
+
+    source = ingestion.resolve_project_source(
+        ProjectScanRequest.model_validate(
+            {
+                "sourceType": "album_set",
+                "sourceRef": {
+                    "type": "album_set",
+                    "albumIds": ["album-1"],
+                    "pagedMediaItems": [
+                        {
+                            "errorStatus": 429,
+                            "failuresBeforeSuccess": 1,
+                            "items": _photo_payloads("item-1"),
+                        }
+                    ],
+                },
+            }
+        ),
+        {"type": "album_set", "albumIds": ["album-1"]},
+    )
+
+    assert delays == [0.1]
+    assert [item["id"] for item in source.photo_items or []] == ["item-1"]
+
+
+def test_album_set_scan_can_disable_backoff_sleep_for_tests(monkeypatch):
+    def _fail_sleep(_seconds: float) -> None:
+        raise AssertionError("sleep should be disabled")
+
+    monkeypatch.setattr(ingestion.time, "sleep", _fail_sleep)
+
+    source = ingestion.resolve_project_source(
+        ProjectScanRequest.model_validate(
+            {
+                "sourceType": "album_set",
+                "sourceRef": {
+                    "type": "album_set",
+                    "albumIds": ["album-1"],
+                    "disableBackoffSleep": True,
+                    "pagedMediaItems": [
+                        {
+                            "errorStatus": 503,
+                            "failuresBeforeSuccess": 1,
+                            "items": _photo_payloads("item-1"),
+                        }
+                    ],
+                },
+            }
+        ),
+        {"type": "album_set", "albumIds": ["album-1"]},
+    )
+
+    assert [item["id"] for item in source.photo_items or []] == ["item-1"]
 
 
 def test_album_set_scan_retries_rate_limited_pages_and_dedupes_items(monkeypatch, tmp_path):
