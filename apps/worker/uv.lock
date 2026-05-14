@@ -690,6 +690,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
+    { name = "urllib3" },
 ]
 
 [package.metadata]
@@ -707,6 +708,7 @@ dev = [
     { name = "pytest", specifier = "==9.0.3" },
     { name = "pytest-cov", specifier = "==5.0.0" },
     { name = "ruff", specifier = "==0.15.10" },
+    { name = "urllib3", specifier = ">=2.7.0" },
 ]
 
 [[package]]
