@@ -26,6 +26,8 @@
   },
   "pnpm": {
     "overrides": {
+      "next": "16.2.6",
+      "postcss": "8.5.14",
       "rollup": "4.59.0"
     }
   }
