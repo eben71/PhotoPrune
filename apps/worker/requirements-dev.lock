@@ -130,8 +130,10 @@ tzdata==2025.3
     # via
     #   celery
     #   kombu
-urllib3==2.6.3
-    # via requests
+urllib3==2.7.0
+    # via
+    #   photoprune-worker (pyproject.toml:dev)
+    #   requests
 vine==5.1.0
     # via
     #   amqp
