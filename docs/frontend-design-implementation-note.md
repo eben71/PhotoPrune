@@ -1,5 +1,3 @@
-# Frontend Design Implementation Note
+# Frontend Design Implementation Note (Legacy Alias)
 
-The active running log for this task is maintained in `docs/frontend-design-implementation-notes.md`.
-
-This singular-path file exists to preserve the repo-local reference used by `apps/web/AGENTS.md`.
+This file is a compatibility alias. The canonical document is `docs/frontend-design-implementation-notes.md`.
