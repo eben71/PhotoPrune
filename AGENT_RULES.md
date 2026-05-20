@@ -88,6 +88,19 @@ Avoid:
 
 ---
 
+## Delivery Convergence Rules
+- Roadmap completion does not equal product completion.
+- A phase is complete only when roadmap status, automated checks, MVP smoke path, and manual demo path agree.
+- Visible UI actions must work or be intentionally disabled/labelled as unavailable.
+- Every task must have acceptance criteria before implementation.
+- Every implementation task must update `docs/delivery/TASK_BACKLOG.md` and `docs/delivery/ITERATION_LOG.md`.
+- Builder and verifier roles should be separate sessions/prompts where practical.
+- Do not mark work done unless verification evidence is recorded.
+
+Use `docs/delivery/WORKFLOW.md`, `docs/testing/VERIFICATION_CHECKLIST.md`, and `docs/product/MVP_EXIT_CRITERIA.md` for detailed delivery gates.
+
+---
+
 ## Verification Rules
 Before finishing substantial work:
 - run lint
