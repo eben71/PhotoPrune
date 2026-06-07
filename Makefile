@@ -103,8 +103,7 @@ python-locks-upgrade:
 	UV="$(UV)" ./scripts/sync-python-locks.sh --upgrade
 
 python-locks-check:
-	UV="$(UV)" ./scripts/sync-python-locks.sh
-	git diff --exit-code -- apps/api/uv.lock apps/api/requirements.lock apps/api/requirements-dev.lock apps/worker/uv.lock apps/worker/requirements.lock apps/worker/requirements-dev.lock
+	UV="$(UV)" ./scripts/sync-python-locks.sh --check
 
 hooks:
 	$(PNPM) lefthook install

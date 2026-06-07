@@ -37,7 +37,7 @@ Run these from the repo root unless the task is docs-only or another narrower pa
 ## Dependency lock maintenance
 - Run `make python-locks` after editing `apps/api/pyproject.toml` or `apps/worker/pyproject.toml` so `uv.lock`, `requirements.lock`, and `requirements-dev.lock` stay aligned.
 - Run `make python-locks-upgrade` when intentionally refreshing Python dependencies to the latest allowed versions. A scheduled workflow runs this weekly before Dependabot and opens a PR if lock files change.
-- CI runs `make python-locks-check` before installing Python dependencies so stale Dependabot or manual dependency edits fail with a focused lock-file diff instead of later audit failures.
+- CI runs the non-mutating `make python-locks-check` before installing Python dependencies so stale Dependabot or manual dependency edits fail with a focused lock-file diff instead of later audit failures. CI also pins the `uv` version used for lock checks and refreshes to avoid lock metadata churn from tool output-format changes.
 
 ## When a check is skipped
 - State the exact command not run.

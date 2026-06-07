@@ -24,7 +24,7 @@ pydantic-core==2.41.5
     # via pydantic
 pydantic-settings==2.4.0
     # via photoprune-api (pyproject.toml)
-python-dotenv==1.0.1
+python-dotenv==1.2.2
     # via
     #   photoprune-api (pyproject.toml)
     #   pydantic-settings

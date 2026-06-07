@@ -26,7 +26,7 @@
 - Build: `make build`
 - Sync Python lock files after Python dependency edits: `make python-locks`
 - Refresh Python lock files to latest allowed versions: `make python-locks-upgrade`
-- Verify Python lock files are in sync with the service `pyproject.toml` files: `make python-locks-check`
+- Verify Python lock files are in sync with the service `pyproject.toml` files without modifying the working tree: `make python-locks-check`
 - Local stack: `make dev`
 - Install git hooks: `make hooks`
 
@@ -42,6 +42,6 @@ The GitHub Actions workflow runs on PRs and `main` updates. It performs:
 - Documentation guard (`scripts/check-docs.js`) ensuring README stays in sync with commands/structure
 - Dependency audits (`pnpm audit --audit-level=high`, `pip-audit`)
 
-A scheduled GitHub Actions workflow runs `make python-locks-upgrade` before the weekly Dependabot window and opens or updates a Python lock refresh PR when allowed versions change. This keeps transient audit fixes, such as patched tooling packages pulled in by `pip-audit`, from repeatedly breaking Dependabot PRs.
+A scheduled GitHub Actions workflow runs `make python-locks-upgrade` before the weekly Dependabot window and opens or updates a Python lock refresh PR when allowed versions change. CI pins the `uv` version used for lock checks and refreshes so lock metadata does not churn when a new `uv` release changes output formatting. This keeps transient audit fixes, such as patched tooling packages pulled in by `pip-audit`, from repeatedly breaking Dependabot PRs.
 
 If a gate is hard to run locally, document why and how it is validated.

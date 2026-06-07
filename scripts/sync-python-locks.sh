@@ -3,21 +3,34 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: scripts/sync-python-locks.sh [--upgrade]
+Usage: scripts/sync-python-locks.sh [--check|--upgrade]
 
 Synchronize Python lock files for both Python services.
 
-Without --upgrade, uv preserves existing pins where possible and only rewrites
-lock files needed to match pyproject.toml. With --upgrade, uv refreshes allowed
-versions, which is intended for scheduled dependency-maintenance PRs.
+Without flags, uv preserves existing pins where possible and rewrites lock files
+needed to match pyproject.toml. With --upgrade, uv refreshes allowed versions,
+which is intended for scheduled dependency-maintenance PRs. With --check, the
+script verifies lock-file consistency without modifying the working tree.
 USAGE
 }
 
-upgrade=0
-if [[ "${1:-}" == "--upgrade" ]]; then
-  upgrade=1
-  shift
-fi
+mode="sync"
+case "${1:-}" in
+  --check)
+    mode="check"
+    shift
+    ;;
+  --upgrade)
+    mode="upgrade"
+    shift
+    ;;
+  "")
+    ;;
+  *)
+    usage >&2
+    exit 2
+    ;;
+esac
 if [[ $# -ne 0 ]]; then
   usage >&2
   exit 2
@@ -27,19 +40,42 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 uv_bin="${UV:-uv}"
 services=("apps/api" "apps/worker")
 
+check_service() {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  trap 'rm -rf "${tmpdir}"' RETURN
+
+  "${uv_bin}" lock --locked
+  "${uv_bin}" pip compile pyproject.toml -o "${tmpdir}/requirements.lock"
+  "${uv_bin}" pip compile pyproject.toml --group dev -o "${tmpdir}/requirements-dev.lock"
+
+  diff -u requirements.lock "${tmpdir}/requirements.lock"
+  diff -u requirements-dev.lock "${tmpdir}/requirements-dev.lock"
+}
+
 for service in "${services[@]}"; do
-  echo "Synchronizing Python locks for ${service}"
+  if [[ "${mode}" == "check" ]]; then
+    echo "Checking Python locks for ${service}"
+  else
+    echo "Synchronizing Python locks for ${service}"
+  fi
   pushd "${repo_root}/${service}" >/dev/null
 
-  if [[ "${upgrade}" -eq 1 ]]; then
-    "${uv_bin}" lock --upgrade
-    "${uv_bin}" pip compile --upgrade pyproject.toml -o requirements.lock
-    "${uv_bin}" pip compile --upgrade pyproject.toml --group dev -o requirements-dev.lock
-  else
-    "${uv_bin}" lock
-    "${uv_bin}" pip compile pyproject.toml -o requirements.lock
-    "${uv_bin}" pip compile pyproject.toml --group dev -o requirements-dev.lock
-  fi
+  case "${mode}" in
+    upgrade)
+      "${uv_bin}" lock --upgrade
+      "${uv_bin}" pip compile --upgrade pyproject.toml -o requirements.lock
+      "${uv_bin}" pip compile --upgrade pyproject.toml --group dev -o requirements-dev.lock
+      ;;
+    check)
+      check_service
+      ;;
+    sync)
+      "${uv_bin}" lock
+      "${uv_bin}" pip compile pyproject.toml -o requirements.lock
+      "${uv_bin}" pip compile pyproject.toml --group dev -o requirements-dev.lock
+      ;;
+  esac
 
   popd >/dev/null
 done

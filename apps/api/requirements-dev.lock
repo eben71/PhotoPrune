@@ -6,7 +6,7 @@ anyio==4.12.1
     # via
     #   httpx
     #   starlette
-black==26.3.1
+black==26.5.1
     # via photoprune-api (pyproject.toml:dev)
 boolean-py==5.0
     # via license-expression
@@ -62,7 +62,7 @@ mdurl==0.1.2
     # via markdown-it-py
 msgpack==1.1.2
     # via cachecontrol
-mypy==1.20.0
+mypy==1.20.2
     # via photoprune-api (pyproject.toml:dev)
 mypy-extensions==1.1.0
     # via
@@ -120,7 +120,7 @@ pytest==9.0.3
     #   pytest-cov
 pytest-cov==5.0.0
     # via photoprune-api (pyproject.toml:dev)
-python-dotenv==1.0.1
+python-dotenv==1.2.2
     # via
     #   photoprune-api (pyproject.toml)
     #   pydantic-settings
@@ -132,7 +132,7 @@ requests==2.32.5
     #   pip-audit
 rich==14.2.0
     # via pip-audit
-ruff==0.15.9
+ruff==0.15.13
     # via photoprune-api (pyproject.toml:dev)
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib
