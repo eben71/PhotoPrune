@@ -26,7 +26,7 @@
 - Build: `make build`
 - Sync Python lock files after Python dependency edits: `make python-locks`
 - Refresh Python lock files to latest allowed versions: `make python-locks-upgrade`
-- Verify Python lock files are in sync with the service `pyproject.toml` files without modifying the working tree: `make python-locks-check`
+- Verify Python lock files are in sync with the service `pyproject.toml` files without modifying the working tree or upgrading committed pins: `make python-locks-check`
 - Local stack: `make dev`
 - Install git hooks: `make hooks`
 
