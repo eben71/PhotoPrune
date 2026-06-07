@@ -10,6 +10,7 @@ Use the smallest useful check during iteration, then run the full repo gate befo
 - Coverage gate: `node scripts/check-coverage.mjs`
 - Root build: `make build`
 - Docs guard: `pnpm check:docs`
+- Python lock sync check: `make python-locks-check`
 
 ## Service-level checks
 - Web: `pnpm --filter web lint`, `pnpm --filter web typecheck`, `pnpm --filter web test`
@@ -25,12 +26,18 @@ Run these from the repo root unless the task is docs-only or another narrower pa
 4. `make test`
 5. `node scripts/check-coverage.mjs`
 6. `make build`
-7. `pnpm check:docs` when commands, structure, or workflow docs changed
+7. `make python-locks-check` when Python dependency manifests or lock files changed
+8. `pnpm check:docs` when commands, structure, or workflow docs changed
 
 ## Expected test coverage
 - UI changes should cover render behavior, confidence labels, and safe versus destructive action visibility.
 - API and worker changes should update or add pytest coverage for the changed behavior.
 - If a change is too small for new tests, explain why.
+
+## Dependency lock maintenance
+- Run `make python-locks` after editing `apps/api/pyproject.toml` or `apps/worker/pyproject.toml` so `uv.lock`, `requirements.lock`, and `requirements-dev.lock` stay aligned.
+- Run `make python-locks-upgrade` when intentionally refreshing Python dependencies to the latest allowed versions. A scheduled workflow runs this weekly before Dependabot and opens a PR if lock files change.
+- CI runs the non-mutating, pin-preserving `make python-locks-check` before installing Python dependencies so stale Dependabot or manual dependency edits fail with a focused lock-file diff instead of later audit failures. CI also pins the `uv` version used for lock checks and refreshes to avoid lock metadata churn from tool output-format changes.
 
 ## When a check is skipped
 - State the exact command not run.
