@@ -114,6 +114,18 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Relevant install/CI docs are updated.
   - CI dependency installation remains reproducible.
 
+### PP-011 Repair Python lock check and cleanup run pruning
+
+- Status: Done
+- Type: Chore / CI
+- Links: `apps/worker/pyproject.toml`, `.github/workflows/cleanup-runs.yml`, `docs/CONTRIBUTING.md`
+- Goal: Restore the Python lock check to a manifest/lock-consistent state and make scheduled cleanup prune old completed runs tied to closed PR refs or branch names.
+- Acceptance criteria:
+  - Worker Python dev dependency pins match the committed lock files.
+  - Cleanup run pruning detects closed PR runs by `pull_requests` metadata, `refs/pull/<number>/head` refs, and closed PR head branch names.
+  - Documentation reflects the cleanup behavior.
+  - Relevant checks are run or blockers are recorded.
+
 ### PP-010 Fix apps/web/AGENTS.md frontend notes link mismatch if confirmed
 
 - Status: Done
