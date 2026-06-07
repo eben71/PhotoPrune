@@ -33,7 +33,8 @@ jobs:
           closed_pr_cutoff_epoch=$(date -u -d "${RETAIN_CLOSED_PR_DAYS} days ago" +%s)
           deleted_branch_cutoff_epoch=$(date -u -d "${RETAIN_DELETED_BRANCH_DAYS} days ago" +%s)
           deleted_runs_file=$(mktemp)
-          trap 'rm -f "${deleted_runs_file}"' EXIT
+          closed_prs_file=$(mktemp)
+          trap 'rm -f "${deleted_runs_file}" "${closed_prs_file}"' EXIT
 
           log_delete() {
             local run_id="$1"
@@ -71,10 +72,27 @@ jobs:
 
           pr_is_closed() {
             local pr_number="$1"
-            gh api -H "Accept: application/vnd.github+json" \
-              "/repos/${REPO}/pulls/${pr_number}" \
-              --jq 'select(.state == "closed") | .number' | grep -q '[0-9]'
+            grep -Eq "^${pr_number}[[:space:]]" "${closed_prs_file}"
           }
+
+          run_matches_closed_pr_ref() {
+            local head_branch="$1"
+            [ -n "${head_branch}" ] || return 1
+
+            if [[ "${head_branch}" =~ ^refs/pull/([0-9]+)/head$ ]]; then
+              pr_is_closed "${BASH_REMATCH[1]}"
+              return
+            fi
+
+            awk -F '\t' -v branch="${head_branch}" '$2 == branch { found = 1 } END { exit !found }' "${closed_prs_file}"
+          }
+
+          closed_prs=$(gh api -H "Accept: application/vnd.github+json" \
+            "/repos/${REPO}/pulls?state=closed&per_page=100" --paginate)
+
+          echo "${closed_prs}" \
+            | jq -r '.[] | [.number, .head.ref] | @tsv' \
+            | sort -u > "${closed_prs_file}"
 
           all_runs=$(gh api -H "Accept: application/vnd.github+json" \
             "/repos/${REPO}/actions/runs?per_page=100" --paginate)
@@ -94,6 +112,13 @@ jobs:
                       break
                     fi
                   done <<< "${pr_numbers}"
+                fi
+
+                if [ -n "${head_branch}" ] \
+                  && ! is_protected_branch "${head_branch}" \
+                  && run_is_older_than "${updated_at}" "${closed_pr_cutoff_epoch}" \
+                  && run_matches_closed_pr_ref "${head_branch}"; then
+                  log_delete "${run_id}" "closed or merged PR ref ${head_branch}, older than ${RETAIN_CLOSED_PR_DAYS} days"
                 fi
 
                 if [ -n "${head_branch}" ] \
