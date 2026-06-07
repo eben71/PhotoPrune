@@ -9,40 +9,119 @@ jobs:
   cleanup:
     permissions:
       actions: write
+      contents: read
+      pull-requests: read
     runs-on: ubuntu-latest
     steps:
       - name: Cleanup old runs
         env:
           GH_TOKEN: ${{ github.token }}
           RETAIN_PER_BRANCH: 20
+          RETAIN_CLOSED_PR_DAYS: 14
+          RETAIN_DELETED_BRANCH_DAYS: 14
+          PROTECTED_BRANCHES: main
         run: |
           set -euo pipefail
 
           # Requires GitHub CLI (`gh`) to be available in the runner.
-          # RETAIN_PER_BRANCH controls how many recent runs to keep per branch.
+          # RETAIN_PER_BRANCH controls how many recent completed runs to keep per active branch.
+          # RETAIN_CLOSED_PR_DAYS controls how long to keep completed runs for merged/closed PRs.
+          # RETAIN_DELETED_BRANCH_DAYS controls how long to keep completed runs for deleted branches.
+          # PROTECTED_BRANCHES is a newline- or space-separated allowlist that is never pruned as deleted.
 
           REPO="${GITHUB_REPOSITORY}"
+          closed_pr_cutoff_epoch=$(date -u -d "${RETAIN_CLOSED_PR_DAYS} days ago" +%s)
+          deleted_branch_cutoff_epoch=$(date -u -d "${RETAIN_DELETED_BRANCH_DAYS} days ago" +%s)
+          deleted_runs_file=$(mktemp)
+          trap 'rm -f "${deleted_runs_file}"' EXIT
+
+          log_delete() {
+            local run_id="$1"
+            local reason="$2"
+
+            if grep -qx "${run_id}" "${deleted_runs_file}"; then
+              return 0
+            fi
+
+            echo "Deleting run ${run_id} (${reason})"
+            gh api -X DELETE "/repos/${REPO}/actions/runs/${run_id}"
+            echo "${run_id}" >> "${deleted_runs_file}"
+          }
+
+          is_protected_branch() {
+            local branch="$1"
+            tr ' ' '\n' <<< "${PROTECTED_BRANCHES}" | grep -Fxq "${branch}"
+          }
+
+          branch_exists() {
+            local branch="$1"
+            local encoded_branch
+            encoded_branch=$(jq -rn --arg value "${branch}" '$value|@uri')
+            gh api -H "Accept: application/vnd.github+json" \
+              "/repos/${REPO}/branches/${encoded_branch}" >/dev/null 2>&1
+          }
+
+          run_is_older_than() {
+            local updated_at="$1"
+            local cutoff_epoch="$2"
+            local updated_epoch
+            updated_epoch=$(date -u -d "${updated_at}" +%s)
+            [ "${updated_epoch}" -lt "${cutoff_epoch}" ]
+          }
+
+          pr_is_closed() {
+            local pr_number="$1"
+            gh api -H "Accept: application/vnd.github+json" \
+              "/repos/${REPO}/pulls/${pr_number}" \
+              --jq 'select(.state == "closed") | .number' | grep -q '[0-9]'
+          }
+
           all_runs=$(gh api -H "Accept: application/vnd.github+json" \
             "/repos/${REPO}/actions/runs?per_page=100" --paginate)
 
-          echo "$all_runs" \
-            | jq -c '.workflow_runs[] | select(.head_branch == null)' \
+          echo "${all_runs}" \
+            | jq -c '.workflow_runs[] | select(.status == "completed")' \
             | while read -r run; do
-                run_id=$(echo "$run" | jq -r '.id')
-                echo "Deleting run $run_id (no branch)"
-                gh api -X DELETE "/repos/${REPO}/actions/runs/${run_id}"
+                run_id=$(jq -r '.id' <<< "${run}")
+                updated_at=$(jq -r '.updated_at' <<< "${run}")
+                head_branch=$(jq -r '.head_branch // empty' <<< "${run}")
+
+                pr_numbers=$(jq -r '.pull_requests[]?.number' <<< "${run}" | sort -u)
+                if [ -n "${pr_numbers}" ] && run_is_older_than "${updated_at}" "${closed_pr_cutoff_epoch}"; then
+                  while read -r pr_number; do
+                    if [ -n "${pr_number}" ] && pr_is_closed "${pr_number}"; then
+                      log_delete "${run_id}" "closed or merged PR #${pr_number}, older than ${RETAIN_CLOSED_PR_DAYS} days"
+                      break
+                    fi
+                  done <<< "${pr_numbers}"
+                fi
+
+                if [ -n "${head_branch}" ] \
+                  && ! is_protected_branch "${head_branch}" \
+                  && run_is_older_than "${updated_at}" "${deleted_branch_cutoff_epoch}" \
+                  && ! branch_exists "${head_branch}"; then
+                  log_delete "${run_id}" "deleted branch ${head_branch}, older than ${RETAIN_DELETED_BRANCH_DAYS} days"
+                fi
+
+                if [ -z "${head_branch}" ] && run_is_older_than "${updated_at}" "${deleted_branch_cutoff_epoch}"; then
+                  log_delete "${run_id}" "no head branch, older than ${RETAIN_DELETED_BRANCH_DAYS} days"
+                fi
               done
 
-          echo "$all_runs" \
-            | jq -r '.workflow_runs[].head_branch' \
-            | grep -v '^null$' \
+          echo "${all_runs}" \
+            | jq -r '.workflow_runs[].head_branch // empty' \
             | sort -u \
             | while read -r branch; do
-                branch_runs=$(gh api -H "Accept: application/vnd.github+json" \
-                  "/repos/${REPO}/actions/runs?branch=${branch}&per_page=100" --paginate)
+                if [ -z "${branch}" ] || ! branch_exists "${branch}"; then
+                  continue
+                fi
 
-                echo "$branch_runs" \
-                  | jq -r --argjson retain "$RETAIN_PER_BRANCH" \
+                encoded_branch=$(jq -rn --arg value "${branch}" '$value|@uri')
+                branch_runs=$(gh api -H "Accept: application/vnd.github+json" \
+                  "/repos/${REPO}/actions/runs?branch=${encoded_branch}&per_page=100" --paginate)
+
+                echo "${branch_runs}" \
+                  | jq -r --argjson retain "${RETAIN_PER_BRANCH}" \
                     '.workflow_runs
                     | map(select(.status == "completed"))
                     | sort_by(.updated_at)
@@ -50,9 +129,8 @@ jobs:
                     | .[$retain:]
                     | .[].id' \
                   | while read -r run_id; do
-                      if [ -n "$run_id" ]; then
-                        echo "Deleting run $run_id for branch $branch (exceeds retention)"
-                        gh api -X DELETE "/repos/${REPO}/actions/runs/${run_id}"
+                      if [ -n "${run_id}" ]; then
+                        log_delete "${run_id}" "branch ${branch} exceeds ${RETAIN_PER_BRANCH}-run retention"
                       fi
                     done
               done
