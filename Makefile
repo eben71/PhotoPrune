@@ -42,7 +42,7 @@ endif
 # Clear any externally activated virtualenv so uv uses the service-local project env.
 UV_RUN := VIRTUAL_ENV= $(UV)
 
-.PHONY: setup dev dev-web lint format format-check typecheck test build hooks fixture-server
+.PHONY: setup dev dev-web lint format format-check typecheck test build hooks fixture-server python-locks python-locks-upgrade python-locks-check
 
 _dev_compose := $(DOCKER_RUN) compose -f docker-compose.yml -p photoprune
 _dev_compose_dev := $(DOCKER_RUN) compose -f docker-compose.yml -f docker-compose.dev.yml -p photoprune
@@ -95,6 +95,16 @@ build:
 	$(PNPM) build
 	cd apps/api && $(UV_RUN) run python -m compileall app
 	cd apps/worker && $(UV_RUN) run python -m compileall app
+
+python-locks:
+	UV="$(UV)" ./scripts/sync-python-locks.sh
+
+python-locks-upgrade:
+	UV="$(UV)" ./scripts/sync-python-locks.sh --upgrade
+
+python-locks-check:
+	UV="$(UV)" ./scripts/sync-python-locks.sh
+	git diff --exit-code -- apps/api/uv.lock apps/api/requirements.lock apps/api/requirements-dev.lock apps/worker/uv.lock apps/worker/requirements.lock apps/worker/requirements-dev.lock
 
 hooks:
 	$(PNPM) lefthook install
