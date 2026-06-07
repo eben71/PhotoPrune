@@ -128,7 +128,7 @@ requests==2.32.5
     #   pip-audit
 rich==14.2.0
     # via pip-audit
-ruff==0.15.13
+ruff==0.15.14
     # via photoprune-api (pyproject.toml:dev)
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib
