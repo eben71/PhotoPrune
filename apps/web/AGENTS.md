@@ -12,6 +12,7 @@ This layer applies only inside `apps/web`.
 
 - Keep photos visually primary and the review group as the main UX unit.
 - Confidence UI and copy may only use `High`, `Medium`, or `Low`.
+- Similarity explanations may use plain-English reasons, but numeric similarity percentages require an explicit product-policy task before implementation.
 - Separate primary, secondary, and destructive actions clearly.
 - Use shared components and tokens before adding page-local styling.
 - Preserve responsive behavior, keyboard access, visible focus states, and reduced-motion support.

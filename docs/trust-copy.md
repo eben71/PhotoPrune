@@ -7,6 +7,8 @@
 - Be transparent about limitations and failure modes (cap reached, partial analysis, network interruption).
 - Reassure safety in every critical state: no deletion and session-only behavior.
 - Keep controls predictable: cancel/exit always explains discard behavior.
+- Explain identical/similar grouping in plain English, such as shared people or backgrounds.
+- Do not introduce numeric similarity percentages unless the product-policy decision has been explicitly resolved and the related trust docs, tests, and copy rules are updated together.
 
 ## Where strings live
 

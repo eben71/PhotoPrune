@@ -18,6 +18,8 @@
 
 Phase 3 recurring workflows are complete for picker-selected and album/set-scoped projects, including retryable album/set ingestion, resumable page checkpoints, large-project rescan validation, and deterministic scan diffs.
 
+The current MVP readiness target is a practical Chrome demo using the product owner's real authenticated Google Photos library: select one or more albums or picker-selected photos, run a read-only scan, review grouped identical/similar candidates, mark decisions, and open exact Google Photos links for manual cleanup. Previous scan history is nice to have, but not required for MVP.
+
 ## Phase 3 - Recurring Workflow & Scoped Ingestion (Complete)
 
 ### 3.1 Projects & Persistence
@@ -64,13 +66,14 @@ Phase 3 recurring workflows are complete for picker-selected and album/set-scope
 
 ## Next Milestones
 
-1. Improve cross-scan matching only where deterministic persisted fingerprints support it.
-2. Confirm recurring workflow outcomes before expanding beyond the current trust boundaries.
+1. Verify or implement the real authenticated Google Photos album/picker MVP flow.
+2. Resolve the numeric similarity evidence policy before building any percentage-based UI.
+3. Confirm recurring workflow outcomes before expanding beyond the current trust boundaries.
 
 ## Guardrails (Always On)
 
 - No automatic deletion or hidden destructive actions.
-- No similarity percentages in product UX.
+- No similarity percentages in product UX unless a dedicated product-policy task explicitly resolves that decision and updates trust docs, tests, and UI copy rules together.
 - Confidence labels limited to `High` / `Medium` / `Low`.
 - Group-based review remains the primary interaction model.
 - No silent scope expansion beyond user-selected ingestion and manual action guidance.

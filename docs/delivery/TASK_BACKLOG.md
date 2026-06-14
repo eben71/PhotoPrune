@@ -25,10 +25,11 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Status: Ready
 - Type: UI / Trust
 - Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, `apps/web/AGENTS.md`
-- Goal: Ensure visible Settings and Profile/Account affordances either work or are intentionally unavailable with MVP-safe copy.
+- Goal: Ensure visible Settings and Profile/Account affordances show only required MVP account details and settings, with non-required items hidden or clearly unavailable.
 - Acceptance criteria:
-  - Settings does not route ambiguously to `/` unless labelled intentionally unavailable.
-  - Profile/account icon has a clear MVP decision: implement, disable, hide, or document out of scope.
+  - Settings does not route ambiguously to `/`.
+  - Required MVP account details and settings are visible and working.
+  - Non-required account/settings items are hidden or clearly unavailable.
   - Screenshots prove visible home/header states.
   - Backlog and iteration log are updated.
 
@@ -56,14 +57,15 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-004 Create manual MVP demo checklist
 
-- Status: Ready
+- Status: Done
 - Type: Docs / Verification
-- Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`
+- Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`
 - Goal: Define a human demo checklist that must pass before MVP exit.
 - Acceptance criteria:
-  - Checklist includes setup, data path, scan start, progress, grouped review, manual cleanup guidance, and limitations.
-  - Checklist includes Settings/Profile expected behavior.
+  - Checklist includes Chrome, real Google login, read-only Google Photos scope, scan start, progress, grouped review, manual cleanup guidance, and limitations.
+  - Checklist includes Settings/Profile expected behavior for required MVP account details only.
   - Checklist references artifacts/screenshots to capture.
+  - Note: This task created the checklist only; passing the checklist remains required before MVP exit.
 
 ## P1
 
@@ -82,7 +84,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Type: UI / Docs
 - Links: `AGENT_RULES.md`, `docs/trust-copy.md`, `docs/product/DO_NOT_BUILD.md`
 - Acceptance criteria:
-  - UI copy contains no similarity percentages, auto-delete claims, unsupported recovery claims, hypey AI copy, or unsupported privacy/local-only claims.
+  - UI copy contains no unsupported similarity percentages, auto-delete claims, unsupported recovery claims, hypey AI copy, or unsupported privacy/local-only claims.
   - Findings are documented with follow-up tasks if fixes are needed.
 
 ### PP-007 Add task-discovery follow-up workflow
@@ -135,3 +137,63 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Acceptance criteria:
   - Link target points to `docs/frontend-design-implementation-notes.md`.
   - Docs guard passes.
+
+### PP-012 Record product-owner MVP alignment in canonical docs
+
+- Status: Done
+- Type: Docs / Product
+- Links: `docs/questionnaires/MVP_ALIGNMENT_QUESTIONNAIRE.md`, `docs/product/MVP_EXIT_CRITERIA.md`, `docs/product/MVP_PROGRESS_LEDGER.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`
+- Goal: Convert questionnaire answers into canonical MVP scope, demo, trust, verification, and backlog docs without implementing product changes.
+- Acceptance criteria:
+  - Product docs identify the MVP user, promise, real Google Photos data path, session-only persistence, required Settings/Profile scope, and manual cleanup link-out.
+  - Trust docs preserve no auto-delete, no in-app delete, no write scope, and no unsupported storage/sharing/privacy claims.
+  - Similarity percentages are recorded as a dedicated product-policy decision before implementation.
+  - Docs guard passes or any blocker is recorded.
+
+### PP-013 Resolve numeric similarity evidence policy
+
+- Status: Ready
+- Type: Product / Trust
+- Links: `AGENT_RULES.md`, `docs/product/DO_NOT_BUILD.md`, `docs/trust-copy.md`, `docs/questionnaires/MVP_ALIGNMENT_QUESTIONNAIRE.md`
+- Goal: Decide whether MVP should show numeric similarity percentages or only plain-English similarity reasons and confidence bands.
+- Acceptance criteria:
+  - Product owner decision is recorded explicitly.
+  - If percentages are approved, UI copy rules explain where they may appear and how they differ from confidence.
+  - If percentages remain prohibited, review explanation requirements are updated to avoid numeric scoring.
+  - Tests and smoke assertions are updated to match the decision.
+
+### PP-014 Implement or verify real authenticated Google Photos MVP flow
+
+- Status: Ready
+- Type: Product / Integration
+- Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`
+- Goal: Prove the MVP path with a real Google account, real read-only album or picker content, scan, review, and manual cleanup link-out in Chrome.
+- Acceptance criteria:
+  - Authenticated Google flow works without write scope.
+  - User can scan a single album, multiple albums, and picker-selected photos, or unsupported subpaths are clearly recorded as blockers.
+  - Results show grouped identical/similar candidates from real Google Photos content.
+  - Manual demo evidence is recorded.
+
+### PP-015 Implement or verify session-only scan persistence and timeout recovery
+
+- Status: Ready
+- Type: Product / Reliability
+- Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/product/MVP_PROGRESS_LEDGER.md`
+- Goal: Store only what is needed to complete the current scan and preserve current-session selections after timeout where technically possible.
+- Acceptance criteria:
+  - Current-session selections survive an in-session timeout where possible.
+  - Browser close restart behavior is documented as acceptable for MVP.
+  - Previous scan history is not required for MVP readiness.
+  - Tests or manual evidence cover timeout behavior.
+
+### PP-016 Implement or verify Google Photos exact-photo link-out for manual cleanup
+
+- Status: Ready
+- Type: Product / Trust
+- Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`
+- Goal: Let users open the exact selected photo in Google Photos in a new tab for manual cleanup outside PhotoPrune.
+- Acceptance criteria:
+  - Each selected cleanup candidate has a link or reference to the exact Google Photos item.
+  - Link opens in a new tab.
+  - No in-app delete option or write-scope action is introduced.
+  - Manual cleanup guidance remains clear and non-destructive.

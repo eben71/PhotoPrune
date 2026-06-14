@@ -25,7 +25,8 @@ Open [AGENT_RULES.md](AGENT_RULES.md) before making meaningful changes. It is th
 ## Critical constraints
 - Stay inside the current product scope unless the task explicitly expands it.
 - Do not add auto-delete flows, deletion recovery claims, or hidden destructive actions.
-- Do not show similarity percentages. Confidence stays `High`, `Medium`, or `Low`.
+- Confidence stays `High`, `Medium`, or `Low`.
+- Do not show similarity percentages unless a dedicated product-policy task explicitly resolves that decision and updates the trust docs, tests, and copy rules together.
 - Keep the UX group-based, trust-first, and plain-English.
 - Prefer small, isolated changes. Do not add dependencies unless the task clearly needs them.
 - When asked to audit, repair, standardize, or future-proof this repository's agent guidance or repo-local skills, use the `maintain-agent-system` skill.
