@@ -11,11 +11,16 @@ This page summarizes repo evidence without assuming the app is MVP-usable.
 
 ## What still needs validation
 
-- Whether the current app can be demoed end-to-end as an MVP without confusing visible actions.
-- Whether Settings and Profile/Account affordances are working, hidden, disabled, or labelled as unavailable.
+- Whether the current app can be demoed end-to-end as an MVP against a real authenticated Google Photos account in Chrome.
+- Whether the app can scan a single album, multiple albums, and picker-selected photos without full-library scope.
+- Whether the review flow can identify identical and similar photos with understandable reasons.
+- Whether selected photos can open as exact Google Photos links in a new tab for manual cleanup.
+- Whether Settings and Profile/Account affordances show only required MVP account details and settings.
+- Whether current-session selections survive an in-session timeout where technically possible.
 - Whether a root MVP Playwright smoke test exists and covers the golden path.
 - Whether full CI and docs guard are green after the reset.
 - Whether Phase 3 completion language matches actual product usability.
+- Whether numeric similarity percentages should remain prohibited or become an explicitly approved MVP decision-support feature.
 
 ## Known UX symptoms from product owner
 
@@ -29,4 +34,4 @@ Not yet verified.
 
 ## Next step
 
-Complete these reset artifacts, then run P0 usability work and the MVP smoke-test pass from `docs/delivery/TASK_BACKLOG.md`.
+Use `docs/questionnaires/MVP_ALIGNMENT_QUESTIONNAIRE.md` as the product-owner alignment source, then run P0 usability work and the MVP smoke/manual-demo gates from `docs/delivery/TASK_BACKLOG.md`.

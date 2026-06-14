@@ -29,12 +29,15 @@ Do not prioritise cleverness over trust.
 - The UX unit is the group.
 - The app does not auto-delete photos.
 - Confidence is displayed only as `High`, `Medium`, or `Low`.
+- MVP must support a practical authenticated, read-only Google Photos flow for the product owner's real library, focused on single albums, multiple albums, and picker-selected photos.
+- MVP does not require previous scan history. Session persistence should cover only what is needed to complete the current scan; restarting after browser close is acceptable.
+- Review explanations may describe why photos look identical or similar in plain English, such as shared people or backgrounds.
 - Users must always feel in control.
 
 ---
 
 ## Non-Negotiables
-- Do not introduce similarity percentages.
+- Do not introduce similarity percentages unless a dedicated product-policy task explicitly resolves that decision and updates trust docs, tests, and UI copy rules together.
 - Do not add hypey or theatrical AI copy.
 - Do not imply destructive actions happen automatically.
 - Do not claim unsupported technical behaviour.
@@ -80,6 +83,7 @@ Prefer plain English:
 
 Avoid:
 - "98% match"
+- "92% similar"
 - "Neural engine"
 - "Digital curator engine"
 - "Deep scan"
@@ -111,5 +115,6 @@ Before finishing substantial work:
 - run build
 - run docs guard if commands, repo structure, or workflow docs changed
 - confirm no percentage-based confidence remains
+- confirm no unsupported similarity percentages appear
 - confirm no unsupported deletion or recovery claims remain
 - confirm scope has not expanded silently

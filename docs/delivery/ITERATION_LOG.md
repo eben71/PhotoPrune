@@ -62,3 +62,26 @@ Record every implementation or verification iteration here. The log is repo trut
 - Backlog updates: Added PP-011.
 - Follow-up tasks created: None.
 - Residual risk: Full non-mutating Python lock check still requires network access to PyPI for `uv pip compile`; local tunnel blocks that verification.
+
+### 2026-06-14 - PP-012 Record product-owner MVP alignment in canonical docs
+
+- Role: Builder
+- Status: Done
+- Goal: Convert `docs/questionnaires/MVP_ALIGNMENT_QUESTIONNAIRE.md` answers into canonical MVP scope, demo, trust, verification, and backlog docs without implementing product changes.
+- Acceptance criteria checked:
+  - Product docs identify the MVP user, promise, real Google Photos data path, session-only persistence, required Settings/Profile scope, and manual cleanup link-out.
+  - Trust docs preserve no auto-delete, no in-app delete, no write scope, and no unsupported storage/sharing/privacy claims.
+  - Numeric similarity percentages are recorded as a dedicated product-policy decision before implementation.
+  - Manual MVP demo checklist is recorded as a follow-up task.
+- Commands run:
+  - `Select-String -Path docs\questionnaires\MVP_ALIGNMENT_QUESTIONNAIRE.md -Pattern 'TBD|Missing' -CaseSensitive` found only the introductory questionnaire instruction.
+  - `pnpm check:docs` passed.
+  - `pnpm exec prettier --check ...` failed because the workspace could not access Corepack's pnpm cache inside the sandbox, then outside the sandbox reported no `prettier` binary.
+  - `pnpm format:check` failed because `packages/shared/node_modules/prettier/bin/prettier.cjs` is missing.
+  - `pnpm install --frozen-lockfile` failed inside and outside the sandbox with `EACCES` opening `packages/shared/node_modules/prettier/package.json`.
+- Manual verification: Reviewed questionnaire answers against updated canonical docs and backlog tasks.
+- Artifacts/screenshots: Not applicable; docs-only product alignment.
+- Scope correction: Reverted earlier updates to files outside the artifact list requested by the product-alignment prompt.
+- Backlog updates: Updated PP-004 for the Chrome real-Google manual demo checklist, added PP-012 through PP-016.
+- Follow-up tasks created: PP-013, PP-014, PP-015, PP-016.
+- Residual risk: MVP usability remains unverified until PP-014 and the manual demo checklist pass. Markdown formatting was not fully verified because the local `node_modules` tree has a Prettier permission/install issue.
