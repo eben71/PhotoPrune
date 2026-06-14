@@ -13,3 +13,7 @@ pre-commit:
     worker-format:
       run: |
         cd apps/worker && uv run black --check app tests
+    python-locks-locked:
+      run: |
+        cd apps/api && uv lock --locked
+        cd ../worker && uv lock --locked
