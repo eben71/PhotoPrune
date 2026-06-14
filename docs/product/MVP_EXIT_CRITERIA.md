@@ -37,7 +37,7 @@ MVP is ready only when all gates below pass and the evidence is recorded in `doc
 
 - MVP Playwright smoke test passes for the golden path in `docs/testing/MVP_SMOKE_TEST_PLAN.md`.
 - Full CI gate passes: lint, format check, typecheck, tests, coverage gate, build, docs guard, and audits where applicable.
-- Manual MVP demo checklist in `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md` passes in Chrome and is recorded.
+- Manual MVP demo checklist passes in Chrome and is recorded.
 - Any known limitation is documented in `docs/product/MVP_PROGRESS_LEDGER.md` and has a follow-up task if it blocks launch.
 
 ## Known current status

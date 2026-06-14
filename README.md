@@ -9,7 +9,7 @@ It is a **trust-first, review-only** product:
 
 ## Current Product Status
 
-PhotoPrune has completed its Phase 3 picker-scoped recurring workflow as a technical milestone:
+PhotoPrune has completed its Phase 3 picker-scoped recurring workflow:
 - projects can be reopened over time
 - each project stores explicit picker scope metadata
 - projects can hold multiple saved scans
@@ -17,8 +17,6 @@ PhotoPrune has completed its Phase 3 picker-scoped recurring workflow as a techn
 - latest scans are compared with the previous scan
 - new, changed, and previously reviewed unchanged groups are surfaced for review
 - unchanged reviewed groups keep their done state
-
-MVP readiness is now measured against a practical product-owner flow: log in with an actual Google account, scan real read-only Google Photos content from a single album, multiple albums, or picker-selected photos, review grouped identical/similar candidates, and open exact Google Photos links for manual cleanup. Previous scan history is nice to have, but not required for MVP.
 
 The Phase 2 trust-first review foundation remains locked:
 - review UX stays calm and group-based
@@ -35,11 +33,11 @@ PhotoPrune is designed around:
 - calm, plain-English guidance
 - predictable review flows
 - confidence bands only: `High`, `Medium`, `Low`
-- group-based review with plain-English similarity reasons
+- group-based review, not raw similarity scoring
 
 ### Explicitly not supported
 - automatic deletion
-- similarity percentages in the UI unless the product-policy decision is explicitly resolved and trust docs/tests/copy rules are updated together
+- similarity percentages in the UI
 - library-wide scanning in the current product scope
 - hidden destructive actions
 - write-scope Google Photos actions

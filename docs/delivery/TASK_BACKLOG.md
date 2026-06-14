@@ -57,15 +57,14 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-004 Create manual MVP demo checklist
 
-- Status: Done
+- Status: Ready
 - Type: Docs / Verification
-- Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`
+- Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`
 - Goal: Define a human demo checklist that must pass before MVP exit.
 - Acceptance criteria:
   - Checklist includes Chrome, real Google login, read-only Google Photos scope, scan start, progress, grouped review, manual cleanup guidance, and limitations.
   - Checklist includes Settings/Profile expected behavior for required MVP account details only.
   - Checklist references artifacts/screenshots to capture.
-  - Note: This task created the checklist only; passing the checklist remains required before MVP exit.
 
 ## P1
 
@@ -166,7 +165,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 - Status: Ready
 - Type: Product / Integration
-- Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`
+- Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`
 - Goal: Prove the MVP path with a real Google account, real read-only album or picker content, scan, review, and manual cleanup link-out in Chrome.
 - Acceptance criteria:
   - Authenticated Google flow works without write scope.
@@ -190,7 +189,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 - Status: Ready
 - Type: Product / Trust
-- Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`
+- Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`
 - Goal: Let users open the exact selected photo in Google Photos in a new tab for manual cleanup outside PhotoPrune.
 - Acceptance criteria:
   - Each selected cleanup candidate has a link or reference to the exact Google Photos item.

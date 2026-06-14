@@ -43,7 +43,7 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 - Playwright MVP smoke gate needs to be confirmed or added.
 - There is no obvious root MVP smoke/e2e script in `package.json`.
 - Full repo verification must be run and recorded after the reset.
-- Manual MVP demo checklist exists and still needs to be passed and recorded.
+- Manual MVP demo checklist still needs to be created, passed, and recorded.
 - CI uses pnpm `9.12.2` while `package.json` declares pnpm `10.30.3`; this is recorded as PP-009 and should be aligned or explicitly documented.
 - Similarity percentage policy must be resolved before any numeric similarity UI is implemented.
 
@@ -72,7 +72,7 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 - P0 PP-001: Verify/fix visible home navigation and profile/account affordances.
 - P0 PP-002: Add or confirm MVP Playwright smoke test for the golden path.
 - P0 PP-003: Run full repo verification gate and reconcile failures.
-- P0 PP-004: Pass and record the manual MVP demo checklist.
+- P0 PP-004: Create, pass, and record the manual MVP demo checklist.
 - P1 PP-005: Reconcile Phase 3 “complete” roadmap status with actual MVP usability.
 - P0 PP-013: Resolve numeric similarity evidence policy.
 - P0 PP-014: Implement or verify the real authenticated Google Photos MVP flow.
