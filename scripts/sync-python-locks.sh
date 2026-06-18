@@ -38,6 +38,9 @@ if [[ $# -ne 0 ]]; then
 fi
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ "${mode}" == "check" ]]; then
+  python3 "${repo_root}/scripts/check-python-lock-pins.py"
+fi
 uv_bin="${UV:-uv}"
 services=("apps/api" "apps/worker")
 
