@@ -1,6 +1,17 @@
 ---
 name: maintain-agent-system
-description: Audit and maintain this repository's Codex instruction system and skill system. Use when the task is to review, repair, standardize, or optimize AGENTS.md files, AGENT_RULES.md, nested instruction layers, repo-local skills, skill templates, or skill authoring standards. Use when the goal is to reduce instruction bloat, remove duplication, improve routing clarity, validate skill structure, or future-proof the repo's agent setup. Do not use for normal feature development, bug fixing, CI repair, or code review unless the task is specifically about the repository's agent guidance or skills. Outputs should include: the current instruction topology, issues found, proposed changes, implemented fixes where requested, and a concise summary of what Codex will auto-discover versus what must be referenced manually.
+description: >-
+  Audit and maintain this repository's Codex instruction system and skill system.
+  Use when the task is to review, repair, standardize, or optimize AGENTS.md
+  files, AGENT_RULES.md, nested instruction layers, repo-local skills, skill
+  templates, or skill authoring standards. Use when the goal is to reduce
+  instruction bloat, remove duplication, improve routing clarity, validate skill
+  structure, or future-proof the repo's agent setup. Do not use for normal
+  feature development, bug fixing, CI repair, or code review unless the task is
+  specifically about the repository's agent guidance or skills. Outputs should
+  include the current instruction topology, issues found, proposed changes,
+  implemented fixes where requested, and a concise summary of what Codex will
+  auto-discover versus what must be referenced manually.
 ---
 
 # Purpose
