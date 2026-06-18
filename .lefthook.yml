@@ -13,6 +13,9 @@ pre-commit:
     worker-format:
       run: |
         cd apps/worker && uv run black --check app tests
+    python-lock-pins:
+      run: |
+        python3 scripts/check-python-lock-pins.py
     python-locks-locked:
       run: |
         cd apps/api && uv lock --locked

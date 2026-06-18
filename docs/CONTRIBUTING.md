@@ -33,7 +33,7 @@
 ## CI gates
 The GitHub Actions workflow runs on PRs and `main` updates. It performs:
 - Dependency installation (pnpm + uv)
-- Python lock-file consistency (`make python-locks-check`)
+- Python lock-file consistency (`make python-locks-check`, including the offline exact-pin guard in `scripts/check-python-lock-pins.py`)
 - Lint (web + shared via ESLint, Python via Ruff)
 - Format check (Prettier + Black)
 - Type checking (TypeScript + MyPy)
