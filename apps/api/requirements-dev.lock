@@ -112,7 +112,7 @@ pygments==2.20.0
     #   rich
 pyparsing==3.3.2
     # via pip-requirements-parser
-pytest==9.1.0
+pytest==9.1.1
     # via
     #   photoprune-api (pyproject.toml:dev)
     #   pytest-cov
@@ -130,7 +130,7 @@ requests==2.34.2
     #   pip-audit
 rich==15.0.0
     # via pip-audit
-ruff==0.15.17
+ruff==0.15.18
     # via photoprune-api (pyproject.toml:dev)
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib
