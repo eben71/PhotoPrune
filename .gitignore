@@ -45,16 +45,16 @@ apps/web/tests/fixtures/tmp/
 apps/web/tests/fixtures/local/
 
 # BMAD framework/tooling
-_bmad/.agents/
-_bmad/.claude/
-_bmad/_bmad/
+.agents/
+.claude/
+_bmad/
 
 # Personal BMAD config
-_bmad/_bmad/config.user.toml
-_bmad/_bmad/custom/*.user.toml
+_bmad/config.user.toml
+_bmad/custom/*.user.toml
 
 # Ignore noisy BMAD/generated scratch files if they appear
-_bmad/_bmad-output/tmp/
-_bmad/_bmad-output/cache/
-_bmad/_bmad-output/logs/
-_bmad/_bmad-output/deferred-work.md
+_bmad-output/tmp/
+_bmad-output/cache/
+_bmad-output/logs/
+_bmad-output/deferred-work.md
