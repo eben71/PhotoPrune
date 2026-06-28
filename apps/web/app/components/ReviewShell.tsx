@@ -54,14 +54,18 @@ export function ReviewShell({
                 Review
               </Link>
             ) : null}
-            <Link href="/" className="shell-nav-link">
+            <Link href={{ pathname: '/settings' }} className="shell-nav-link">
               Settings
             </Link>
           </nav>
 
-          <div className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--pp-primary)]">
+          <Link
+            href={{ pathname: '/account' }}
+            aria-label="Account status"
+            className="header-profile"
+          >
             <AppIcon name="profile" className="h-[18px] w-[18px]" />
-          </div>
+          </Link>
         </div>
       </header>
 

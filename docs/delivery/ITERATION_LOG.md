@@ -19,6 +19,35 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-06-28 - PP-001 Verify/fix visible home navigation and profile/account affordances
+
+- Role: Builder
+- Status: Verifying
+- Goal: Fix visible home header Settings and Account/Profile affordances so they are non-ambiguous, accessible, and limited to required MVP account/settings behavior.
+- Acceptance criteria checked:
+  - Settings no longer routes to `/`; it routes to `/settings`.
+  - Account/Profile is an accessible `Account status` link to `/account`.
+  - Settings and account pages expose only MVP-scoped account/settings details and clearly list unavailable non-required settings.
+  - Desktop and mobile screenshots show the visible home/header state.
+- Commands run:
+  - `pnpm --filter web test -- home.test.tsx` passed after BMAD review fixes: 13 test files, 61 tests, coverage lines 81.24%.
+  - `pnpm --filter web lint` passed.
+  - `pnpm --filter web typecheck` passed.
+  - `pnpm --filter web format:check` passed after running `pnpm --filter web format`.
+  - `pnpm --filter web build` passed and listed `/settings` and `/account` in the app route table.
+  - `pnpm check:docs` passed.
+- Manual verification:
+  - Launched the web app locally through Next dev and captured desktop and mobile home/header screenshots with system Chrome.
+  - Browser check confirmed `Settings` resolves to `/settings` and `Account status` resolves to `/account`.
+  - BMAD blind, edge-case, and acceptance review subagents completed.
+  - Fixed review findings for null-safe pathname handling, narrow mobile header spacing, and stale `ReviewShell` Settings/Profile affordances.
+- Artifacts/screenshots:
+  - `docs/delivery/artifacts/PP-001/home-header-desktop.png`
+  - `docs/delivery/artifacts/PP-001/home-header-mobile.png`
+- Backlog updates: Moved PP-001 from Ready to Verifying.
+- Follow-up tasks created: None.
+- Residual risk: Full repo verification remains to be run after the focused PP-001 checks.
+
 ### 2026-05-18 — PP-000 Agentic Delivery Reset
 
 - Role: Builder

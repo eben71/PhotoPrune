@@ -28,6 +28,7 @@ Open [AGENT_RULES.md](AGENT_RULES.md) before making meaningful changes. It is th
 - Do not show similarity percentages. Confidence stays `High`, `Medium`, or `Low`.
 - Keep the UX group-based, trust-first, and plain-English.
 - Prefer small, isolated changes. Do not add dependencies unless the task clearly needs them.
+- For implementation or story work, if the current branch is `main`, create and switch to a scoped `codex/<task-or-story-slug>` branch before editing files.
 - When asked to audit, repair, standardize, or future-proof this repository's agent guidance or repo-local skills, use the `maintain-agent-system` skill.
 
 ## Verification
