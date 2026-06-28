@@ -9,14 +9,14 @@ pre-commit:
         pnpm --filter web format:check
     api-format:
       run: |
-        cd apps/api && uv run black --check app tests
+        cd apps/api && UV_CACHE_DIR=../../.uv-cache uv run --no-project --with black==26.5.1 black --check app tests
     worker-format:
       run: |
-        cd apps/worker && uv run black --check app tests
+        cd apps/worker && UV_CACHE_DIR=../../.uv-cache uv run --no-project --with black==26.5.1 black --check app tests
     python-lock-pins:
       run: |
-        python3 scripts/check-python-lock-pins.py
+        UV_CACHE_DIR=.uv-cache uv run python scripts/check-python-lock-pins.py
     python-locks-locked:
       run: |
-        cd apps/api && uv lock --locked
-        cd ../worker && uv lock --locked
+        cd apps/api && UV_CACHE_DIR=../../.uv-cache uv lock --locked
+        cd ../worker && UV_CACHE_DIR=../../.uv-cache uv lock --locked
