@@ -4,9 +4,9 @@ amqp==5.3.1
     # via kombu
 billiard==4.2.4
     # via celery
-celery==5.4.0
+celery==5.6.3
     # via photoprune-worker (pyproject.toml)
-click==8.3.1
+click==8.4.1
     # via
     #   celery
     #   click-didyoumean
@@ -20,7 +20,7 @@ click-repl==0.3.0
     # via celery
 kombu==5.6.2
     # via celery
-packaging==25.0
+packaging==26.2
     # via kombu
 prompt-toolkit==3.0.52
     # via click-repl
@@ -28,18 +28,18 @@ python-dateutil==2.9.0.post0
     # via celery
 python-dotenv==1.2.2
     # via photoprune-worker (pyproject.toml)
-redis==5.0.8
+redis==8.0.0
     # via photoprune-worker (pyproject.toml)
 six==1.17.0
     # via python-dateutil
-tzdata==2025.3
-    # via
-    #   celery
-    #   kombu
+tzdata==2026.2
+    # via kombu
+tzlocal==5.4.3
+    # via celery
 vine==5.1.0
     # via
     #   amqp
     #   celery
     #   kombu
-wcwidth==0.2.14
+wcwidth==0.8.1
     # via prompt-toolkit
