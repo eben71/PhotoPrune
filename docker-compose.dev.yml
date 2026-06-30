@@ -35,7 +35,7 @@ services:
       [
         "/bin/bash",
         "-lc",
-        "pnpm --filter web... install --frozen-lockfile && cd /app/apps/web && ./node_modules/.bin/next dev -H 0.0.0.0 -p 3000"
+        "pnpm install --frozen-lockfile --config.dangerously-allow-all-builds=true && cd /app/apps/web && ./node_modules/.bin/next dev -H 0.0.0.0 -p 3000"
       ]
     volumes:
       - ./package.json:/app/package.json:ro

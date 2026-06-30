@@ -4,7 +4,7 @@ Use this workflow for every delivery task. Repo docs are the source of truth acr
 
 ## Steps
 
-1. Select one `Ready` task from `docs/delivery/TASK_BACKLOG.md`.
+1. Select the first `Ready` task from `docs/delivery/TASK_BACKLOG.md`.
 2. Create an isolated branch or worktree, optionally via Baton.
 3. Builder agent implements only that task.
 4. Builder updates tests, docs, backlog, and `docs/delivery/ITERATION_LOG.md`.
@@ -17,7 +17,7 @@ Use this workflow for every delivery task. Repo docs are the source of truth acr
 
 ## WIP limits
 
-- Maximum 2-3 concurrent Baton/worktree tasks.
+- Maximum 2-3 concurrent BMAP/Baton/worktree tasks.
 - Only one P0 usability task at a time unless tasks are clearly independent.
 - A task stays unfinished until evidence is in the iteration log.
 

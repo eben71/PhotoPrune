@@ -22,7 +22,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-001 Verify/fix visible home navigation and profile/account affordances
 
-- Status: Ready
+- Status: Done
 - Type: UI / Trust
 - Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, `apps/web/AGENTS.md`
 - Goal: Ensure visible Settings and Profile/Account affordances show only required MVP account details and settings, with non-required items hidden or clearly unavailable.
@@ -65,6 +65,47 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Checklist includes Chrome, real Google login, read-only Google Photos scope, scan start, progress, grouped review, manual cleanup guidance, and limitations.
   - Checklist includes Settings/Profile expected behavior for required MVP account details only.
   - Checklist references artifacts/screenshots to capture.
+
+### PP-017 Resolve manual review findings for PP-001 navigation labels and settings copy
+
+- Status: Done
+- Type: UI / Navigation / Trust
+- Links: `docs/delivery/ITERATION_LOG.md`, `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, `apps/web/AGENTS.md`
+- Goal: Resolve product-owner manual review findings where top navigation labels do not clearly match their routes and the Settings page exposes implementation-phase language.
+- Acceptance criteria:
+  - Settings page heading uses user-facing copy such as `Settings`, not `MVP Settings`.
+  - Top navigation labels and destinations are consistent across the home header and review shell.
+  - `History` is either backed by an intentional `/history` experience or renamed/reworked so it does not ambiguously point to `/results`.
+  - Results/review navigation does not create a confusing `History` versus `Review` loop or imply an unsupported `/review` route.
+  - Settings still routes to `/settings`; Account/Profile still routes to `/account`.
+  - Tests and screenshot evidence cover the corrected home and review-shell navigation states.
+
+### PP-018 Fix Compose web image build after pnpm 11 upgrade
+
+- Status: Done
+- Type: Chore / Dev Environment
+- Links: `package.json`, `infra/docker/web.Dockerfile`, `apps/web/Dockerfile`, `Makefile`
+- Goal: Restore `make dev` after the repo package manager moved to `pnpm@11.9.0`.
+- Acceptance criteria:
+  - Web Docker build uses a Node runtime compatible with the declared pnpm version.
+  - pnpm override configuration is stored where pnpm 11 reads it so frozen installs match the lockfile.
+  - Dev container install uses a pnpm 11-compatible workspace install path and explicitly allows dependency build scripts required by native packages.
+  - `make dev` image preflight checks the same Node image used by the web Dockerfile.
+  - Compose reaches the web service build step without the Corepack `ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING` failure.
+  - Any remaining runtime or dependency failures are recorded with exact evidence.
+
+### PP-019 Align CI pnpm and Node versions with repo package manager
+
+- Status: Done
+- Type: Chore / CI
+- Links: `.github/workflows/ci.yml`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`
+- Goal: Restore frozen pnpm installs in CI by using the same pnpm major version that generated the current workspace override-aware lockfile on a Node runtime supported by pnpm 11.
+- Acceptance criteria:
+  - GitHub Actions installs `pnpm@11.9.0`, matching the package manager declared in `package.json`.
+  - GitHub Actions uses Node 24 so pnpm 11 can load required modern Node built-ins such as `node:sqlite`.
+  - `pnpm-workspace.yaml` remains the canonical location for pnpm overrides.
+  - Dependency versions and lockfile resolutions are not changed for this CI repair.
+  - Local verification records that `pnpm@11.9.0` could not be downloaded in this environment if registry access remains blocked.
 
 ## P1
 
