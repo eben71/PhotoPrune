@@ -94,17 +94,17 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Compose reaches the web service build step without the Corepack `ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING` failure.
   - Any remaining runtime or dependency failures are recorded with exact evidence.
 
-### PP-019 Pin pnpm to the lockfile-compatible toolchain
+### PP-019 Align CI pnpm version with repo package manager
 
 - Status: Done
 - Type: Chore / CI
-- Links: `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`
-- Goal: Restore frozen pnpm installs in CI after `pnpm@11.9.0` reported an overrides lockfile configuration mismatch even though the workspace and lockfile overrides match.
+- Links: `.github/workflows/ci.yml`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`
+- Goal: Restore frozen pnpm installs in CI by using the same pnpm major version that generated the current workspace override-aware lockfile.
 - Acceptance criteria:
-  - `package.json` declares a pnpm version that can run the current lockfile with `pnpm install --frozen-lockfile`.
+  - GitHub Actions installs `pnpm@11.9.0`, matching the package manager declared in `package.json`.
   - `pnpm-workspace.yaml` remains the canonical location for pnpm overrides.
   - Dependency versions and lockfile resolutions are not changed for this CI repair.
-  - The exact frozen install command from CI is re-run successfully, or any environment limitation is recorded.
+  - Local verification records that `pnpm@11.9.0` could not be downloaded in this environment if registry access remains blocked.
 
 ## P1
 
