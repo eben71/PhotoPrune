@@ -19,6 +19,25 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-06-30 - PP-019 Align CI pnpm and Node versions with repo package manager
+
+- Role: Builder
+- Status: Done
+- Goal: Restore frozen pnpm installs in CI by replacing the stale GitHub Actions `pnpm@9.12.2` setup with `pnpm@11.9.0`, matching `package.json`, and running it on Node 24 instead of Node 20.
+- Acceptance criteria checked:
+  - `.github/workflows/ci.yml` now installs `pnpm@11.9.0` and configures `actions/setup-node` with Node 24.
+  - `package.json` remains on `pnpm@11.9.0`; `pnpm-workspace.yaml` remains the canonical override configuration; no dependency versions or lockfile resolutions changed.
+- Commands run:
+  - `pnpm install --frozen-lockfile` could not run under pnpm 11 locally because Corepack/npm registry access to `pnpm@11.9.0` returned HTTP 403 in this environment; this container also only has Node 20.20.2, while pnpm 11.9.0 requires at least Node 22.13.
+  - `pnpm install --frozen-lockfile` passed with the locally cached `pnpm v10.30.3`, confirming the restored lockfile still matches the workspace overrides for the available compatible toolchain.
+  - `pnpm check:docs` passed.
+- Manual verification:
+  - Reviewed `.github/workflows/ci.yml`, `package.json`, `pnpm-workspace.yaml`, and `pnpm-lock.yaml` to confirm CI now uses the repo-declared pnpm major on Node 24 and the lockfile override block is preserved.
+- Artifacts/screenshots: Not applicable.
+- Backlog updates: Updated PP-019 and marked it Done.
+- Follow-up tasks created: None.
+- Residual risk: Local pnpm 11 execution could not be re-run due registry access restrictions and the local Node 20 runtime, so final confirmation should come from GitHub Actions where `pnpm/action-setup` provisions pnpm 11.9.0 and `actions/setup-node` provisions Node 24.
+
 ### 2026-06-30 - PP-018 Fix Compose web image build after pnpm 11 upgrade
 
 - Role: Builder
