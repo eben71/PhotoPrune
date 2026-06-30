@@ -66,6 +66,20 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Checklist includes Settings/Profile expected behavior for required MVP account details only.
   - Checklist references artifacts/screenshots to capture.
 
+### PP-017 Resolve manual review findings for PP-001 navigation labels and settings copy
+
+- Status: Ready
+- Type: UI / Navigation / Trust
+- Links: `docs/delivery/ITERATION_LOG.md`, `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, `apps/web/AGENTS.md`
+- Goal: Resolve product-owner manual review findings where top navigation labels do not clearly match their routes and the Settings page exposes implementation-phase language.
+- Acceptance criteria:
+  - Settings page heading uses user-facing copy such as `Settings`, not `MVP Settings`.
+  - Top navigation labels and destinations are consistent across the home header and review shell.
+  - `History` is either backed by an intentional `/history` experience or renamed/reworked so it does not ambiguously point to `/results`.
+  - Results/review navigation does not create a confusing `History` versus `Review` loop or imply an unsupported `/review` route.
+  - Settings still routes to `/settings`; Account/Profile still routes to `/account`.
+  - Tests and screenshot evidence cover the corrected home and review-shell navigation states.
+
 ## P1
 
 ### PP-005 Reconcile Phase 3 “complete” roadmap status with actual MVP usability

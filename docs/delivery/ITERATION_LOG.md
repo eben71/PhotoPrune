@@ -41,12 +41,13 @@ Record every implementation or verification iteration here. The log is repo trut
   - Browser check confirmed `Settings` resolves to `/settings` and `Account status` resolves to `/account`.
   - BMAD blind, edge-case, and acceptance review subagents completed.
   - Fixed review findings for null-safe pathname handling, narrow mobile header spacing, and stale `ReviewShell` Settings/Profile affordances.
+  - Product-owner manual review later found confusing `History`/`Results`/`Review` navigation semantics and visible `MVP Settings` copy.
 - Artifacts/screenshots:
   - `docs/delivery/artifacts/PP-001/home-header-desktop.png`
   - `docs/delivery/artifacts/PP-001/home-header-mobile.png`
 - Backlog updates: Moved PP-001 from Ready to Verifying.
-- Follow-up tasks created: None.
-- Residual risk: Full repo verification remains to be run after the focused PP-001 checks.
+- Follow-up tasks created: PP-017.
+- Residual risk: Full repo verification remains to be run after the focused PP-001 checks; PP-017 should be resolved before PP-001 is marked Done.
 
 ### 2026-05-18 — PP-000 Agentic Delivery Reset
 
