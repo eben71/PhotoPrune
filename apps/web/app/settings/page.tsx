@@ -31,7 +31,7 @@ export default function SettingsPage() {
       <main className="page-shell desktop-gutter settings-main">
         <section className="settings-hero">
           <span className="home-eyebrow">Settings</span>
-          <h1 className="settings-title">MVP settings</h1>
+          <h1 className="settings-title">Settings</h1>
           <p className="settings-copy">
             PhotoPrune keeps this screen limited to settings that exist in the
             current review workflow.

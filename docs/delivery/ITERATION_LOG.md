@@ -19,6 +19,36 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-06-30 - PP-017 Resolve manual review findings for PP-001 navigation labels and settings copy
+
+- Role: Builder
+- Status: Verifying
+- Goal: Resolve product-owner manual review findings by making navigation labels match their destinations and removing implementation-phase copy from Settings.
+- Acceptance criteria checked:
+  - Home header uses `Results` for `/results`, not `History`.
+  - Review shell no longer shows competing `History` and `Review` top-nav links to `/results`.
+  - Review shell marks `Results` active with `aria-current="page"` only on results routes.
+  - Settings page heading reads `Settings`, not `MVP settings`.
+  - Settings still routes to `/settings`; Account/Profile still routes to `/account`.
+- Commands run:
+  - `apps/web/node_modules/.bin/vitest.cmd run --coverage -- home.test.tsx` passed after BMAD review fixes: 13 test files, 62 tests, coverage lines 81.26%.
+  - `apps/web/node_modules/.bin/tsc.cmd --noEmit` passed.
+  - `apps/web/node_modules/.bin/eslint.cmd .` passed.
+  - `apps/web/node_modules/.bin/prettier.cmd --check .` passed after formatting `apps/web/tests/home.test.tsx`.
+  - `apps/web/node_modules/.bin/next.cmd build` passed and listed `/results`, `/settings`, and `/account`.
+  - `node scripts/check-docs.js` passed after PP-017 evidence updates.
+- Manual verification:
+  - Captured desktop home, review shell, and settings page screenshots from a fresh Next dev server on port `3017` using system Chrome.
+  - Browser-observed top navigation labels on home, review shell, and settings are `Results` and `Settings`.
+  - Browser-observed Settings page heading is `Settings`.
+- Artifacts/screenshots:
+  - `docs/delivery/artifacts/PP-017/home-header-desktop.png`
+  - `docs/delivery/artifacts/PP-017/run-shell-desktop.png`
+  - `docs/delivery/artifacts/PP-017/settings-page-desktop.png`
+- Backlog updates: Moved PP-017 from Ready to Verifying.
+- Follow-up tasks created: None.
+- Residual risk: BMAD review patch items were fixed and re-verified; no new product follow-up task identified.
+
 ### 2026-06-28 - PP-001 Verify/fix visible home navigation and profile/account affordances
 
 - Role: Builder

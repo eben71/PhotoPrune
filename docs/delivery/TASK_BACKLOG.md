@@ -68,7 +68,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-017 Resolve manual review findings for PP-001 navigation labels and settings copy
 
-- Status: Ready
+- Status: Verifying
 - Type: UI / Navigation / Trust
 - Links: `docs/delivery/ITERATION_LOG.md`, `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, `apps/web/AGENTS.md`
 - Goal: Resolve product-owner manual review findings where top navigation labels do not clearly match their routes and the Settings page exposes implementation-phase language.

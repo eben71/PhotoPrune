@@ -35,6 +35,7 @@ vi.mock('../app/hooks/useGooglePhotosPicker', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: routerPushMock }),
+  usePathname: () => '/projects/p1/results',
   useSearchParams: () => new URLSearchParams(searchParamsValue)
 }));
 
