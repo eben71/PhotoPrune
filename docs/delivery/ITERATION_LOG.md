@@ -19,6 +19,24 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-06-30 - PP-019 Pin pnpm to the lockfile-compatible toolchain
+
+- Role: Builder
+- Status: Done
+- Goal: Restore frozen pnpm installs in CI after `pnpm@11.9.0` reported an overrides lockfile configuration mismatch while `pnpm-workspace.yaml` and `pnpm-lock.yaml` contain the same overrides.
+- Acceptance criteria checked:
+  - `package.json` now pins `pnpm@10.30.3`, which successfully installs the current lockfile with `pnpm install --frozen-lockfile`.
+  - `pnpm-workspace.yaml` remains the canonical override configuration; no dependency versions or lockfile resolutions changed.
+- Commands run:
+  - `pnpm install --frozen-lockfile` passed with `pnpm v10.30.3`.
+  - `pnpm check:docs` passed.
+- Manual verification:
+  - Reviewed `package.json`, `pnpm-workspace.yaml`, and `pnpm-lock.yaml` to confirm this is a toolchain pin only.
+- Artifacts/screenshots: Not applicable.
+- Backlog updates: Added PP-019 and marked it Done.
+- Follow-up tasks created: None.
+- Residual risk: This intentionally avoids `pnpm@11.9.0` until the lockfile configuration mismatch behavior is resolved or the lockfile can be regenerated with a verified pnpm 11 toolchain.
+
 ### 2026-06-30 - PP-018 Fix Compose web image build after pnpm 11 upgrade
 
 - Role: Builder
