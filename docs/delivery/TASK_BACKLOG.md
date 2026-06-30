@@ -22,7 +22,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-001 Verify/fix visible home navigation and profile/account affordances
 
-- Status: Verifying
+- Status: Done
 - Type: UI / Trust
 - Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, `apps/web/AGENTS.md`
 - Goal: Ensure visible Settings and Profile/Account affordances show only required MVP account details and settings, with non-required items hidden or clearly unavailable.
@@ -68,7 +68,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-017 Resolve manual review findings for PP-001 navigation labels and settings copy
 
-- Status: Verifying
+- Status: Done
 - Type: UI / Navigation / Trust
 - Links: `docs/delivery/ITERATION_LOG.md`, `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, `apps/web/AGENTS.md`
 - Goal: Resolve product-owner manual review findings where top navigation labels do not clearly match their routes and the Settings page exposes implementation-phase language.
@@ -79,6 +79,20 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Results/review navigation does not create a confusing `History` versus `Review` loop or imply an unsupported `/review` route.
   - Settings still routes to `/settings`; Account/Profile still routes to `/account`.
   - Tests and screenshot evidence cover the corrected home and review-shell navigation states.
+
+### PP-018 Fix Compose web image build after pnpm 11 upgrade
+
+- Status: Done
+- Type: Chore / Dev Environment
+- Links: `package.json`, `infra/docker/web.Dockerfile`, `apps/web/Dockerfile`, `Makefile`
+- Goal: Restore `make dev` after the repo package manager moved to `pnpm@11.9.0`.
+- Acceptance criteria:
+  - Web Docker build uses a Node runtime compatible with the declared pnpm version.
+  - pnpm override configuration is stored where pnpm 11 reads it so frozen installs match the lockfile.
+  - Dev container install uses a pnpm 11-compatible workspace install path and explicitly allows dependency build scripts required by native packages.
+  - `make dev` image preflight checks the same Node image used by the web Dockerfile.
+  - Compose reaches the web service build step without the Corepack `ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING` failure.
+  - Any remaining runtime or dependency failures are recorded with exact evidence.
 
 ## P1
 

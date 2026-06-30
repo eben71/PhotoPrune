@@ -10,6 +10,7 @@ Open [AGENT_RULES.md](AGENT_RULES.md) before making meaningful changes. It is th
 - `docs/ARCHITECTURE.md`: current service boundaries and runtime wiring.
 - `docs/ai/testing.md`: verification matrix and command policy.
 - `docs/ai/skills.md`: repo skill standard and template rules.
+- `_bmad-output/project-context.md`: contains important project context and conventions
 
 ## Commands
 - Setup: `make setup`

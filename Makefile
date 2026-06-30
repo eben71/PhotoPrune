@@ -60,7 +60,7 @@ dev:
 	@$(DOCKER_RUN) image inspect postgres:16-alpine >/dev/null 2>&1 || $(DOCKER_RUN) pull postgres:16-alpine
 	@$(DOCKER_RUN) image inspect redis:7-alpine >/dev/null 2>&1 || $(DOCKER_RUN) pull redis:7-alpine
 	@$(DOCKER_RUN) image inspect python:3.12-slim >/dev/null 2>&1 || $(DOCKER_RUN) pull python:3.12-slim
-	@$(DOCKER_RUN) image inspect node:20-slim >/dev/null 2>&1 || $(DOCKER_RUN) pull node:20-slim
+	@$(DOCKER_RUN) image inspect node:22-slim >/dev/null 2>&1 || $(DOCKER_RUN) pull node:22-slim
 	$(_dev_compose_dev) up --build --pull never
 
 dev-web:

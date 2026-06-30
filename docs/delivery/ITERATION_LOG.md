@@ -19,6 +19,34 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-06-30 - PP-018 Fix Compose web image build after pnpm 11 upgrade
+
+- Role: Builder
+- Status: Done
+- Goal: Restore `make dev` after the repo package manager moved to `pnpm@11.9.0`.
+- Acceptance criteria checked:
+  - Web Docker build uses Node 22 for the build and runtime stages.
+  - pnpm overrides moved from ignored `package.json` `pnpm.overrides` config to `pnpm-workspace.yaml` for pnpm 11 compatibility.
+  - Web image and dev command now run a full workspace frozen install and explicitly allow dependency build scripts required by native packages under pnpm 11.
+  - `make dev` preflight checks `node:22-slim`, matching the web Dockerfile.
+  - Standalone `apps/web/Dockerfile` also uses Node 22 so the alternate web image path does not retain the broken Node 20/Corepack pairing.
+- Commands run:
+  - `docker image inspect node:22-slim` initially failed because the image was not local.
+  - `docker pull node:22-slim` passed and downloaded `node:22-slim`.
+  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml -p photoprune build web` first confirmed the original Corepack crash was fixed, then exposed pnpm 11 config/build-policy follow-up failures.
+  - `docker run --rm -v C:\DevProjects\PhotoPrune:/app:ro -w /app node:22-slim sh -lc "corepack enable && pnpm config get onlyBuiltDependencies && pnpm config get overrides"` confirmed pnpm 11 reads workspace config.
+  - `docker run --rm -v C:\DevProjects\PhotoPrune:/src:ro node:22-slim sh -lc "mkdir /tmp/app && cd /tmp/app && cp /src/package.json /src/pnpm-lock.yaml /src/pnpm-workspace.yaml /src/turbo.json /src/tsconfig.base.json ./ && mkdir -p scripts apps packages && cp /src/scripts/prepare-lefthook.cjs scripts/ && cp -R /src/apps/web apps/web && cp -R /src/packages/shared packages/shared && corepack enable && pnpm install --frozen-lockfile --config.dangerously-allow-all-builds=true"` passed.
+  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml -p photoprune build web` passed and built `photoprune-web:latest`; install completed with `pnpm v11.9.0` and `next build` completed.
+  - `node scripts/check-docs.js` passed.
+  - `node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package.json OK')"` passed.
+  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml config --quiet` passed.
+- Manual verification:
+  - Reviewed the failed and passing Docker build output. The original `ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING` no longer appears; pnpm install and Next production build complete in the web image.
+- Artifacts/screenshots: Not applicable.
+- Backlog updates: Added PP-018 and marked it Done.
+- Follow-up tasks created: None.
+- Residual risk: Full `make dev` was not left running; verification used a focused Compose web build and combined Compose config validation.
+
 ### 2026-06-30 - PP-017 Resolve manual review findings for PP-001 navigation labels and settings copy
 
 - Role: Builder

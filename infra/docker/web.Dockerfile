@@ -1,4 +1,4 @@
-FROM node:20-slim AS base
+FROM node:22-slim AS base
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
@@ -14,11 +14,11 @@ COPY packages/shared/package.json packages/shared/tsconfig.json ./packages/share
 COPY apps/web ./apps/web
 COPY packages/shared ./packages/shared
 
-RUN pnpm --filter web... install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --config.dangerously-allow-all-builds=true
 
 RUN NODE_ENV=production pnpm --filter web build
 
-FROM node:20-slim AS runner
+FROM node:22-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 RUN corepack enable
