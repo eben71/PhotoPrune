@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 import { AppIcon } from './AppIcon';
 
@@ -26,7 +27,9 @@ export function ReviewShell({
   activeStage: ReviewStage;
   children: ReactNode;
 }) {
-  const showReviewTopLink = activeStage === 'REVIEW';
+  const pathname = usePathname();
+  const resultsTopLinkActive =
+    pathname === '/results' || pathname.endsWith('/results');
 
   return (
     <div className="shell-root app-bg min-h-screen">
@@ -43,17 +46,13 @@ export function ReviewShell({
           </div>
 
           <nav className="top-nav-desktop">
-            <Link href="/results" className="shell-nav-link">
-              History
+            <Link
+              href="/results"
+              aria-current={resultsTopLinkActive ? 'page' : undefined}
+              className={`shell-nav-link ${resultsTopLinkActive ? 'shell-nav-link-active pb-1' : ''}`}
+            >
+              Results
             </Link>
-            {showReviewTopLink ? (
-              <Link
-                href="/results"
-                className="shell-nav-link shell-nav-link-active pb-1"
-              >
-                Review
-              </Link>
-            ) : null}
             <Link href={{ pathname: '/settings' }} className="shell-nav-link">
               Settings
             </Link>

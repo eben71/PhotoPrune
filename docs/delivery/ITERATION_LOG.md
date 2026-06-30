@@ -19,6 +19,83 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-06-30 - PP-019 Align CI pnpm and Node versions with repo package manager
+
+- Role: Builder
+- Status: Done
+- Goal: Restore frozen pnpm installs in CI by replacing the stale GitHub Actions `pnpm@9.12.2` setup with `pnpm@11.9.0`, matching `package.json`, and running it on Node 24 instead of Node 20.
+- Acceptance criteria checked:
+  - `.github/workflows/ci.yml` now installs `pnpm@11.9.0` and configures `actions/setup-node` with Node 24.
+  - `package.json` remains on `pnpm@11.9.0`; `pnpm-workspace.yaml` remains the canonical override configuration; no dependency versions or lockfile resolutions changed.
+- Commands run:
+  - `pnpm install --frozen-lockfile` could not run under pnpm 11 locally because Corepack/npm registry access to `pnpm@11.9.0` returned HTTP 403 in this environment; this container also only has Node 20.20.2, while pnpm 11.9.0 requires at least Node 22.13.
+  - `pnpm install --frozen-lockfile` passed with the locally cached `pnpm v10.30.3`, confirming the restored lockfile still matches the workspace overrides for the available compatible toolchain.
+  - `pnpm check:docs` passed.
+- Manual verification:
+  - Reviewed `.github/workflows/ci.yml`, `package.json`, `pnpm-workspace.yaml`, and `pnpm-lock.yaml` to confirm CI now uses the repo-declared pnpm major on Node 24 and the lockfile override block is preserved.
+- Artifacts/screenshots: Not applicable.
+- Backlog updates: Updated PP-019 and marked it Done.
+- Follow-up tasks created: None.
+- Residual risk: Local pnpm 11 execution could not be re-run due registry access restrictions and the local Node 20 runtime, so final confirmation should come from GitHub Actions where `pnpm/action-setup` provisions pnpm 11.9.0 and `actions/setup-node` provisions Node 24.
+
+### 2026-06-30 - PP-018 Fix Compose web image build after pnpm 11 upgrade
+
+- Role: Builder
+- Status: Done
+- Goal: Restore `make dev` after the repo package manager moved to `pnpm@11.9.0`.
+- Acceptance criteria checked:
+  - Web Docker build uses Node 22 for the build and runtime stages.
+  - pnpm overrides moved from ignored `package.json` `pnpm.overrides` config to `pnpm-workspace.yaml` for pnpm 11 compatibility.
+  - Web image and dev command now run a full workspace frozen install and explicitly allow dependency build scripts required by native packages under pnpm 11.
+  - `make dev` preflight checks `node:22-slim`, matching the web Dockerfile.
+  - Standalone `apps/web/Dockerfile` also uses Node 22 so the alternate web image path does not retain the broken Node 20/Corepack pairing.
+- Commands run:
+  - `docker image inspect node:22-slim` initially failed because the image was not local.
+  - `docker pull node:22-slim` passed and downloaded `node:22-slim`.
+  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml -p photoprune build web` first confirmed the original Corepack crash was fixed, then exposed pnpm 11 config/build-policy follow-up failures.
+  - `docker run --rm -v C:\DevProjects\PhotoPrune:/app:ro -w /app node:22-slim sh -lc "corepack enable && pnpm config get onlyBuiltDependencies && pnpm config get overrides"` confirmed pnpm 11 reads workspace config.
+  - `docker run --rm -v C:\DevProjects\PhotoPrune:/src:ro node:22-slim sh -lc "mkdir /tmp/app && cd /tmp/app && cp /src/package.json /src/pnpm-lock.yaml /src/pnpm-workspace.yaml /src/turbo.json /src/tsconfig.base.json ./ && mkdir -p scripts apps packages && cp /src/scripts/prepare-lefthook.cjs scripts/ && cp -R /src/apps/web apps/web && cp -R /src/packages/shared packages/shared && corepack enable && pnpm install --frozen-lockfile --config.dangerously-allow-all-builds=true"` passed.
+  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml -p photoprune build web` passed and built `photoprune-web:latest`; install completed with `pnpm v11.9.0` and `next build` completed.
+  - `node scripts/check-docs.js` passed.
+  - `node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package.json OK')"` passed.
+  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml config --quiet` passed.
+- Manual verification:
+  - Reviewed the failed and passing Docker build output. The original `ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING` no longer appears; pnpm install and Next production build complete in the web image.
+- Artifacts/screenshots: Not applicable.
+- Backlog updates: Added PP-018 and marked it Done.
+- Follow-up tasks created: None.
+- Residual risk: Full `make dev` was not left running; verification used a focused Compose web build and combined Compose config validation.
+
+### 2026-06-30 - PP-017 Resolve manual review findings for PP-001 navigation labels and settings copy
+
+- Role: Builder
+- Status: Verifying
+- Goal: Resolve product-owner manual review findings by making navigation labels match their destinations and removing implementation-phase copy from Settings.
+- Acceptance criteria checked:
+  - Home header uses `Results` for `/results`, not `History`.
+  - Review shell no longer shows competing `History` and `Review` top-nav links to `/results`.
+  - Review shell marks `Results` active with `aria-current="page"` only on results routes.
+  - Settings page heading reads `Settings`, not `MVP settings`.
+  - Settings still routes to `/settings`; Account/Profile still routes to `/account`.
+- Commands run:
+  - `apps/web/node_modules/.bin/vitest.cmd run --coverage -- home.test.tsx` passed after BMAD review fixes: 13 test files, 62 tests, coverage lines 81.26%.
+  - `apps/web/node_modules/.bin/tsc.cmd --noEmit` passed.
+  - `apps/web/node_modules/.bin/eslint.cmd .` passed.
+  - `apps/web/node_modules/.bin/prettier.cmd --check .` passed after formatting `apps/web/tests/home.test.tsx`.
+  - `apps/web/node_modules/.bin/next.cmd build` passed and listed `/results`, `/settings`, and `/account`.
+  - `node scripts/check-docs.js` passed after PP-017 evidence updates.
+- Manual verification:
+  - Captured desktop home, review shell, and settings page screenshots from a fresh Next dev server on port `3017` using system Chrome.
+  - Browser-observed top navigation labels on home, review shell, and settings are `Results` and `Settings`.
+  - Browser-observed Settings page heading is `Settings`.
+- Artifacts/screenshots:
+  - `docs/delivery/artifacts/PP-017/home-header-desktop.png`
+  - `docs/delivery/artifacts/PP-017/run-shell-desktop.png`
+  - `docs/delivery/artifacts/PP-017/settings-page-desktop.png`
+- Backlog updates: Moved PP-017 from Ready to Verifying.
+- Follow-up tasks created: None.
+- Residual risk: BMAD review patch items were fixed and re-verified; no new product follow-up task identified.
+
 ### 2026-06-28 - PP-001 Verify/fix visible home navigation and profile/account affordances
 
 - Role: Builder

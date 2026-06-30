@@ -94,6 +94,7 @@ const createSession = (): RunSessionContextValue => ({
 let currentSession: RunSessionContextValue = createSession();
 
 vi.mock('next/navigation', () => ({
+  usePathname: () => '/results',
   useRouter: () => ({ push: mockPush, replace: mockReplace })
 }));
 

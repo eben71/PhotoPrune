@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { AppIcon } from '../../app/components/AppIcon';
 
 const navItems = [
-  { href: '/results', label: 'History' },
+  { href: '/results', label: 'Results' },
   { href: '/settings', label: 'Settings' }
 ] as const;
 

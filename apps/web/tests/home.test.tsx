@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from '@testing-library/react';
 import { vi } from 'vitest';
 
 import HomePage from '../app/page';
@@ -98,17 +104,25 @@ describe('HomePage', () => {
     expect(
       screen.getByRole('link', { name: /account status/i })
     ).toHaveAttribute('href', '/account');
-    expect(screen.getByRole('link', { name: /history/i })).not.toHaveAttribute(
+    expect(screen.getByRole('link', { name: /results/i })).toHaveAttribute(
+      'href',
+      '/results'
+    );
+    expect(screen.queryByRole('link', { name: /history/i })).toBeNull();
+    expect(screen.getByRole('link', { name: /results/i })).not.toHaveAttribute(
       'aria-current'
     );
   });
 
   it('renders non-ambiguous review shell settings and account affordances', () => {
-    render(
+    pathnameMock = '/results';
+
+    const { container } = render(
       <ReviewShell activeStage="REVIEW">
         <p>Review content</p>
       </ReviewShell>
     );
+    const topNav = container.querySelector('.top-nav-desktop');
 
     expect(screen.getByRole('link', { name: /settings/i })).toHaveAttribute(
       'href',
@@ -117,6 +131,33 @@ describe('HomePage', () => {
     expect(
       screen.getByRole('link', { name: /account status/i })
     ).toHaveAttribute('href', '/account');
+    expect(topNav).not.toBeNull();
+    const resultsLink = within(topNav as HTMLElement).getByRole('link', {
+      name: /results/i
+    });
+    expect(resultsLink).toHaveAttribute('href', '/results');
+    expect(resultsLink).toHaveAttribute('aria-current', 'page');
+    expect(
+      within(topNav as HTMLElement).queryByRole('link', { name: /history/i })
+    ).toBeNull();
+    expect(
+      within(topNav as HTMLElement).queryByRole('link', { name: /^review$/i })
+    ).toBeNull();
+  });
+
+  it('does not mark Results active in the review shell away from results routes', () => {
+    pathnameMock = '/run';
+
+    const { container } = render(
+      <ReviewShell activeStage="SCANNING">
+        <p>Run content</p>
+      </ReviewShell>
+    );
+    const topNav = container.querySelector('.top-nav-desktop');
+    expect(topNav).not.toBeNull();
+    expect(
+      within(topNav as HTMLElement).getByRole('link', { name: /results/i })
+    ).not.toHaveAttribute('aria-current');
   });
 
   it('shows only MVP-scoped settings', () => {
@@ -125,8 +166,11 @@ describe('HomePage', () => {
     render(<SettingsPage />);
 
     expect(
-      screen.getByRole('heading', { name: /mvp settings/i })
+      screen.getByRole('heading', { name: /^settings$/i })
     ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: /mvp settings/i })
+    ).not.toBeInTheDocument();
     expect(screen.getByText(/read-only selection/i)).toBeInTheDocument();
     expect(screen.getByText(/automatic cleanup/i)).toBeInTheDocument();
     expect(screen.getByText(/not available in mvp/i)).toBeInTheDocument();
