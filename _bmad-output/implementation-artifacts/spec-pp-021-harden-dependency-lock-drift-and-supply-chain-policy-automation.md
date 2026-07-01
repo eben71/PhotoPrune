@@ -190,8 +190,16 @@ GPT-5.5
 - Added PP-021 backlog task with acceptance criteria for dependency preflight, pnpm release-age handling, Python lock auto-repair, docs, and deterministic tests.
 - Created ready-for-dev PP-021 story artifact.
 - No implementation of PP-021 dependency automation was started.
+- Immediate CI remediation was applied for the reported Python lock drift by aligning API and worker `ruff` pins and lock outputs to `ruff==0.15.20`; PP-021 still owns the follow-up automation to prevent recurrence.
 
 ### File List
 
 - `docs/delivery/TASK_BACKLOG.md`
 - `_bmad-output/implementation-artifacts/spec-pp-021-harden-dependency-lock-drift-and-supply-chain-policy-automation.md`
+- `pnpm-workspace.yaml`
+- `apps/api/pyproject.toml`
+- `apps/api/uv.lock`
+- `apps/api/requirements-dev.lock`
+- `apps/worker/pyproject.toml`
+- `apps/worker/uv.lock`
+- `apps/worker/requirements-dev.lock`
