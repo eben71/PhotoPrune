@@ -86,7 +86,7 @@ These failures are useful guardrails, but they currently arrive as repeated CI b
 - [ ] Reproduce or model the two reported failure classes: pnpm minimum-release-age rejection for too-new lockfile entries and Python lock drift after a pinned dependency bump.
 - [ ] Inventory the current pnpm supply-chain policy configuration and dependency automation schedule. Document where the minimum release age is configured and which workflows run frozen installs.
 - [ ] Add an early dependency preflight or split dependency-check job that runs before expensive lint/type/test/build work and produces concise, actionable repair output.
-- [ ] Implement safe auto-repair for Python lock drift on eligible dependency PR branches by running the existing lock sync path and pushing only the affected lock files back to the same branch.
+- [ ] Implement safe auto-repair for Python lock drift on eligible dependency PR branches by running the existing lock sync path and pushing only the affected lock files back to the same branch; ensure a manifest bump in either `apps/api` or `apps/worker` refreshes both services so API-only and worker-only lock-check jobs cannot keep failing independently.
 - [ ] Add or adjust Node dependency automation so pnpm minimum-release-age violations are avoided where possible: delay update PRs, retry after the age window, or refresh the lockfile after the policy window rather than repeatedly failing CI.
 - [ ] Add regression coverage for the helper scripts/workflow logic that can be run without depending on live package-publication timing. Use fixtures or deterministic script tests for stale Python locks and too-new pnpm lock entries.
 - [ ] Update dependency-maintenance docs with copy/pasteable local commands and CI triage guidance.
@@ -105,6 +105,7 @@ These failures are useful guardrails, but they currently arrive as repeated CI b
 
 - The user-provided CI output for `pnpm install --frozen-lockfile` names seven rejected lockfile entries: `turbo@2.10.2` and platform packages `@turbo/darwin-64`, `@turbo/darwin-arm64`, `@turbo/linux-64`, `@turbo/linux-arm64`, `@turbo/windows-64`, and `@turbo/windows-arm64`, all published on 2026-06-30 after the active cutoff.
 - The user-provided Python lock-check output names stale `ruff` pins in both Python services. Treat this as a workflow robustness story, not just a one-off lock refresh.
+- Follow-up CI evidence shows the same failure class appears as separate service-specific failures: one run reported `apps/worker/uv.lock` and `apps/worker/requirements-dev.lock` still at `ruff==0.15.18` while `pyproject.toml` pinned `ruff==0.15.20`; another reported the same stale `ruff==0.15.18` lock outputs for `apps/api`. PP-021 implementation should therefore repair both services whenever either service manifest changes, rather than assuming only one workflow or one lock file drifted.
 - Prefer repairing lock drift through existing repo scripts so local and CI behavior stay aligned.
 - Be careful with GitHub Actions permissions on forked PRs and bot branches. If auto-push is unsafe or impossible, use a comment/check summary fallback with exact commands.
 - If Dependabot configuration does not exist yet, add only the minimum necessary configuration or workflow wrapper for the dependency update cadence. Do not introduce a new dependency-update platform without approval.

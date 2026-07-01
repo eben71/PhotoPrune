@@ -120,7 +120,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Acceptance criteria:
   - CI has a focused dependency preflight that catches pnpm minimum-release-age violations and Python manifest/lock drift before the expensive full gate, with actionable output that names the exact repair command or automation path.
   - Node dependency updates account for pnpm supply-chain policy timing: either dependency automation waits until packages satisfy the configured minimum release age or opens a delayed/refresh PR instead of committing too-new lockfile entries.
-  - Python dependency updates keep `apps/api` and `apps/worker` `pyproject.toml`, `uv.lock`, `requirements.lock`, and `requirements-dev.lock` synchronized automatically when pins change, including Dependabot-created ruff-style version bumps.
+  - Python dependency updates keep `apps/api` and `apps/worker` `pyproject.toml`, `uv.lock`, `requirements.lock`, and `requirements-dev.lock` synchronized automatically when pins change, including Dependabot-created ruff-style version bumps that currently fail as separate API and worker `make python-locks-check` errors.
   - Safe auto-repair is implemented for lock-only drift where the manifest change is already committed: automation can run the existing lock sync commands and update the same branch/PR, while protected CI remains non-mutating.
   - Repo docs explain the dependency maintenance flow, when to run `make python-locks`, `make python-locks-upgrade`, `pnpm clean --lockfile`, and `pnpm install`, and how pnpm minimum-release-age failures should be handled.
   - Tests or workflow dry-runs cover stale Python locks and too-new pnpm lock entries without relying on live package publication timing.
