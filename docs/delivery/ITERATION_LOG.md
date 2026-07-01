@@ -19,6 +19,34 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-01 - PP-003 Run full repo verification gate and reconcile failures
+
+- Role: Builder
+- Status: Done
+- Goal: Establish the current full repo verification status after recent MVP smoke, Docker, and CI repair work.
+- Acceptance criteria checked:
+  - Full gate commands from `docs/ai/testing.md` were run in order where applicable.
+  - The format-check failure was triaged to generated shared `dist` output and fixed with a source ignore file instead of editing generated files.
+  - Backlog and iteration log now record exact evidence and residual risk.
+- Commands run:
+  - `make lint` first failed inside the sandbox with Corepack `EPERM` opening `C:\Users\eben_\AppData\Local\node\corepack\v1\pnpm`; escalated rerun passed: root lint 2 packages successful, API ruff passed, worker ruff passed.
+  - `make format-check` first failed inside the sandbox with the same Corepack `EPERM`; escalated rerun reached the real check and failed on `packages/shared/dist/index.d.ts` and `packages/shared/dist/index.js`.
+  - Added `packages/shared/.prettierignore` for `dist`, `.turbo`, `coverage`, and `node_modules`.
+  - `make format-check` rerun passed: shared and web Prettier checks passed; API and worker black checks passed.
+  - `make typecheck` first failed inside the sandbox with the same Corepack `EPERM`; escalated rerun passed: shared/web TypeScript checks passed, API mypy passed, worker mypy passed.
+  - `make test` first failed inside the sandbox with the same Corepack `EPERM`; escalated rerun passed: web 13 files and 62 tests passed; API 77 tests passed; worker 2 tests passed.
+  - `node scripts/check-coverage.mjs` passed: web 81.26, API 92.3, worker 100.
+  - `make build` first failed inside the sandbox with the same Corepack `EPERM`; escalated rerun passed: shared tsup build passed, Next build passed, API and worker compileall passed.
+  - `pnpm check:docs` passed after delivery-doc updates.
+  - `make python-locks-check` was not run because no Python dependency manifests or lock files changed.
+- Manual verification:
+  - Reviewed `git status` after `make build`; reverted unrelated generated `apps/web/next-env.d.ts` route-type churn from the build output.
+  - Confirmed PP-003 documentation does not claim real authenticated Google Photos readiness; PP-014/manual demo remains separate.
+- Artifacts/screenshots: Not applicable.
+- Backlog updates: Moved PP-003 from Ready through In Progress to Done and recorded gate evidence.
+- Follow-up tasks created: None.
+- Residual risk: Local sandboxed make invocations cannot read the user-local Corepack pnpm cache, so make targets that invoke pnpm require approved escalation in this environment. The escalated runs completed the actual documented gate.
+
 ### 2026-06-30 - PP-002 Add or confirm MVP Playwright smoke test for the golden path
 
 - Role: Builder
