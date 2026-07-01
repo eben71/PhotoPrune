@@ -2,6 +2,18 @@
 
 The MVP smoke test proves the golden path is usable enough for review. It is not a substitute for full CI or manual demo verification.
 
+## Automated command
+
+Run from the repo root:
+
+```bash
+pnpm smoke:mvp
+```
+
+This starts the Next.js web app on `127.0.0.1:3022` with `NEXT_PUBLIC_PHASE2_RUN_MODE=fixture`, stubs the Google Picker browser scripts, and runs the Playwright Chromium smoke spec in `tests/e2e/mvp-smoke.spec.ts`.
+
+The automated smoke is deterministic and does not use real Google credentials or real Google Photos content. The Chrome manual demo with a real Google account remains a separate MVP exit gate.
+
 ## Golden path
 
 - Home page loads.
@@ -35,7 +47,7 @@ The MVP smoke test proves the golden path is usable enough for review. It is not
 ## Evidence to record
 
 - Command used to run the smoke test.
-- Browser/device viewport used. MVP manual demo browser is Chrome.
+- Browser/device viewport used. The automated smoke currently uses Playwright Chromium with the Desktop Chrome profile; MVP manual demo browser is Chrome.
 - Pass/fail result.
 - Screenshot or trace path when UI changed or a failure is found.
 - Follow-up task IDs for failures.
