@@ -6,6 +6,7 @@ from __future__ import annotations
 import re
 import sys
 import tomllib
+from argparse import ArgumentParser
 from pathlib import Path
 
 SERVICES = (Path("apps/api"), Path("apps/worker"))
@@ -47,12 +48,35 @@ def requirements_versions(lock: Path) -> dict[str, str]:
     }
 
 
+def parse_args() -> tuple[Path, tuple[Path, ...]]:
+    parser = ArgumentParser(
+        description="Check exact Python dependency pins are reflected in committed lock files."
+    )
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=Path("."),
+        help="Repository root to inspect. Defaults to the current directory.",
+    )
+    parser.add_argument(
+        "--service",
+        action="append",
+        type=Path,
+        dest="services",
+        help="Service path relative to --root. May be provided multiple times.",
+    )
+    args = parser.parse_args()
+    return args.root, tuple(args.services or SERVICES)
+
+
 def main() -> int:
+    root, services = parse_args()
     errors: list[str] = []
-    for service in SERVICES:
-        pins = exact_pins(service / "pyproject.toml")
-        uv = uv_versions(service / "uv.lock")
-        requirements_dev = requirements_versions(service / "requirements-dev.lock")
+    for service in services:
+        service_path = root / service
+        pins = exact_pins(service_path / "pyproject.toml")
+        uv = uv_versions(service_path / "uv.lock")
+        requirements_dev = requirements_versions(service_path / "requirements-dev.lock")
         for name, version in sorted(pins.items()):
             uv_version = uv.get(name)
             if uv_version != version:

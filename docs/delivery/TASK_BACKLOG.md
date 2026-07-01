@@ -118,9 +118,9 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-021 Harden dependency lock drift and supply-chain policy automation
 
-- Status: Ready
+- Status: Done
 - Type: Chore / CI / Dependency Management
-- Links: `.github/workflows/ci.yml`, `.github/workflows/python-dependency-refresh.yml`, `package.json`, `pnpm-lock.yaml`, `apps/api/pyproject.toml`, `apps/worker/pyproject.toml`, `scripts/sync-python-locks.sh`, `docs/ai/testing.md`
+- Links: `.github/workflows/ci.yml`, `.github/workflows/python-dependency-refresh.yml`, `.github/workflows/python-lock-repair.yml`, `.github/dependabot.yml`, `package.json`, `pnpm-lock.yaml`, `apps/api/pyproject.toml`, `apps/worker/pyproject.toml`, `scripts/sync-python-locks.sh`, `docs/ai/testing.md`
 - Goal: Make recurring Node and Python dependency-lock CI failures self-diagnosing and automatically repairable where safe, so Dependabot/scheduled dependency changes do not repeatedly break install or lock-check workflows.
 - Acceptance criteria:
   - CI has a focused dependency preflight that catches pnpm minimum-release-age violations and Python manifest/lock drift before the expensive full gate, with actionable output that names the exact repair command or automation path.

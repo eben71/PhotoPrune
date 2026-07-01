@@ -42,7 +42,7 @@ endif
 # Clear any externally activated virtualenv so uv uses the service-local project env.
 UV_RUN := VIRTUAL_ENV= $(UV)
 
-.PHONY: setup dev dev-web lint format format-check typecheck test build hooks fixture-server python-locks python-locks-upgrade python-locks-check
+.PHONY: setup dev dev-web dependency-preflight lint format format-check typecheck test build hooks fixture-server python-locks python-locks-upgrade python-locks-check
 
 _dev_compose := $(DOCKER_RUN) compose -f docker-compose.yml -p photoprune
 _dev_compose_dev := $(DOCKER_RUN) compose -f docker-compose.yml -f docker-compose.dev.yml -p photoprune
@@ -66,6 +66,9 @@ dev:
 dev-web:
 	$(_dev_compose_dev) up --build --pull never --no-deps web
 
+dependency-preflight:
+	$(PNPM) dependency:preflight
+
 lint:
 	$(PNPM) lint
 	cd apps/api && $(UV_RUN) run ruff check app tests
@@ -88,6 +91,7 @@ typecheck:
 
 test:
 	$(PNPM) test
+	$(PNPM) test:dependency-preflight
 	cd apps/api && $(UV_RUN) run pytest
 	cd apps/worker && $(UV_RUN) run pytest
 

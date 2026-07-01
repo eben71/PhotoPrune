@@ -17,13 +17,13 @@ _This file contains critical rules and patterns that AI agents must follow when 
 
 ## Technology Stack & Versions
 
-- Monorepo uses pnpm `10.30.3` and Turborepo `2.9.18`; workspace packages are `apps/*`, `packages/*`, and `docs`.
+- Monorepo uses pnpm `11.9.0` and Turborepo `2.10.2`; workspace packages are `apps/*`, `packages/*`, and `docs`.
 - TypeScript is `5.9.3` with strict mode, `moduleResolution: "bundler"`, `noEmit`, `isolatedModules`, and `allowJs: false`.
 - Web app is Next.js `16.2.x`, React `19.2.x`, React DOM `19.2.x`, Tailwind CSS `4.3.x`, ESLint `9.39.x`, Prettier `3.8.x`, and Vitest `4.1.x` with jsdom.
 - Shared package is `@photoprune/shared`; cross-service TypeScript contracts and Zod schemas belong there. Zod is `4.4.3`.
 - API service is Python `>=3.11`, FastAPI `>=0.114.0`, Pydantic Settings `>=2.4.0`, Pillow `>=12.2.0`, and uv-managed lock files.
 - Worker service is Python `>=3.11`, Celery `>=5.4.0`, Redis `>=5.0.8`, and uv-managed lock files.
-- Python quality tools are pinned: ruff `0.15.18`, black `26.5.1`, mypy `1.20.2`, pytest `9.1.1`, pytest-cov `5.0.0`, pip-audit `2.10.1`.
+- Python quality tools are pinned: ruff `0.15.20`, black `26.5.1`, mypy `1.20.2`, pytest `9.1.1`, pytest-cov `5.0.0`, pip-audit `2.10.1`.
 - Local dev stack uses Docker Compose with PostgreSQL, Redis, web, API, and worker services.
 - Do not add dependencies unless the current task clearly needs them; prefer existing stack, helpers, contracts, and design tokens.
 

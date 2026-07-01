@@ -2,8 +2,8 @@
 title: 'PP-021 Harden dependency lock drift and supply-chain policy automation'
 type: 'chore'
 created: '2026-07-01'
-status: 'ready-for-dev'
-baseline_commit: 'TBD-at-implementation-start'
+status: 'done'
+baseline_commit: '06f03b630e7fc4195063e849501e8d2351b8b9ab'
 context:
   - `AGENT_RULES.md`
   - `docs/delivery/TASK_BACKLOG.md`
@@ -83,14 +83,14 @@ These failures are useful guardrails, but they currently arrive as repeated CI b
 
 **Execution:**
 
-- [ ] Reproduce or model the two reported failure classes: pnpm minimum-release-age rejection for too-new lockfile entries and Python lock drift after a pinned dependency bump.
-- [ ] Inventory the current pnpm supply-chain policy configuration and dependency automation schedule. Document where the minimum release age is configured and which workflows run frozen installs.
-- [ ] Add an early dependency preflight or split dependency-check job that runs before expensive lint/type/test/build work and produces concise, actionable repair output.
-- [ ] Implement safe auto-repair for Python lock drift on eligible dependency PR branches by running the existing lock sync path and pushing only the affected lock files back to the same branch; ensure a manifest bump in either `apps/api` or `apps/worker` refreshes both services so API-only and worker-only lock-check jobs cannot keep failing independently.
-- [ ] Add or adjust Node dependency automation so pnpm minimum-release-age violations are avoided where possible: delay update PRs, retry after the age window, or refresh the lockfile after the policy window rather than repeatedly failing CI.
-- [ ] Add regression coverage for the helper scripts/workflow logic that can be run without depending on live package-publication timing. Use fixtures or deterministic script tests for stale Python locks and too-new pnpm lock entries.
-- [ ] Update dependency-maintenance docs with copy/pasteable local commands and CI triage guidance.
-- [ ] Update `docs/delivery/TASK_BACKLOG.md` and `docs/delivery/ITERATION_LOG.md` with exact implementation evidence, skipped checks, follow-ups, and residual risk.
+- [x] Reproduce or model the two reported failure classes: pnpm minimum-release-age rejection for too-new lockfile entries and Python lock drift after a pinned dependency bump.
+- [x] Inventory the current pnpm supply-chain policy configuration and dependency automation schedule. Document where the minimum release age is configured and which workflows run frozen installs.
+- [x] Add an early dependency preflight or split dependency-check job that runs before expensive lint/type/test/build work and produces concise, actionable repair output.
+- [x] Implement safe auto-repair for Python lock drift on eligible dependency PR branches by running the existing lock sync path and pushing only the affected lock files back to the same branch; ensure a manifest bump in either `apps/api` or `apps/worker` refreshes both services so API-only and worker-only lock-check jobs cannot keep failing independently.
+- [x] Add or adjust Node dependency automation so pnpm minimum-release-age violations are avoided where possible: delay update PRs, retry after the age window, or refresh the lockfile after the policy window rather than repeatedly failing CI.
+- [x] Add regression coverage for the helper scripts/workflow logic that can be run without depending on live package-publication timing. Use fixtures or deterministic script tests for stale Python locks and too-new pnpm lock entries.
+- [x] Update dependency-maintenance docs with copy/pasteable local commands and CI triage guidance.
+- [x] Update `docs/delivery/TASK_BACKLOG.md` and `docs/delivery/ITERATION_LOG.md` with exact implementation evidence, skipped checks, follow-ups, and residual risk.
 
 **Acceptance Criteria:**
 
@@ -157,21 +157,56 @@ These failures are useful guardrails, but they currently arrive as repeated CI b
 
 ## Suggested Review Order
 
-**CI Safety**
+**Dependency Preflight**
 
-- Confirm protected CI remains read-only and supply-chain policy is not bypassed.
+- Start with the release-age policy reader and default behavior.
+  [`check-pnpm-release-age.mjs:67`](../../scripts/check-pnpm-release-age.mjs#L67)
 
-**Automation Reliability**
+- Review lockfile package extraction before registry evaluation.
+  [`check-pnpm-release-age.mjs:96`](../../scripts/check-pnpm-release-age.mjs#L96)
 
-- Confirm auto-repair only updates lock files for committed manifest changes and does not create infinite workflow loops.
+- Check cached, timed registry metadata lookup.
+  [`check-pnpm-release-age.mjs:144`](../../scripts/check-pnpm-release-age.mjs#L144)
 
-**Diagnostics**
+- Confirm main flow honors exclusions and fails with actionable diagnostics.
+  [`check-pnpm-release-age.mjs:156`](../../scripts/check-pnpm-release-age.mjs#L156)
 
-- Confirm failure messages name the exact package/service/file drift and the recommended repair command.
+- Stable violation ordering keeps CI logs readable.
+  [`check-pnpm-release-age.mjs:212`](../../scripts/check-pnpm-release-age.mjs#L212)
 
-**Docs And Delivery Evidence**
+**CI And Automation**
 
-- Confirm docs, backlog, and iteration log accurately describe the implemented dependency maintenance flow.
+- Preflight job runs fixture tests before live policy checks.
+  [`ci.yml:18`](../../.github/workflows/ci.yml#L18)
+
+- Build gate waits for dependency preflight.
+  [`ci.yml:57`](../../.github/workflows/ci.yml#L57)
+
+- Repair workflow is serialized per PR.
+  [`python-lock-repair.yml:18`](../../.github/workflows/python-lock-repair.yml#L18)
+
+- Non-mutating fallback reports exact local commands.
+  [`python-lock-repair.yml:23`](../../.github/workflows/python-lock-repair.yml#L23)
+
+- Same-repo repair runs the existing lock sync path.
+  [`python-lock-repair.yml:64`](../../.github/workflows/python-lock-repair.yml#L64)
+
+- Quoted push ref avoids shell token injection.
+  [`python-lock-repair.yml:78`](../../.github/workflows/python-lock-repair.yml#L78)
+
+**Test And Evidence**
+
+- Normal repo test gate now includes dependency fixtures.
+  [`Makefile:92`](../../Makefile#L92)
+
+- pnpm fixtures cover too-new, excluded, old, and missing metadata cases.
+  [`pnpm-release-age.test.mjs:28`](../../tests/dependency-preflight/pnpm-release-age.test.mjs#L28)
+
+- Python fixture covers exact stale pin diagnostics.
+  [`python-lock-pins.test.mjs:30`](../../tests/dependency-preflight/python-lock-pins.test.mjs#L30)
+
+- Iteration log records review fixes and local gate blockers.
+  [`ITERATION_LOG.md:22`](../../docs/delivery/ITERATION_LOG.md#L22)
 
 ## Dev Agent Record
 

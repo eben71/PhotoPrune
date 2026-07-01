@@ -19,6 +19,35 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-01 - PP-021 Harden dependency lock drift and supply-chain policy automation
+
+- Role: Builder
+- Status: Done
+- Goal: Make Node and Python dependency-lock CI failures fail early with actionable diagnostics and repair Python lock-only drift where safe.
+- Acceptance criteria checked:
+  - CI now has a `dependency-preflight` job that runs before the expensive full gate and keeps protected CI read-only.
+  - `scripts/check-pnpm-release-age.mjs` checks pnpm locked package publish times against `pnpm-workspace.yaml` `minimumReleaseAge`, fails for too-new versions, and fails closed when registry metadata is unavailable.
+  - Dependabot npm updates use a two-day cooldown so routine update PRs are not opened inside pnpm's 24-hour release-age window.
+  - Same-repository PRs that change API or worker `pyproject.toml` files run a Python lock repair workflow that refreshes both services and pushes only lock outputs back to the PR branch.
+  - Dependency maintenance docs explain `pnpm dependency:preflight`, `pnpm install`, `make python-locks`, `make python-locks-upgrade`, `make python-locks-check`, and why `pnpm clean --lockfile` is not a PhotoPrune command.
+- Commands run:
+  - `node --check scripts/check-pnpm-release-age.mjs` passed.
+  - `node --test tests/dependency-preflight/*.test.mjs` passed: 6 tests.
+  - `node scripts/check-pnpm-release-age.mjs` failed with exit 1 on the current too-new Turbo lock entries and printed publish times plus safe-after times; this is the intended pnpm release-age policy block.
+  - `pnpm install --frozen-lockfile` reached pnpm's supply-chain policy gate and failed on the current too-new Turbo lock entries, matching the reported PP-021 failure class.
+  - `make python-locks-check` could not run on this Windows host because the Makefile invokes `scripts/sync-python-locks.sh` through a WSL path and WSL has no installed distribution.
+  - `UV_CACHE_DIR=C:\DevProjects\PhotoPrune\.uv-cache uv run python scripts/check-python-lock-pins.py` passed.
+  - `pnpm check:docs` timed out while pnpm tried to rebuild the dependency tree and then hit the active supply-chain policy gate before running the docs script.
+  - `node scripts/check-docs.js` passed.
+- Manual verification:
+  - Reviewed `.github/workflows/ci.yml`, `.github/workflows/python-lock-repair.yml`, `.github/dependabot.yml`, docs, and helper script behavior for protected-CI non-mutation and branch-scoped repair.
+  - Ran BMAD Blind Hunter, Edge Case Hunter, and Acceptance Auditor review agents. Patch findings were resolved by switching npm metadata requests to full packuments, honoring `minimumReleaseAgeExclude`, adding registry timeout and concurrent/cached lookups, quoting the PR branch push ref, adding repair-workflow concurrency, wiring fixture tests into CI and `make test`, adding a non-mutating fork/protected-head fallback summary, and refreshing stale agent project context versions.
+  - Confirmed no product UI, deletion, recovery, or similarity-confidence behavior changed.
+- Artifacts/screenshots: Not applicable; CI/workflow-only change.
+- Backlog updates: Moved PP-021 from In Progress to Done.
+- Follow-up tasks created: None.
+- Residual risk: Full repo gate remains blocked locally while pnpm release-age policy rejects the current Turbo entries and this Windows host lacks WSL for shell-based Python lock sync. Final confirmation should come from GitHub Actions after the npm registry metadata is reachable and the Turbo packages satisfy the configured release-age window.
+
 ### 2026-07-01 - PP-003 Run full repo verification gate and reconcile failures
 
 - Role: Builder

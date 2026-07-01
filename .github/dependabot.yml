@@ -52,6 +52,9 @@ updates:
       day: "wednesday"
       time: "09:00"
       timezone: "Australia/Perth"
+    cooldown:
+      # Keep npm update PRs outside pnpm's 24-hour minimumReleaseAge window.
+      default-days: 2
     groups:
       all-dependencies:
         patterns:
