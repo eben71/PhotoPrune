@@ -10,6 +10,8 @@ coverage
 .coverage
 coverage.xml
 .vitest
+playwright-report
+test-results
 
 # Python
 __pycache__
