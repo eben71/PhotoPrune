@@ -111,6 +111,22 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Dependency versions and lockfile resolutions are not changed for this CI repair.
   - Local verification records that `pnpm@11.9.0` could not be downloaded in this environment if registry access remains blocked.
 
+### PP-021 Harden dependency lock drift and supply-chain policy automation
+
+- Status: Ready
+- Type: Chore / CI / Dependency Management
+- Links: `.github/workflows/ci.yml`, `.github/workflows/python-dependency-refresh.yml`, `package.json`, `pnpm-lock.yaml`, `apps/api/pyproject.toml`, `apps/worker/pyproject.toml`, `scripts/sync-python-locks.sh`, `docs/ai/testing.md`
+- Goal: Make recurring Node and Python dependency-lock CI failures self-diagnosing and automatically repairable where safe, so Dependabot/scheduled dependency changes do not repeatedly break install or lock-check workflows.
+- Acceptance criteria:
+  - CI has a focused dependency preflight that catches pnpm minimum-release-age violations and Python manifest/lock drift before the expensive full gate, with actionable output that names the exact repair command or automation path.
+  - Node dependency updates account for pnpm supply-chain policy timing: either dependency automation waits until packages satisfy the configured minimum release age or opens a delayed/refresh PR instead of committing too-new lockfile entries.
+  - Python dependency updates keep `apps/api` and `apps/worker` `pyproject.toml`, `uv.lock`, `requirements.lock`, and `requirements-dev.lock` synchronized automatically when pins change, including Dependabot-created ruff-style version bumps.
+  - Safe auto-repair is implemented for lock-only drift where the manifest change is already committed: automation can run the existing lock sync commands and update the same branch/PR, while protected CI remains non-mutating.
+  - Repo docs explain the dependency maintenance flow, when to run `make python-locks`, `make python-locks-upgrade`, `pnpm clean --lockfile`, and `pnpm install`, and how pnpm minimum-release-age failures should be handled.
+  - Tests or workflow dry-runs cover stale Python locks and too-new pnpm lock entries without relying on live package publication timing.
+  - The implementation records exact evidence in `docs/delivery/ITERATION_LOG.md` and leaves no unsupported product-scope changes.
+
+
 ## P1
 
 ### PP-005 Reconcile Phase 3 “complete” roadmap status with actual MVP usability
