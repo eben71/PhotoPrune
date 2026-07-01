@@ -35,7 +35,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-002 Add or confirm MVP Playwright smoke test for the golden path
 
-- Status: Ready
+- Status: Done
 - Type: Test
 - Links: `docs/testing/MVP_SMOKE_TEST_PLAN.md`, `package.json`
 - Goal: Provide a repeatable MVP smoke gate for the primary scan/review path.
@@ -43,6 +43,10 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - A documented command runs the MVP smoke path or an existing command is confirmed.
   - Smoke covers home, primary CTA, scan/progress, grouped results/review, confidence labels, manual guidance, and Settings/Profile behavior.
   - The command is added to docs and backlog evidence.
+- Evidence:
+  - `pnpm smoke:mvp` runs the Playwright Chromium MVP smoke spec at `tests/e2e/mvp-smoke.spec.ts`.
+  - 2026-06-30 local result: `pnpm smoke:mvp` passed, 1 test passed.
+  - The smoke uses deterministic fixture mode and a Google Picker browser stub; real Google Photos account verification remains covered by PP-014/manual demo work.
 
 ### PP-003 Run full repo verification gate and reconcile failures
 
@@ -237,3 +241,16 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Link opens in a new tab.
   - No in-app delete option or write-scope action is introduced.
   - Manual cleanup guidance remains clear and non-destructive.
+
+### PP-020 Expand Playwright MVP regression coverage
+
+- Status: Ready
+- Type: Test
+- Links: `tests/e2e/mvp-smoke.spec.ts`, `playwright.config.ts`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, `docs/product/MVP_EXIT_CRITERIA.md`
+- Goal: Expand the PP-002 Playwright smoke foundation into focused MVP regression coverage for trust-critical browser behavior without replacing the real-Google manual demo path.
+- Acceptance criteria:
+  - Playwright coverage is split into maintainable focused specs or helper modules instead of one oversized smoke test.
+  - Coverage includes at least three MVP regression areas beyond the basic golden path, such as route/session guard behavior, trust-copy forbidden-claim checks across key pages, Google Photos link-out behavior, Settings/Account scope, or viewport/accessibility-critical navigation.
+  - The existing `pnpm smoke:mvp` command remains fast and deterministic, or any additional Playwright command is documented with when to use it.
+  - Reusable Playwright helpers avoid duplicating the Google Picker stub, fixture-mode setup, forbidden-claim assertions, and common navigation flows.
+  - Docs and delivery evidence explain what is automated versus what remains manual/PP-014 real Google Photos verification.
