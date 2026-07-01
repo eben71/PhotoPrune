@@ -50,7 +50,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-003 Run full repo verification gate and reconcile failures
 
-- Status: Ready
+- Status: Done
 - Type: Verification
 - Links: `docs/ai/testing.md`, `.agents/skills/repo-verify/SKILL.md`
 - Goal: Establish current green/red status for the full repo gate after reset.
@@ -58,6 +58,11 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Full gate commands from `docs/ai/testing.md` are run or explicitly skipped with blocker/risk.
   - Failures are triaged into fixes or follow-up tasks.
   - Iteration log records exact evidence.
+- Evidence:
+  - 2026-07-01 full gate result: `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, `make build`, and `pnpm check:docs` passed.
+  - `make format-check` initially failed on ignored/generated `packages/shared/dist/index.d.ts` and `packages/shared/dist/index.js`; added `packages/shared/.prettierignore` so generated shared build output is excluded from the source-format gate.
+  - `make python-locks-check` was not required because PP-003 changed no Python dependency manifests or lock files.
+  - Sandbox runs of make targets initially hit Corepack user-cache `EPERM`; escalated reruns reached the real commands and are recorded in `docs/delivery/ITERATION_LOG.md`.
 
 ### PP-004 Create manual MVP demo checklist
 
