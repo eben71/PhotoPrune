@@ -118,7 +118,7 @@ requests==2.34.2
     #   pip-audit
 rich==15.0.0
     # via pip-audit
-ruff==0.15.18
+ruff==0.15.20
     # via photoprune-worker (pyproject.toml:dev)
 six==1.17.0
     # via python-dateutil
