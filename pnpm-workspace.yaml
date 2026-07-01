@@ -20,15 +20,7 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
 
-# Keep pnpm 11's default 24-hour minimum release age active, but allow
-# the repo's direct Turborepo toolchain update and its platform binaries that
-# are already pinned in pnpm-lock.yaml. Remove these entries after the next
-# dependency refresh once the pinned release is outside the policy window.
-minimumReleaseAgeExclude:
-  - turbo
-  - '@turbo/darwin-64'
-  - '@turbo/darwin-arm64'
-  - '@turbo/linux-64'
-  - '@turbo/linux-arm64'
-  - '@turbo/windows-64'
-  - '@turbo/windows-arm64'
+# Keep pnpm's supply-chain delay explicit. The dependency preflight checks
+# lockfile publish times before the expensive CI gate and tells maintainers
+# when a too-new package can be refreshed safely.
+minimumReleaseAge: 1440
