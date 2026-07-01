@@ -19,6 +19,39 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-06-30 - PP-002 Add or confirm MVP Playwright smoke test for the golden path
+
+- Role: Builder
+- Status: Done
+- Goal: Provide a repeatable MVP Playwright smoke gate for the primary scan/review path.
+- Acceptance criteria checked:
+  - Added root command `pnpm smoke:mvp`.
+  - Added Playwright config and Chromium smoke spec covering home, primary CTA, scan/progress, grouped results/review, confidence labels, manual guidance, Settings, and Account/Profile behavior.
+  - Smoke includes trust assertions for unsupported similarity percentages, destructive/write-scope/recovery claims, and unsupported storage/privacy/local-only claims.
+  - Updated `docs/testing/MVP_SMOKE_TEST_PLAN.md` with the command and the automated/manual verification boundary.
+- Commands run:
+  - `pnpm smoke:mvp` initially failed inside the sandbox with `EPERM` reading Playwright's installed CLI.
+  - `pnpm smoke:mvp` outside the sandbox reached Playwright and exposed a webServer command argument bug, then a missing Chromium browser.
+  - `pnpm exec playwright install chromium` passed and installed Playwright Chromium.
+  - `pnpm smoke:mvp` passed: 1 Playwright Chromium test passed.
+  - `pnpm --filter web lint` passed.
+  - `pnpm --filter web typecheck` passed.
+  - `pnpm --filter web test` passed: 13 test files, 62 tests, coverage lines 81.26%.
+  - `pnpm check:docs` passed.
+  - `pnpm --filter web exec prettier --check ...` passed for touched parseable files.
+  - `pnpm lint` passed.
+  - `pnpm typecheck` passed.
+  - `pnpm test` passed.
+  - `node scripts/check-coverage.mjs` passed: web 81.26, api 90.9, worker 100.
+  - `pnpm build` passed.
+  - `pnpm format:check` failed on pre-existing/generated `packages/shared/dist/index.d.ts` and `packages/shared/dist/index.js`; touched parseable files passed targeted Prettier check.
+- Manual verification:
+  - Reviewed the passing smoke output. The smoke uses Playwright Chromium with the Desktop Chrome profile and fixture mode, not real Google Photos credentials.
+- Artifacts/screenshots: Not applicable for the passing run; Playwright traces are retained only on failure under ignored `test-results/`.
+- Backlog updates: Moved PP-002 from Ready to Verifying and recorded smoke evidence.
+- Follow-up tasks created: None.
+- Residual risk: The automated smoke does not prove real authenticated Google Photos behavior; PP-014/manual MVP demo still owns that exit gate. Full root format check is still red on generated shared `dist` files outside PP-002 scope.
+
 ### 2026-06-30 - PP-019 Align CI pnpm and Node versions with repo package manager
 
 - Role: Builder

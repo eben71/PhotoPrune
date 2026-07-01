@@ -8,6 +8,7 @@
     "lint": "turbo lint",
     "format": "turbo format",
     "format:check": "turbo format:check",
+    "smoke:mvp": "playwright test --config=playwright.config.ts",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
     "build": "turbo build",
