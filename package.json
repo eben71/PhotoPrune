@@ -17,8 +17,8 @@
   },
   "devDependencies": {
     "lefthook": "^2.1.9",
-    "playwright": "^1.61.0",
-    "turbo": "^2.9.18",
+    "playwright": "^1.61.1",
+    "turbo": "^2.10.2",
     "typescript": "^5.9.3"
   },
   "dependencies": {
