@@ -19,6 +19,30 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-02 - PP-022 Implement real Google Photos album source selection and fetch
+
+- Role: Builder
+- Status: Blocked
+- Goal: Resolve whether PhotoPrune can provide product-ready read-only single-album and multiple-album Google Photos source selection without raw album IDs or fixture/paged test data.
+- Acceptance criteria checked:
+  - Official Google Photos API docs were reviewed for Library API scope changes and Picker API capabilities.
+  - Local picker, saved-project run, ingestion, and project schema paths were inspected.
+  - PP-022 evidence records that arbitrary real user-library album listing/fetch is blocked by current Google Photos API support and product-scope decision, while Picker-selected media items remain the supported user-library path.
+  - Manual demo checklist now states raw album IDs, fixture/paged test data, backend metadata, and app-created-data-only Library API reads cannot pass the single-album or multiple-album rows.
+- Commands run:
+  - `apps/web/node_modules/.bin/prettier.cmd --check docs/delivery/TASK_BACKLOG.md docs/delivery/ITERATION_LOG.md docs/delivery/artifacts/PP-014/pp-014-evidence.md docs/delivery/artifacts/PP-022/pp-022-evidence.md docs/product/MVP_PROGRESS_LEDGER.md docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md _bmad-output/implementation-artifacts/spec-pp-022-google-photos-album-source-selection.md` passed.
+  - `pnpm.cmd check:docs` passed and ran `node scripts/check-docs.js`.
+  - `rg -n "\b\d+%|auto-delete|automatically delete|write scope|recently deleted|recovery|trash|storage reclaimed|full-library" ...` completed; matches were negative guardrail statements, historical evidence, task titles, or PP-022 blocker wording, not new unsupported product claims.
+  - BMAD blind hunter, edge-case hunter, and acceptance auditor review passes completed. Patch findings were resolved by replacing pending verification, routing stale PP-014 album follow-up language through PP-024, narrowing arbitrary user-library album wording, and making PP-024 decision outputs explicit.
+- Manual verification:
+  - Reviewed official Google Photos API update, authorization, and Picker REST reference pages.
+  - Inspected `apps/web/app/hooks/useGooglePhotosPicker.ts`, `apps/web/app/projects/[id]/run/page.tsx`, `apps/api/app/projects/ingestion.py`, `packages/shared/src/projects.ts`, and `apps/web/src/types/projects.ts`.
+- Artifacts/screenshots:
+  - `docs/delivery/artifacts/PP-022/pp-022-evidence.md`
+- Backlog updates: Moved PP-022 from Ready to Blocked and added PP-024 for the MVP source-scope decision.
+- Follow-up tasks created: PP-024.
+- Residual risk: PP-014 remains blocked for arbitrary real user-library single-album and multiple-album source modes until PP-024 changes MVP scope or Google exposes a supported read-only album selection/fetch path.
+
 ### 2026-07-02 - PP-014 Implement or verify real authenticated Google Photos MVP flow
 
 - Role: Builder

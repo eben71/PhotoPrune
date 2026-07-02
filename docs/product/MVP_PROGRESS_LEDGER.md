@@ -36,7 +36,8 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 - Home visible affordances may imply unavailable settings/account behavior.
 - Phase complete claims must be reconciled with actual demo usability.
 - Real authenticated Google Photos login, picker-selected scan, review, Google Photos link-out, and manual cleanup path must be verified end to end in Chrome.
-- Real single-album and multiple-album source modes are blocked until the app exposes a product-ready read-only Google Photos album selection/fetch path; raw album ID inputs and backend source metadata are not sufficient MVP manual-demo evidence.
+- Arbitrary real user-library single-album and multiple-album source modes are blocked by current Google Photos API support and product scope, not just missing UI polish. Official Google docs now limit Library API album/media listing and retrieval to app-created content after the 2025 broad-scope removal; Picker-selected media items remain the supported user-library path.
+- Raw album ID inputs, backend source metadata, fixture/paged test data, and app-created-data-only Library API reads are not sufficient MVP manual-demo evidence for real user-library album modes.
 - The review UI must help identify identical and similar photos with understandable reasons.
 
 ## Known verification gaps
@@ -46,7 +47,9 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 - Manual MVP demo checklist exists; it still needs to be passed and recorded.
 - CI uses pnpm `9.12.2` while `package.json` declares pnpm `10.30.3`; this is recorded as PP-009 and should be aligned or explicitly documented.
 - PP-014 recorded a blocked result on 2026-07-02. Real Chrome/authenticated Google Photos MVP readiness is not proven.
+- PP-022 recorded a blocked result on 2026-07-02. Real arbitrary user-library single/multiple album selection is not currently supported through documented read-only Google Photos APIs.
 - Picker-selected photos need a real Chrome demo with a real Google account and real Google Photos content.
+- PP-024 must decide the exact MVP source modes, including whether source scope can shift to Picker-selected Google Photos content or whether arbitrary real user-library album source modes remain a launch blocker.
 - Similarity percentage policy must be resolved before any numeric similarity UI is implemented.
 
 ## Discarded / out-of-scope items
@@ -78,5 +81,5 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 - P0 PP-013: Resolve numeric similarity evidence policy.
 - P0 PP-015: Implement or verify session-only scan persistence and timeout recovery.
 - P0 PP-016: Implement or verify Google Photos exact-photo link-out for manual cleanup.
-- P0 PP-022: Implement real Google Photos album source selection and fetch.
 - P0 PP-023: Run real Chrome picker-selected Google Photos demo.
+- P0 PP-024: Decide MVP source scope after Google Photos album API limitation.

@@ -49,6 +49,8 @@ Run or explicitly record the result for each source type.
 
 If any source type is unsupported, mark it `Blocked` or `Fail` and create or reference a follow-up task. Do not treat unsupported source modes as passing MVP evidence.
 
+Raw album ID entry, fixture or paged test data, backend source metadata, and Google Library API app-created-data-only reads do not count as passing evidence for the single-album or multiple-album rows. Those rows require a product-ready, read-only path against real user-library Google Photos content, or they must remain `Blocked` until MVP scope changes.
+
 ## Scan And Progress
 
 - [ ] Scan starts from the selected real Google Photos content.
@@ -117,4 +119,4 @@ Confirm each forbidden item is absent. Fail the demo and record the exact locati
 
 ## Completion Rule
 
-The manual MVP demo passes only when every required section above is checked as passing, every required source mode passes, and evidence is recorded. Follow-up task IDs can cover discovered non-blocking gaps only; they cannot convert a failed required source mode, trust guardrail, scan/review path, or exact-photo cleanup path into a passing demo.
+The manual MVP demo passes only when every required section above is checked as passing, every required source mode passes, and evidence is recorded. Follow-up task IDs can cover discovered non-blocking gaps only; they cannot convert a failed required source mode, trust guardrail, scan/review path, or exact-photo cleanup path into a passing demo. If product scope changes after PP-024, update this checklist before using the changed source-mode definition as pass evidence.
