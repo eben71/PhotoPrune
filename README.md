@@ -3,6 +3,7 @@
 PhotoPrune helps people review duplicate or near-duplicate photos selected from Google Photos.
 
 It is a **trust-first, review-only** product:
+
 - it groups similar photos for review
 - it recommends likely keeper images
 - it never deletes photos automatically
@@ -10,6 +11,7 @@ It is a **trust-first, review-only** product:
 ## Current Product Status
 
 PhotoPrune has completed its Phase 3 picker-scoped recurring workflow:
+
 - projects can be reopened over time
 - each project stores explicit picker scope metadata
 - projects can hold multiple saved scans
@@ -19,16 +21,18 @@ PhotoPrune has completed its Phase 3 picker-scoped recurring workflow:
 - unchanged reviewed groups keep their done state
 
 The Phase 2 trust-first review foundation remains locked:
+
 - review UX stays calm and group-based
 - confidence shown only as `High`, `Medium`, or `Low`
 - plain-English guidance for manual review actions
 - no hidden destructive behavior
 
-PhotoPrune now supports read-only album/set ingestion through the scoped source adapter. Projects can store album IDs and optional media item IDs, and album scans can resume from persisted checkpoints after partial pagination runs. The app still does not request write scopes, store image bytes, or perform automatic deletion.
+PhotoPrune has scoped album/set project metadata and checkpointing for controlled ingestion paths. That technical path is not MVP pass evidence for arbitrary existing Google Photos albums after PP-024; the MVP source path is real Picker-selected Google Photos content. The app still does not request write scopes, store image bytes, or perform automatic deletion.
 
 ## Product Principles
 
 PhotoPrune is designed around:
+
 - user control over automation
 - calm, plain-English guidance
 - predictable review flows
@@ -36,6 +40,7 @@ PhotoPrune is designed around:
 - group-based review, not raw similarity scoring
 
 ### Explicitly not supported
+
 - automatic deletion
 - similarity percentages in the UI
 - library-wide scanning in the current product scope

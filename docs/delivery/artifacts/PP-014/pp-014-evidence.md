@@ -9,7 +9,7 @@
 - Overall result: Blocked
 - Evidence folder: `docs/delivery/artifacts/PP-014/`
 - Iteration log entry: `docs/delivery/ITERATION_LOG.md`
-- Follow-up task IDs: PP-022 for Google Photos album source selection/fetch evidence; PP-024 for the MVP source-scope decision after the PP-022 API limitation finding; PP-023 for the real Chrome picker-selected Google Photos demo; PP-015 and PP-016 remain separate MVP gates for session timeout recovery and exact-photo link-out verification.
+- Follow-up task IDs: PP-022 for Google Photos album source selection/fetch evidence; PP-024 resolved the MVP source-scope decision after the PP-022 API limitation finding; PP-023 for the real Chrome Picker-selected Google Photos demo; PP-015 and PP-016 remain separate MVP gates for session timeout recovery and exact-photo link-out verification.
 - Residual risk: Real Google Photos MVP readiness is not proven.
 
 ## Verification Performed
@@ -23,6 +23,8 @@
 - Searched the changed PP-014 docs and evidence for forbidden claim patterns with `rg -n "\b\d+%|auto-delete|automatically delete|write scope|recently deleted|recovery|trash|storage reclaimed|full-library" ...`; matches were negative guardrail statements, historical command evidence, or blocker wording.
 
 ## Source Mode Results
+
+The single-album and multiple-album rows below record the pre-PP-024 blocker analysis from this PP-014 run. After PP-024, those rows are historical evidence only; Picker-selected real Google Photos content is the MVP source mode.
 
 | Source type            | Result                         | Evidence / notes                                                                                                                                                                                                                                                                                                                                                  |
 | ---------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -51,10 +53,10 @@ Code and documentation inspection for this task found no PP-014 change introduci
 
 ## Manual Demo Status
 
-The manual MVP demo checklist was not completed. The blocker is not an automated test failure; it is missing real user-controlled execution evidence for Chrome OAuth and real Google Photos content, plus missing product-ready album source selection/fetch for single and multiple albums.
+The manual MVP demo checklist was not completed. The blocker is not an automated test failure; it is missing real user-controlled execution evidence for Chrome OAuth and real Picker-selected Google Photos content.
 
 The MVP should not be described as passing PP-014 until:
 
 - A human runs `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md` in Chrome with a real Google account.
 - Picker-selected photos pass with real content through PP-023 or a later PP-014 rerun.
-- Single-album and multiple-album source modes pass through a real, read-only Google Photos flow supported by current APIs, or PP-024 changes MVP source scope and the relevant exit criteria/checklists are updated before a later PP-014 rerun records passing evidence.
+- PP-015 and PP-016 are resolved or explicitly accounted for as separate MVP gates.

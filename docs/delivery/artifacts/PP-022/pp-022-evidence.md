@@ -24,7 +24,7 @@ Findings:
 - The authorization page warns that after March 31, 2025, the removed broad Library API scopes only allow access to content created by the application. It also lists `photoslibrary.appendonly` as write access only and `photoslibrary.readonly.appcreateddata` as read access only to developer-created media items and albums.
 - The Picker REST reference exposes `v1.sessions` and `v1.mediaItems`. `GET /v1/mediaItems` returns media items picked by the user during a session. The reference does not expose a user-library album listing/fetch endpoint.
 
-Conclusion: There is no documented read-only Google Photos API path for PhotoPrune to list and fetch arbitrary real albums from the product owner's existing library. Picker-selected photos remain viable; album-specific MVP source scope requires a product decision or a future Google API change.
+Conclusion: There is no documented read-only Google Photos API path for PhotoPrune to list and fetch arbitrary real albums from the product owner's existing library. Picker-selected photos remain viable; PP-024 later resolved that Picker-selected real Google Photos content is the MVP source mode.
 
 ## Local Code Inspection
 
@@ -45,12 +45,12 @@ Findings:
 
 ## Acceptance Assessment
 
-- Single arbitrary real user-library album selection: Blocked by current Google API support and missing product decision.
-- Multiple arbitrary real user-library album selection: Blocked by current Google API support and missing product decision.
+- Single arbitrary real user-library album selection: Blocked by current Google API support.
+- Multiple arbitrary real user-library album selection: Blocked by current Google API support.
 - Scan input populated from arbitrary real Google Photos album content without write scope: Blocked.
 - Trust guardrails: Passed for this task. No write scope, in-app Google Photos deletion, automatic deletion, recovery/trash claim, full-library scanning claim, or numeric similarity/confidence was introduced.
 
 ## Required Follow-Up
 
-- PP-024 must decide whether MVP source scope can shift from album-specific support to Google Photos Picker-selected content, or whether single/multiple album support remains a launch blocker.
-- PP-014 cannot pass the single-album or multiple-album manual demo rows through raw album IDs, fixture/paged test data, app-created-data-only Library API reads, or code inspection alone.
+- PP-024 resolved the MVP source-scope decision: Picker-selected real Google Photos content is the MVP source mode, and arbitrary single/multiple album support is not MVP pass evidence unless a later approved task documents a supported read-only Google Photos path.
+- PP-014 cannot pass MVP source evidence through raw album IDs, fixture/paged test data, app-created-data-only Library API reads, backend metadata, or code inspection alone.

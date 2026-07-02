@@ -11,8 +11,9 @@ MVP is ready only when all gates below pass and the evidence is recorded in `doc
 - Home screen loads without broken visible actions.
 - Settings and Account/Profile show only required MVP account details and settings; non-required items are hidden or clearly unavailable.
 - User can log in with an actual Google account through the authenticated flow.
-- User can start the primary scan/review flow from real, read-only Google Photos content.
-- User can scan a single album, multiple albums, and picker-selected photos.
+- User can start the primary scan/review flow from real, read-only Google Photos content selected through the Google Photos Picker.
+- User can scan Picker-selected photos from a real authenticated Google account.
+- Arbitrary single-album and multiple-album source modes are not required MVP pass evidence after PP-024 unless a later approved task documents a supported read-only Google Photos path.
 - Full-library scanning is not required and must not be implied.
 - User can complete the current review session without hidden persistence or destructive assumptions.
 - Current-session selections survive an in-session timeout where technically possible; closing the browser may restart the scan for MVP.
@@ -45,4 +46,4 @@ MVP is ready only when all gates below pass and the evidence is recorded in `doc
 - Phase 3 recurring/scoped workflow: documented as complete in `README.md` and `ROADMAP.md`, but requires product usability verification.
 - Header Settings/Profile usability: needs verification/fix so only required MVP account details and settings are visible.
 - MVP smoke test gate: missing or incomplete until proven otherwise.
-- Real authenticated Google Photos album/picker flow: needs end-to-end verification against the product-owner MVP path.
+- Real authenticated Google Photos Picker flow: needs end-to-end verification against the product-owner MVP path.

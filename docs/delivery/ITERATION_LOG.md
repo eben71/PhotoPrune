@@ -19,6 +19,31 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-02 - PP-024 Decide MVP source scope after Google Photos album API limitation
+
+- Role: Builder
+- Status: Done
+- Goal: Decide whether MVP source scope can shift from arbitrary single/multiple Google Photos album source modes to Picker-selected Google Photos content after PP-022 found the album API limitation.
+- Acceptance criteria checked:
+  - Product-owner decision accepts Picker-selected real Google Photos content as the MVP source mode, replacing arbitrary single-album and multiple-album source modes for MVP pass evidence.
+  - Decision output names the exact MVP source mode, user-facing copy implications, rejected evidence types, and manual demo evidence required after the decision.
+  - MVP exit criteria, progress ledger, manual demo checklist, smoke handoff docs, backlog, repo guardrails, README, ROADMAP, and current-state docs now match the changed source-mode definition.
+  - Raw album IDs, app-created-data-only Library API reads, backend metadata, fixture/paged test data, and code inspection still cannot count as real MVP source evidence.
+- Commands run:
+  - `apps/web/node_modules/.bin/prettier.cmd --check AGENT_RULES.md README.md ROADMAP.md docs/delivery/TASK_BACKLOG.md docs/delivery/ITERATION_LOG.md docs/delivery/artifacts/PP-014/pp-014-evidence.md docs/delivery/artifacts/PP-022/pp-022-evidence.md docs/delivery/artifacts/PP-024/pp-024-source-scope-decision.md docs/product/CURRENT_STATE.md docs/product/MVP_EXIT_CRITERIA.md docs/product/MVP_PROGRESS_LEDGER.md docs/questionnaires/MVP_ALIGNMENT_QUESTIONNAIRE.md docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md docs/testing/MVP_SMOKE_TEST_PLAN.md _bmad-output/implementation-artifacts/spec-pp-024-source-scope-decision.md` passed after formatting `AGENT_RULES.md`, `README.md`, and the PP-024 spec.
+  - `pnpm.cmd check:docs` passed and ran `node scripts/check-docs.js`.
+  - `rg -n "\b\d+%|auto-delete|automatically delete|write scope|recently deleted|recovery|trash|storage reclaimed|full-library" ...` completed; matches were negative guardrails, historical evidence, task names, or PP-024 rejected-claim wording, not new unsupported product claims.
+  - Blind hunter, edge-case hunter, and acceptance auditor review subagents completed. Patch findings were resolved by narrowing README album/set language, updating stale PP-014/PP-022 evidence wording, adding PP-024 decision provenance, marking questionnaire album-scope answers as historical, adding backlog residual risk, and tightening checklist/source-evidence wording.
+  - `C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command "& 'C:\Program Files\nodejs\pnpm.cmd' check:docs"` could not run because that absolute pnpm path does not exist on this host; `pnpm.cmd check:docs` was used instead.
+- Manual verification:
+  - Reviewed PP-022 evidence and updated docs for stale single-album/multiple-album MVP pass requirements.
+  - Reviewed review-agent findings and confirmed all non-noise findings were resolved in the patch.
+- Artifacts/screenshots:
+  - `docs/delivery/artifacts/PP-024/pp-024-source-scope-decision.md`
+- Backlog updates: Moved PP-024 from Ready to Done and updated PP-014 follow-up wording.
+- Follow-up tasks created: None.
+- Residual risk: PP-014 remains blocked until the real Chrome Picker-selected Google Photos demo passes with a real account and real content. PP-015 and PP-016 remain separate MVP gates for session timeout recovery and exact-photo link-out behavior.
+
 ### 2026-07-02 - PP-022 Implement real Google Photos album source selection and fetch
 
 - Role: Builder
@@ -47,7 +72,7 @@ Record every implementation or verification iteration here. The log is repo trut
 
 - Role: Builder
 - Status: Blocked
-- Goal: Prove the MVP path with a real Google account, real read-only album or picker content, scan, review, and manual cleanup link-out in Chrome.
+- Goal: Prove the MVP path with a real Google account, real read-only Google Photos content, scan, review, and manual cleanup link-out in Chrome. PP-024 later narrowed MVP source evidence to Picker-selected content.
 - Acceptance criteria checked:
   - Authenticated Google flow was inspected in code but not proven with a real Google account in Chrome.
   - Picker-selected photos were inspected in code; real picker execution remains blocked by missing user-owned Google account, OAuth consent, and real Google Photos test content in this agent session.

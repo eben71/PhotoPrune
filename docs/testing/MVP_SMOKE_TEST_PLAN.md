@@ -31,7 +31,7 @@ The automated smoke is deterministic and does not use real Google credentials or
 - No automatic deletion or destructive copy appears.
 - Settings/Profile show only required MVP account details and settings, or hide non-required items.
 
-Real Google login, single-album, multiple-album, picker-selected photos, timeout behavior, and exact-photo Google Photos link-out/reference checks belong to `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`.
+Real Google login, Picker-selected photos, timeout behavior, and exact-photo Google Photos link-out/reference checks belong to `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`.
 
 ## Required assertions
 

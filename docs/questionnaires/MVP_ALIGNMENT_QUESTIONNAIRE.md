@@ -2,6 +2,8 @@
 
 Product owner: complete `TBD` answers before declaring MVP exit.
 
+Status note: This questionnaire records original product-owner alignment input. PP-024 supersedes the album-specific source-scope answers for MVP pass evidence: the current MVP source mode is real Google Photos Picker-selected content, while arbitrary existing user-library single-album and multiple-album source modes are not MVP pass evidence unless a later approved task documents a supported read-only Google Photos path.
+
 ## MVP user
 
 - Inferred: People reviewing duplicate or near-duplicate photos selected from Google Photos.

@@ -18,6 +18,8 @@
 
 Phase 3 recurring workflows are complete for picker-selected and album/set-scoped projects, including retryable album/set ingestion, resumable page checkpoints, large-project rescan validation, and deterministic scan diffs.
 
+PP-024 narrowed MVP pass evidence to real Picker-selected Google Photos content because current Google Photos APIs do not expose a supported read-only selection/fetch path for arbitrary existing user-library albums. Album/set-scoped project metadata remains a technical capability, not MVP album-source proof.
+
 ## Phase 3 - Recurring Workflow & Scoped Ingestion (Complete)
 
 ### 3.1 Projects & Persistence
