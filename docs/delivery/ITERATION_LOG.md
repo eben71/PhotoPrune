@@ -19,6 +19,38 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-02 - PP-014 Implement or verify real authenticated Google Photos MVP flow
+
+- Role: Builder
+- Status: Blocked
+- Goal: Prove the MVP path with a real Google account, real read-only album or picker content, scan, review, and manual cleanup link-out in Chrome.
+- Acceptance criteria checked:
+  - Authenticated Google flow was inspected in code but not proven with a real Google account in Chrome.
+  - Picker-selected photos were inspected in code; real picker execution remains blocked by missing user-owned Google account, OAuth consent, and real Google Photos test content in this agent session.
+  - Single-album and multiple-album source modes are blocked by missing product-ready real Google Photos album selection/fetch; the current saved-project UI accepts raw album/media IDs and the backend consumes supplied source metadata, but that is not sufficient manual-demo evidence.
+  - Manual demo evidence was recorded as Blocked under `docs/delivery/artifacts/PP-014/pp-014-evidence.md`.
+- Commands run:
+  - `pnpm smoke:mvp` passed: 1 Playwright Chromium MVP smoke test passed.
+  - `pnpm check:docs` passed and ran `node scripts/check-docs.js`.
+  - `pnpm format:check -- docs/delivery/TASK_BACKLOG.md docs/delivery/ITERATION_LOG.md docs/delivery/artifacts/PP-014/pp-014-evidence.md docs/product/MVP_PROGRESS_LEDGER.md _bmad-output/implementation-artifacts/spec-pp-014-google-photos-mvp-flow.md` initially failed inside the sandbox with `EPERM` reading Turbo, then reached the real command outside the sandbox and failed because Turbo forwarded root-relative doc paths into package directories.
+  - `pnpm exec prettier --check ...` could not run because root `prettier` was not installed in this workspace.
+  - `apps/web/node_modules/.bin/prettier.cmd --write docs/delivery/artifacts/PP-014/pp-014-evidence.md _bmad-output/implementation-artifacts/spec-pp-014-google-photos-mvp-flow.md` passed after the sandboxed run hit `EPERM` reading Prettier.
+  - `apps/web/node_modules/.bin/prettier.cmd --check docs/delivery/TASK_BACKLOG.md docs/delivery/ITERATION_LOG.md docs/delivery/artifacts/PP-014/pp-014-evidence.md docs/product/MVP_PROGRESS_LEDGER.md _bmad-output/implementation-artifacts/spec-pp-014-google-photos-mvp-flow.md` passed.
+  - `rg -n "\b\d+%|auto-delete|automatically delete|write scope|recently deleted|recovery|trash|storage reclaimed|full-library" ...` completed; matches were negative guardrail statements, historical command evidence, or PP-014 blocker wording, not new unsupported product claims.
+  - After BMAD review fixes, `pnpm check:docs` passed.
+  - After BMAD review fixes, `apps/web/node_modules/.bin/prettier.cmd --check docs/delivery/TASK_BACKLOG.md docs/delivery/ITERATION_LOG.md docs/delivery/artifacts/PP-014/pp-014-evidence.md docs/product/MVP_PROGRESS_LEDGER.md _bmad-output/implementation-artifacts/spec-pp-014-google-photos-mvp-flow.md` passed.
+  - After BMAD review fixes, the forbidden-pattern `rg` scan completed with only negative guardrail statements, historical command evidence, or blocker wording.
+- Manual verification:
+  - Reviewed `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, and `docs/product/MVP_EXIT_CRITERIA.md`.
+  - Inspected `apps/web/app/hooks/useGooglePhotosPicker.ts`, `apps/web/app/page.tsx`, `apps/web/app/projects/[id]/run/page.tsx`, `apps/api/app/projects/ingestion.py`, and `packages/shared/src/projects.ts`.
+  - Searched the repo for live Google Photos album listing/fetch integration and found no product-ready album source selection path.
+  - Ran BMAD blind hunter, edge-case hunter, and acceptance auditor review agents. Patch findings were resolved by adding PP-023 for the picker-selected real Chrome demo, clarifying PP-014 evidence/follow-up ownership, and updating stale MVP progress ledger verification and next-work lines.
+- Artifacts/screenshots:
+  - `docs/delivery/artifacts/PP-014/pp-014-evidence.md`
+- Backlog updates: Moved PP-014 from Ready to Blocked, added PP-022 for real Google Photos album source selection/fetch, and added PP-023 for the real Chrome picker-selected Google Photos demo.
+- Follow-up tasks created: PP-022, PP-023.
+- Residual risk: Real authenticated Google Photos MVP readiness is not proven. PP-014 must be rerun after a human can complete Chrome OAuth with real Google Photos content and after PP-022 resolves the album source-mode blocker.
+
 ### 2026-07-01 - PP-004 Create manual MVP demo checklist
 
 - Role: Builder

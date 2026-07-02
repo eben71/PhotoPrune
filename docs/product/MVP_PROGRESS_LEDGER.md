@@ -35,16 +35,18 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 - Profile/account icon must expose only required MVP account details or be hidden until needed.
 - Home visible affordances may imply unavailable settings/account behavior.
 - Phase complete claims must be reconciled with actual demo usability.
-- Real authenticated Google Photos login, album selection, scan, review, Google Photos link-out, and manual cleanup path must be verified end to end in Chrome.
+- Real authenticated Google Photos login, picker-selected scan, review, Google Photos link-out, and manual cleanup path must be verified end to end in Chrome.
+- Real single-album and multiple-album source modes are blocked until the app exposes a product-ready read-only Google Photos album selection/fetch path; raw album ID inputs and backend source metadata are not sufficient MVP manual-demo evidence.
 - The review UI must help identify identical and similar photos with understandable reasons.
 
 ## Known verification gaps
 
-- Playwright MVP smoke gate needs to be confirmed or added.
-- There is no obvious root MVP smoke/e2e script in `package.json`.
+- Playwright MVP smoke gate exists as `pnpm smoke:mvp`; it does not replace the real Google Photos manual demo.
 - Full repo verification must be run and recorded after the reset.
-- Manual MVP demo checklist still needs to be created, passed, and recorded.
+- Manual MVP demo checklist exists; it still needs to be passed and recorded.
 - CI uses pnpm `9.12.2` while `package.json` declares pnpm `10.30.3`; this is recorded as PP-009 and should be aligned or explicitly documented.
+- PP-014 recorded a blocked result on 2026-07-02. Real Chrome/authenticated Google Photos MVP readiness is not proven.
+- Picker-selected photos need a real Chrome demo with a real Google account and real Google Photos content.
 - Similarity percentage policy must be resolved before any numeric similarity UI is implemented.
 
 ## Discarded / out-of-scope items
@@ -69,12 +71,12 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 
 ## Next recommended P0/P1 tasks
 
-- P0 PP-001: Verify/fix visible home navigation and profile/account affordances.
-- P0 PP-002: Add or confirm MVP Playwright smoke test for the golden path.
-- P0 PP-003: Run full repo verification gate and reconcile failures.
-- P0 PP-004: Create, pass, and record the manual MVP demo checklist.
 - P1 PP-005: Reconcile Phase 3 “complete” roadmap status with actual MVP usability.
+- P1 PP-006: Audit frontend trust copy and visible unsupported claims.
+- P1 PP-007: Add task-discovery follow-up workflow.
+- P1 PP-008: Baton/git worktree usage guide.
 - P0 PP-013: Resolve numeric similarity evidence policy.
-- P0 PP-014: Implement or verify the real authenticated Google Photos MVP flow.
 - P0 PP-015: Implement or verify session-only scan persistence and timeout recovery.
 - P0 PP-016: Implement or verify Google Photos exact-photo link-out for manual cleanup.
+- P0 PP-022: Implement real Google Photos album source selection and fetch.
+- P0 PP-023: Run real Chrome picker-selected Google Photos demo.
