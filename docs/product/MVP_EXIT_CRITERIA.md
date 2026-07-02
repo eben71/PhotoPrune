@@ -12,7 +12,7 @@ MVP is ready only when all gates below pass and the evidence is recorded in `doc
 - Settings and Account/Profile show only required MVP account details and settings; non-required items are hidden or clearly unavailable.
 - User can log in with an actual Google account through the authenticated flow.
 - User can start the primary scan/review flow from real, read-only Google Photos content.
-- User can scan a single album, multiple albums, or picker-selected photos.
+- User can scan a single album, multiple albums, and picker-selected photos.
 - Full-library scanning is not required and must not be implied.
 - User can complete the current review session without hidden persistence or destructive assumptions.
 - Current-session selections survive an in-session timeout where technically possible; closing the browser may restart the scan for MVP.
@@ -37,7 +37,7 @@ MVP is ready only when all gates below pass and the evidence is recorded in `doc
 
 - MVP Playwright smoke test passes for the golden path in `docs/testing/MVP_SMOKE_TEST_PLAN.md`.
 - Full CI gate passes: lint, format check, typecheck, tests, coverage gate, build, docs guard, and audits where applicable.
-- Manual MVP demo checklist passes in Chrome and is recorded.
+- `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md` passes in Chrome with a real Google account and is recorded.
 - Any known limitation is documented in `docs/product/MVP_PROGRESS_LEDGER.md` and has a follow-up task if it blocks launch.
 
 ## Known current status

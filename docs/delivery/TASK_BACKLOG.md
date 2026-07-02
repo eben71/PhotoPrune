@@ -66,7 +66,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-004 Create manual MVP demo checklist
 
-- Status: Ready
+- Status: Done
 - Type: Docs / Verification
 - Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`
 - Goal: Define a human demo checklist that must pass before MVP exit.
@@ -74,6 +74,10 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Checklist includes Chrome, real Google login, read-only Google Photos scope, scan start, progress, grouped review, manual cleanup guidance, and limitations.
   - Checklist includes Settings/Profile expected behavior for required MVP account details only.
   - Checklist references artifacts/screenshots to capture.
+- Evidence:
+  - Added `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md` as the canonical human Chrome demo checklist for real authenticated Google Photos MVP verification.
+  - Linked the checklist from `docs/testing/MVP_SMOKE_TEST_PLAN.md` and `docs/product/MVP_EXIT_CRITERIA.md`.
+  - PP-004 creates the checklist artifact only; running the real Google demo remains future PP-014/manual MVP evidence work.
 
 ### PP-017 Resolve manual review findings for PP-001 navigation labels and settings copy
 
@@ -130,7 +134,6 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Repo docs explain the dependency maintenance flow, when to run `make python-locks`, `make python-locks-upgrade`, `pnpm clean --lockfile`, and `pnpm install`, and how pnpm minimum-release-age failures should be handled.
   - Tests or workflow dry-runs cover stale Python locks and too-new pnpm lock entries without relying on live package publication timing.
   - The implementation records exact evidence in `docs/delivery/ITERATION_LOG.md` and leaves no unsupported product-scope changes.
-
 
 ## P1
 

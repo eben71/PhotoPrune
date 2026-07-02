@@ -19,6 +19,29 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-01 - PP-004 Create manual MVP demo checklist
+
+- Role: Builder
+- Status: Done
+- Goal: Define the human Chrome demo checklist required before MVP exit.
+- Acceptance criteria checked:
+  - Checklist includes Chrome, real Google login, read-only Google Photos scope, source selection for single album, multiple albums, and picker-selected photos, scan start, progress, grouped review, manual cleanup guidance, and known limitations.
+  - Checklist includes Settings/Profile expected behavior for required MVP account details only.
+  - Checklist names screenshots, notes, follow-up task IDs, and iteration-log evidence to capture.
+  - Automated fixture smoke remains documented as separate from the real Google manual demo gate.
+- Commands run:
+  - `pnpm check:docs` via `C:\Users\eben_\.cache\codex-runtimes\codex-primary-runtime\dependencies\bin\pnpm.cmd` passed and ran `node scripts/check-docs.js`.
+  - Targeted Prettier check initially failed inside the sandbox with `EPERM` reading the workspace Prettier binary, then failed outside the sandbox on formatting for `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`, `docs/delivery/TASK_BACKLOG.md`, and `_bmad-output/implementation-artifacts/spec-pp-004-create-manual-mvp-demo-checklist.md`.
+  - `prettier --write docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md docs/delivery/TASK_BACKLOG.md _bmad-output/implementation-artifacts/spec-pp-004-create-manual-mvp-demo-checklist.md` passed.
+  - Targeted `prettier --check docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md docs/testing/MVP_SMOKE_TEST_PLAN.md docs/product/MVP_EXIT_CRITERIA.md docs/delivery/TASK_BACKLOG.md docs/delivery/ITERATION_LOG.md _bmad-output/implementation-artifacts/spec-pp-004-create-manual-mvp-demo-checklist.md` passed.
+- Manual verification:
+  - Reviewed the checklist against `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, and `docs/testing/VERIFICATION_CHECKLIST.md`.
+  - Ran BMAD Blind Hunter, Edge Case Hunter, and Acceptance Auditor review agents. Patch findings were resolved by tightening required source-mode completion language, changing trust-guardrail checkboxes to confirmed-absent rows, adding account/OAuth redaction guidance, requiring evidence artifacts for passing demos, splitting fixture smoke expectations from real Google manual-demo checks, and changing the MVP source-mode exit gate from `or` to `and`.
+- Artifacts/screenshots: Not applicable; PP-004 creates the checklist and does not run the real Google demo.
+- Backlog updates: Moved PP-004 from Ready to Done.
+- Follow-up tasks created: None.
+- Residual risk: The manual MVP demo itself has not been run; PP-014 and later MVP readiness work still own real authenticated Google Photos execution evidence.
+
 ### 2026-07-01 - PP-021 Harden dependency lock drift and supply-chain policy automation
 
 - Role: Builder
