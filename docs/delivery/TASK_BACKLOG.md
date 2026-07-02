@@ -232,7 +232,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-014 Implement or verify real authenticated Google Photos MVP flow
 
-- Status: Ready
+- Status: Blocked
 - Type: Product / Integration
 - Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`
 - Goal: Prove the MVP path with a real Google account, real read-only album or picker content, scan, review, and manual cleanup link-out in Chrome.
@@ -241,6 +241,12 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - User can scan a single album, multiple albums, and picker-selected photos, or unsupported subpaths are clearly recorded as blockers.
   - Results show grouped identical/similar candidates from real Google Photos content.
   - Manual demo evidence is recorded.
+- Evidence:
+  - 2026-07-02 result: Blocked. See `docs/delivery/artifacts/PP-014/pp-014-evidence.md`.
+  - Code inspection found the picker-selected path uses the read-only Google Picker media-items scope, but this session could not run a real Chrome/OAuth demo with a user-owned Google account and real Google Photos content.
+  - Single-album and multiple-album MVP source modes are blocked by missing product-ready real Google Photos album selection/fetch; raw album ID inputs and backend source metadata are not sufficient PP-014 manual-demo evidence.
+  - Follow-up: PP-022 must implement or prove real read-only single/multiple Google Photos album source selection before PP-014 can pass.
+  - Follow-up: PP-023 must run and record the real Chrome picker-selected Google Photos path before PP-014 can pass.
 
 ### PP-015 Implement or verify session-only scan persistence and timeout recovery
 
@@ -265,6 +271,32 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Link opens in a new tab.
   - No in-app delete option or write-scope action is introduced.
   - Manual cleanup guidance remains clear and non-destructive.
+
+### PP-022 Implement real Google Photos album source selection and fetch
+
+- Status: Ready
+- Type: Product / Integration
+- Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`, `docs/delivery/artifacts/PP-014/pp-014-evidence.md`
+- Goal: Provide a product-ready read-only Google Photos flow for selecting and scanning one or more real albums without relying on raw album ID entry or fixture/paged test data.
+- Acceptance criteria:
+  - User can authenticate with read-only Google Photos access and select one real album.
+  - User can select multiple real albums.
+  - Scan input is populated from real Google Photos album content without requesting write scope.
+  - Album flow remains clearly separate from full-library scanning and does not imply unsupported write, delete, recovery, storage, or privacy behavior.
+  - Tests and manual evidence cover single-album and multiple-album scans, or any Google API limitation is documented as a launch blocker.
+
+### PP-023 Run real Chrome picker-selected Google Photos demo
+
+- Status: Ready
+- Type: Product / Verification
+- Links: `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`, `docs/delivery/artifacts/PP-014/pp-014-evidence.md`
+- Goal: Prove the picker-selected Google Photos MVP path in Chrome with a real account and real Google Photos content.
+- Acceptance criteria:
+  - Chrome completes Google OAuth or Picker authorization with a real account and no write scope.
+  - User selects real Google Photos items through the picker.
+  - Scan starts from the selected real items and grouped review results render.
+  - Manual cleanup guidance and exact-photo link-out/reference behavior are recorded, or PP-016 remains explicitly blocking if exact-photo link-out cannot pass.
+  - Evidence is captured under a task artifact folder and summarized in `docs/delivery/ITERATION_LOG.md`.
 
 ### PP-020 Expand Playwright MVP regression coverage
 
