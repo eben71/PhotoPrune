@@ -235,17 +235,17 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Status: Blocked
 - Type: Product / Integration
 - Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`
-- Goal: Prove the MVP path with a real Google account, real read-only album or picker content, scan, review, and manual cleanup link-out in Chrome.
+- Goal: Prove the MVP path with a real Google account, real Picker-selected Google Photos content, scan, review, and manual cleanup link-out in Chrome.
 - Acceptance criteria:
   - Authenticated Google flow works without write scope.
-  - User can scan a single album, multiple albums, and picker-selected photos, or unsupported subpaths are clearly recorded as blockers.
+  - User can scan Picker-selected real Google Photos content, or unsupported subpaths are clearly recorded as blockers.
   - Results show grouped identical/similar candidates from real Google Photos content.
   - Manual demo evidence is recorded.
 - Evidence:
   - 2026-07-02 result: Blocked. See `docs/delivery/artifacts/PP-014/pp-014-evidence.md`.
   - Code inspection found the picker-selected path uses the read-only Google Picker media-items scope, but this session could not run a real Chrome/OAuth demo with a user-owned Google account and real Google Photos content.
-  - Single-album and multiple-album MVP source modes are blocked by missing product-ready real Google Photos album selection/fetch; raw album ID inputs and backend source metadata are not sufficient PP-014 manual-demo evidence.
-  - Follow-up: PP-022 records evidence that arbitrary real user-library album source modes are blocked by current Google Photos API support; PP-024 must decide whether picker-selected content can satisfy MVP source scope or whether album support remains launch-blocking.
+  - Single-album and multiple-album source modes were blocked before PP-024 by missing product-ready real Google Photos album selection/fetch; after PP-024, they are not MVP pass evidence.
+  - Follow-up: PP-022 records evidence that arbitrary real user-library album source modes are blocked by current Google Photos API support; PP-024 changed MVP source scope to Picker-selected real Google Photos content.
   - Follow-up: PP-023 must run and record the real Chrome picker-selected Google Photos path before PP-014 can pass.
 
 ### PP-015 Implement or verify session-only scan persistence and timeout recovery
@@ -289,11 +289,11 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Official Google Photos documentation says broad Library API scopes were removed after March 31, 2025 and listing/searching/retrieving albums and media items is limited to app-created content.
   - The supported user-library path is the Google Photos Picker API, which returns selected media items for a Picker session and does not expose product-ready arbitrary real album listing/fetch.
   - Local code inspection found the app's real user-library path uses the read-only Picker media-items scope; `album_set` paths accept raw IDs or supplied metadata/test pages and are not sufficient MVP manual-demo evidence.
-  - Follow-up: PP-024 must decide whether picker-selected content can satisfy MVP source scope or whether album-specific support remains launch-blocking.
+  - Follow-up resolved by PP-024: Picker-selected real Google Photos content is the MVP source mode; album-specific arbitrary user-library support is not MVP pass evidence unless a later approved task documents a supported read-only Google Photos path.
 
 ### PP-024 Decide MVP source scope after Google Photos album API limitation
 
-- Status: Ready
+- Status: Done
 - Type: Product / Scope
 - Links: `docs/delivery/artifacts/PP-022/pp-022-evidence.md`, `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`
 - Goal: Decide whether MVP source scope can shift from single/multiple Google Photos album modes to Picker-selected Google Photos content, or whether album-specific source modes remain launch-blocking.
@@ -302,20 +302,48 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Decision output names the exact MVP source modes, user-facing labels/copy implications, and manual demo evidence required after the decision.
   - MVP exit criteria, progress ledger, manual demo checklist, backlog, and any affected smoke/manual-test docs are updated to match the decision before the changed source-mode definition is used as pass evidence.
   - If album source modes remain required, PP-014 stays blocked until Google exposes a supported read-only album selection/fetch path or an approved alternative is documented.
-  - If Picker-selected content is accepted, raw album IDs, app-created-data-only reads, and fixture/paged test data still cannot count as real album evidence.
+  - If Picker-selected content is accepted, raw album IDs, backend source metadata, app-created-data-only reads, fixture/paged test data, and code inspection still cannot count as real MVP source evidence.
+- Evidence:
+  - 2026-07-02 result: Done. See `docs/delivery/artifacts/PP-024/pp-024-source-scope-decision.md`.
+  - Product-owner decision accepts Picker-selected real Google Photos content as the MVP source mode, replacing arbitrary single-album and multiple-album source modes for MVP pass evidence.
+  - Updated MVP exit criteria, progress ledger, manual demo checklist, smoke handoff docs, repo guardrails, README, ROADMAP, and current-state docs to match the decision.
+  - Raw album IDs, backend source metadata, app-created-data-only Library API reads, fixture/paged test data, and code inspection still cannot count as real MVP source evidence.
+- Residual risk:
+  - PP-014 remains blocked until the real Chrome Picker-selected Google Photos demo passes with a real account and real content.
+  - PP-015 and PP-016 remain separate MVP gates for session timeout recovery and exact-photo link-out behavior.
 
 ### PP-023 Run real Chrome picker-selected Google Photos demo
 
-- Status: Ready
+- Status: Blocked
 - Type: Product / Verification
 - Links: `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`, `docs/delivery/artifacts/PP-014/pp-014-evidence.md`
 - Goal: Prove the picker-selected Google Photos MVP path in Chrome with a real account and real Google Photos content.
 - Acceptance criteria:
-  - Chrome completes Google OAuth or Picker authorization with a real account and no write scope.
-  - User selects real Google Photos items through the picker.
+  - Chrome completes Google OAuth or Google Photos Picker API authorization with a real account and no write scope.
+  - App creates a Google Photos Picker API session through `v1.sessions`.
+  - App lists selected real Google Photos media items through `v1.mediaItems`.
   - Scan starts from the selected real items and grouped review results render.
   - Manual cleanup guidance and exact-photo link-out/reference behavior are recorded, or PP-016 remains explicitly blocking if exact-photo link-out cannot pass.
   - Evidence is captured under a task artifact folder and summarized in `docs/delivery/ITERATION_LOG.md`.
+- Evidence:
+  - 2026-07-05 PR feedback result: Blocked until PP-025 provides the real Google Photos Picker API session/media-items source path.
+  - Current code inspection found `apps/web/app/hooks/useGooglePhotosPicker.ts` requests the Picker media-items scope but uses legacy `google.picker.DocsView(DOCS_IMAGES)`.
+  - Repo search found no `photospicker.googleapis.com` implementation for `v1.sessions` or `v1.mediaItems`.
+  - A legacy Google Picker `DocsView` selection cannot count as PP-023 or PP-014 MVP source evidence.
+
+### PP-025 Implement Google Photos Picker API session media-items source path
+
+- Status: Ready
+- Type: Product / Integration
+- Links: `docs/delivery/artifacts/PP-024/pp-024-source-scope-decision.md`, `docs/delivery/artifacts/PP-022/pp-022-evidence.md`, `apps/web/app/hooks/useGooglePhotosPicker.ts`
+- Goal: Replace or supplement the legacy Google Picker `DocsView(DOCS_IMAGES)` path with the supported Google Photos Picker API session/media-items flow required for MVP source evidence.
+- Acceptance criteria:
+  - App creates a Google Photos Picker API session using the read-only Picker scope.
+  - User completes selection through the Google Photos Picker session UI.
+  - App lists selected media items through the Picker API `v1.mediaItems` endpoint for that session.
+  - Selected media items feed the existing scan start path without requesting write scope.
+  - Legacy Google Picker `DocsView(DOCS_IMAGES)`, raw album IDs, backend metadata, fixture/paged test data, and code inspection alone cannot satisfy PP-023 or PP-014 MVP source evidence.
+  - Tests or manual evidence cover the session creation/list flow, or blockers are recorded with exact failure evidence.
 
 ### PP-020 Expand Playwright MVP regression coverage
 

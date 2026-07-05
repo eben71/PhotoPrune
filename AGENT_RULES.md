@@ -1,9 +1,11 @@
 # AGENT_RULES.md
 
 ## Mission
+
 Implement PhotoPrune as a trust-first, production-quality photo review app.
 
 Prioritise:
+
 - clarity
 - safety
 - accessibility
@@ -15,6 +17,7 @@ Do not prioritise cleverness over trust.
 ---
 
 ## Mandatory Guardrails
+
 - Do not expand scope unless explicitly instructed.
 - No automatic deletion flows.
 - No persistence or backend architecture changes unless explicitly required for the requested task.
@@ -25,11 +28,12 @@ Do not prioritise cleverness over trust.
 ---
 
 ## Product Truths
+
 - PhotoPrune helps users review duplicate or near-duplicate photo groups.
 - The UX unit is the group.
 - The app does not auto-delete photos.
 - Confidence is displayed only as `High`, `Medium`, or `Low`.
-- MVP must support a practical authenticated, read-only Google Photos flow for the product owner's real library, focused on single albums, multiple albums, and picker-selected photos.
+- MVP must support a practical authenticated, read-only Google Photos flow for the product owner's real library, focused on photos selected through the Google Photos Picker API session/media-items flow. Arbitrary single-album and multiple-album source modes are not MVP pass evidence after PP-024 unless a later approved task documents a supported read-only Google Photos path.
 - MVP does not require previous scan history. Session persistence should cover only what is needed to complete the current scan; restarting after browser close is acceptable.
 - Review explanations may describe why photos look identical or similar in plain English, such as shared people or backgrounds.
 - Users must always feel in control.
@@ -37,6 +41,7 @@ Do not prioritise cleverness over trust.
 ---
 
 ## Non-Negotiables
+
 - Do not introduce similarity percentages unless a dedicated product-policy task explicitly resolves that decision and updates trust docs, tests, and UI copy rules together.
 - Do not add hypey or theatrical AI copy.
 - Do not imply destructive actions happen automatically.
@@ -47,7 +52,9 @@ Do not prioritise cleverness over trust.
 ---
 
 ## Approved Frontend Direction
+
 Use or align to:
+
 - Next.js
 - React
 - TypeScript
@@ -63,6 +70,7 @@ Use or align to:
 ---
 
 ## Implementation Rules
+
 - Use semantic design tokens.
 - Keep photos visually primary.
 - Keep the UI calm and uncluttered.
@@ -75,13 +83,16 @@ Use or align to:
 ---
 
 ## Copy Rules
+
 Prefer plain English:
+
 - "Recommended photo"
 - "High confidence"
 - "You review each group before anything changes."
 - "Skip this group and come back later."
 
 Avoid:
+
 - "98% match"
 - "92% similar"
 - "Neural engine"
@@ -93,6 +104,7 @@ Avoid:
 ---
 
 ## Delivery Convergence Rules
+
 - Roadmap completion does not equal product completion.
 - A phase is complete only when roadmap status, automated checks, MVP smoke path, and manual demo path agree.
 - Visible UI actions must work or be intentionally disabled/labelled as unavailable.
@@ -106,7 +118,9 @@ Use `docs/delivery/WORKFLOW.md`, `docs/testing/VERIFICATION_CHECKLIST.md`, and `
 ---
 
 ## Verification Rules
+
 Before finishing substantial work:
+
 - run lint
 - run format check
 - run typecheck

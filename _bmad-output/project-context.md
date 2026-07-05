@@ -2,7 +2,17 @@
 project_name: "PhotoPrune"
 user_name: "Eben"
 date: "2026-06-28"
-sections_completed: ["discovery", "technology_stack", "language_specific_rules", "framework_specific_rules", "testing_rules", "code_quality_style_rules", "development_workflow_rules", "critical_dont_miss_rules"]
+sections_completed:
+  [
+    "discovery",
+    "technology_stack",
+    "language_specific_rules",
+    "framework_specific_rules",
+    "testing_rules",
+    "code_quality_style_rules",
+    "development_workflow_rules",
+    "critical_dont_miss_rules",
+  ]
 existing_patterns_found: 18
 status: "complete"
 rule_count: 85
@@ -115,7 +125,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Passing tests is not enough if product truth is violated. For UI, copy, contracts, or export changes, explicitly check for forbidden similarity percentages, auto-delete implications, hidden destructive actions, and unsupported recovery/privacy/storage claims.
 - Do not treat roadmap completion as product completion. MVP readiness requires recorded smoke/demo/verification evidence.
 - Do not bypass the group-based review model. The UX unit is the similar-photo group, and a recommended photo is only a review aid, not an automatic decision.
-- Do not request or imply broader Google Photos access than the current authenticated read-only album/picker scope.
+- Do not request or imply broader Google Photos access than the current authenticated read-only Picker-selected scope. MVP pass evidence requires the Google Photos Picker API `v1.sessions` creation and `v1.mediaItems` selected-media listing path, not arbitrary album reads, raw album IDs, backend metadata, fixture data, code inspection, or legacy Google Picker `DocsView` evidence alone. If that endpoint-level path is absent, route the work through PP-025 before PP-023 or PP-014 can pass.
 - Do not hardcode secrets, Google credentials, base URLs, database paths, Redis URLs, or API tokens. Use existing settings/env patterns and documented config.
 - Do not add persistence, backend architecture, scan history, or dependency changes for UI/copy tasks unless explicitly required. Follow the current task scope rather than extrapolating from roadmap or README language.
 - Do not duplicate contract shapes across web/API/shared packages. Update shared schemas and route adapters together.
@@ -141,4 +151,4 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Review periodically for outdated or redundant rules.
 - Remove rules that become obvious from stable code structure.
 
-Last Updated: 2026-06-28
+Last Updated: 2026-07-05

@@ -22,7 +22,7 @@ Record the completed checklist result in `docs/delivery/ITERATION_LOG.md`. Store
 - [ ] The app is running from the branch/environment being evaluated.
 - [ ] A real Google account can complete the authenticated flow.
 - [ ] Google Photos access remains read-only; no write scope is requested.
-- [ ] Test content exists for a single album, multiple albums, and picker-selected photos.
+- [ ] Real Google Photos content exists for Google Photos Picker API session selection.
 - [ ] The runner knows where screenshots, console notes, and failure artifacts will be stored.
 - [ ] The current `docs/product/MVP_EXIT_CRITERIA.md` and `docs/testing/MVP_SMOKE_TEST_PLAN.md` have been reviewed.
 
@@ -39,17 +39,15 @@ Fail the demo if authentication requires a write scope, implies full-library sca
 
 ## Source Selection
 
-Run or explicitly record the result for each source type.
+Run or explicitly record the result for the MVP source type.
 
-| Source type            | Expected result                                                              | Result                | Evidence / notes |
-| ---------------------- | ---------------------------------------------------------------------------- | --------------------- | ---------------- |
-| Single album           | User can select one real Google Photos album and start a scan                | Pass / Fail / Blocked |                  |
-| Multiple albums        | User can select multiple real Google Photos albums and start a scan          | Pass / Fail / Blocked |                  |
-| Picker-selected photos | User can select real Google Photos items through the picker and start a scan | Pass / Fail / Blocked |                  |
+| Source type            | Expected result                                                                                                                            | Result                | Evidence / notes |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------- | ---------------- |
+| Picker-selected photos | App creates a Google Photos Picker API session through `v1.sessions`, lists selected real media through `v1.mediaItems`, and starts a scan | Pass / Fail / Blocked |                  |
 
-If any source type is unsupported, mark it `Blocked` or `Fail` and create or reference a follow-up task. Do not treat unsupported source modes as passing MVP evidence.
+If Picker-selected photos are unsupported, mark the demo `Blocked` or `Fail` and create or reference a follow-up task. Do not treat unsupported source behavior as passing MVP evidence.
 
-Raw album ID entry, fixture or paged test data, backend source metadata, and Google Library API app-created-data-only reads do not count as passing evidence for the single-album or multiple-album rows. Those rows require a product-ready, read-only path against real user-library Google Photos content, or they must remain `Blocked` until MVP scope changes.
+After PP-024, arbitrary single-album and multiple-album source modes are not required MVP pass evidence unless a later approved task documents a supported read-only Google Photos path. Raw album ID entry, fixture or paged test data, backend source metadata, app-created-data-only Library API reads, legacy Google Picker `DocsView(DOCS_IMAGES)` selection without `v1.sessions` creation and `v1.mediaItems` listing evidence, and code inspection do not count as passing evidence for the MVP source path.
 
 ## Scan And Progress
 
@@ -108,7 +106,7 @@ Confirm each forbidden item is absent. Fail the demo and record the exact locati
 
 - [ ] Screenshot of home/start state.
 - [ ] Screenshot or note for Google login/consent showing read-only scope, with personal account identifiers, OAuth details, and unrelated account information redacted.
-- [ ] Screenshot or note for each source type result: single album, multiple albums, picker-selected photos.
+- [ ] Screenshot or note for the Picker-selected photos source result.
 - [ ] Screenshot of scan progress.
 - [ ] Screenshot of grouped review results.
 - [ ] Screenshot or note for exact-photo Google Photos link-out/reference behavior.
@@ -119,4 +117,4 @@ Confirm each forbidden item is absent. Fail the demo and record the exact locati
 
 ## Completion Rule
 
-The manual MVP demo passes only when every required section above is checked as passing, every required source mode passes, and evidence is recorded. Follow-up task IDs can cover discovered non-blocking gaps only; they cannot convert a failed required source mode, trust guardrail, scan/review path, or exact-photo cleanup path into a passing demo. If product scope changes after PP-024, update this checklist before using the changed source-mode definition as pass evidence.
+The manual MVP demo passes only when every required section above is checked as passing, the required Picker-selected source mode passes, and evidence is recorded. Follow-up task IDs can cover discovered non-blocking gaps only; they cannot convert a failed required source mode, trust guardrail, scan/review path, or exact-photo cleanup path into a passing demo. Future product scope changes must update this checklist before using a changed source-mode definition as pass evidence.
