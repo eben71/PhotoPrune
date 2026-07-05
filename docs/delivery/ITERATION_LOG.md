@@ -19,6 +19,25 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-05 - PP-024 PR feedback: align agent context and Picker API evidence
+
+- Role: Builder
+- Status: Done
+- Goal: Address PP-024 PR feedback so agent guidance and MVP evidence requirements match the narrowed Picker-selected source scope.
+- Acceptance criteria checked:
+  - `_bmad-output/project-context.md` no longer tells agents the current authenticated read-only scope is album/picker; it now names the Picker-selected scope and warns that MVP pass evidence requires the Google Photos Picker API session/media-items path.
+  - PP-024 evidence now requires `v1.sessions` and `v1.mediaItems` session/list evidence, not legacy Google Picker `DocsView(DOCS_IMAGES)` evidence alone.
+  - PP-023 is blocked until a real Google Photos Picker API session/media-items source path exists.
+  - PP-025 records the implementation follow-up for the missing Photos Picker API session/media-items path.
+- Commands run:
+  - Pending verification.
+- Manual verification:
+  - Confirmed repo search finds `google.picker.DocsView(DOCS_IMAGES)` in `apps/web/app/hooks/useGooglePhotosPicker.ts` and no `photospicker.googleapis.com` session/media-items implementation.
+- Artifacts/screenshots: Not applicable.
+- Backlog updates: Marked PP-023 Blocked and added PP-025.
+- Follow-up tasks created: PP-025.
+- Residual risk: PP-014 and PP-023 remain blocked until PP-025 implements the supported Google Photos Picker API session/media-items flow and a real Chrome demo records passing evidence.
+
 ### 2026-07-02 - PP-024 Decide MVP source scope after Google Photos album API limitation
 
 - Role: Builder

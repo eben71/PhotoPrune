@@ -10,7 +10,7 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 - The review unit is the group, not a raw photo pair.
 - Confidence may be shown only as `High`, `Medium`, or `Low`.
 - Users must always stay in control; PhotoPrune does not automatically delete photos.
-- MVP scope is authenticated read-only Google Photos access for Picker-selected photos from the product owner's real library.
+- MVP scope is authenticated read-only Google Photos access for Picker-selected photos from the product owner's real library through the Google Photos Picker API session/media-items flow.
 - Full-library scanning is out of scope for MVP.
 - MVP must be practically usable against real live Google Photos content selected through the Picker, not only fake or sample datasets.
 - Project history is nice to have, not a show-stopper for MVP.
@@ -35,7 +35,7 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 - Profile/account icon must expose only required MVP account details or be hidden until needed.
 - Home visible affordances may imply unavailable settings/account behavior.
 - Phase complete claims must be reconciled with actual demo usability.
-- Real authenticated Google Photos login, Picker-selected scan, review, Google Photos link-out, and manual cleanup path must be verified end to end in Chrome.
+- Real authenticated Google Photos login, Picker API session/media-items selection, scan, review, Google Photos link-out, and manual cleanup path must be verified end to end in Chrome.
 - Arbitrary real user-library single-album and multiple-album source modes are not MVP pass evidence after PP-024. Official Google docs now limit Library API album/media listing and retrieval to app-created content after the 2025 broad-scope removal; Picker-selected media items remain the supported user-library path.
 - Raw album ID inputs, backend source metadata, fixture/paged test data, app-created-data-only Library API reads, and code inspection are not sufficient MVP manual-demo evidence.
 - The review UI must help identify identical and similar photos with understandable reasons.
@@ -48,8 +48,8 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 - CI uses pnpm `9.12.2` while `package.json` declares pnpm `10.30.3`; this is recorded as PP-009 and should be aligned or explicitly documented.
 - PP-014 recorded a blocked result on 2026-07-02. Real Chrome/authenticated Google Photos MVP readiness is not proven.
 - PP-022 recorded a blocked result on 2026-07-02. Real arbitrary user-library single/multiple album selection is not currently supported through documented read-only Google Photos APIs.
-- PP-024 recorded the MVP source-scope decision on 2026-07-02: Picker-selected real Google Photos content is the required MVP source mode, replacing arbitrary single/multiple album source modes for launch evidence.
-- Picker-selected photos need a real Chrome demo with a real Google account and real Google Photos content.
+- PP-024 recorded the MVP source-scope decision on 2026-07-02: Picker-selected real Google Photos content through the Google Photos Picker API session/media-items flow is the required MVP source mode, replacing arbitrary single/multiple album source modes for launch evidence.
+- Picker-selected photos need a real Chrome demo with a real Google account, real Google Photos content, and the supported Picker API session/list flow.
 - Similarity percentage policy must be resolved before any numeric similarity UI is implemented.
 
 ## Discarded / out-of-scope items
@@ -82,4 +82,5 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 - P0 PP-013: Resolve numeric similarity evidence policy.
 - P0 PP-015: Implement or verify session-only scan persistence and timeout recovery.
 - P0 PP-016: Implement or verify Google Photos exact-photo link-out for manual cleanup.
-- P0 PP-023: Run real Chrome picker-selected Google Photos demo.
+- P0 PP-025: Implement Google Photos Picker API session media-items source path.
+- P0 PP-023: Run real Chrome picker-selected Google Photos demo after PP-025.

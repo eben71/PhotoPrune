@@ -24,7 +24,7 @@ Keeping arbitrary album modes as launch evidence would make MVP exit depend on u
 
 Required for MVP pass evidence:
 
-- Picker-selected Google Photos items selected in Chrome with a real Google account.
+- Picker-selected Google Photos items selected in Chrome with a real Google account through the Google Photos Picker API session/media-items flow.
 
 Not accepted as MVP pass evidence:
 
@@ -33,6 +33,7 @@ Not accepted as MVP pass evidence:
 - Fixture or paged test data.
 - App-created-data-only Google Library API reads.
 - Code inspection without a real Chrome run.
+- Legacy `google.picker.DocsView(DOCS_IMAGES)` selection without the Google Photos Picker API `v1.sessions` and `v1.mediaItems` session/list flow.
 - Arbitrary single-album or multiple-album source modes unless a later approved task documents a supported read-only Google Photos path.
 
 ## Copy And UX Implications
@@ -46,12 +47,16 @@ Existing internal `album_set` scope metadata and retry/checkpoint behavior may r
 PP-023 or a later PP-014 rerun must record:
 
 - Chrome execution with a real Google account.
-- Read-only Google Photos Picker authorization.
-- Selection of real Google Photos items through the picker.
+- Read-only Google Photos Picker authorization through the Photos Picker API.
+- Creation of a Google Photos Picker API session through `v1.sessions`.
+- Listing of selected media items through `v1.mediaItems`.
+- Selection of real Google Photos items through that session/list flow.
 - Scan start from the selected real items.
 - Grouped duplicate or near-duplicate review results.
 - Manual cleanup guidance.
 - Exact-photo Google Photos link-out or reference behavior, or PP-016 remains blocking.
 - Absence of forbidden trust claims and unsupported destructive actions.
+
+If the app still uses only the legacy Google Picker `DocsView(DOCS_IMAGES)` path, PP-023 must record a blocked result and point to the implementation follow-up for the real Google Photos Picker API session/list flow.
 
 PP-014 remains blocked until the updated manual demo path passes with recorded evidence.

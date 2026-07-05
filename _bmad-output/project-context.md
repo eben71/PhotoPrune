@@ -115,7 +115,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Passing tests is not enough if product truth is violated. For UI, copy, contracts, or export changes, explicitly check for forbidden similarity percentages, auto-delete implications, hidden destructive actions, and unsupported recovery/privacy/storage claims.
 - Do not treat roadmap completion as product completion. MVP readiness requires recorded smoke/demo/verification evidence.
 - Do not bypass the group-based review model. The UX unit is the similar-photo group, and a recommended photo is only a review aid, not an automatic decision.
-- Do not request or imply broader Google Photos access than the current authenticated read-only album/picker scope.
+- Do not request or imply broader Google Photos access than the current authenticated read-only Picker-selected scope. MVP pass evidence requires the Google Photos Picker API session/media-items path, not arbitrary album reads or legacy Google Picker `DocsView` evidence alone.
 - Do not hardcode secrets, Google credentials, base URLs, database paths, Redis URLs, or API tokens. Use existing settings/env patterns and documented config.
 - Do not add persistence, backend architecture, scan history, or dependency changes for UI/copy tasks unless explicitly required. Follow the current task scope rather than extrapolating from roadmap or README language.
 - Do not duplicate contract shapes across web/API/shared packages. Update shared schemas and route adapters together.
@@ -141,4 +141,4 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Review periodically for outdated or redundant rules.
 - Remove rules that become obvious from stable code structure.
 
-Last Updated: 2026-06-28
+Last Updated: 2026-07-05

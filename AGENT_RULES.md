@@ -33,7 +33,7 @@ Do not prioritise cleverness over trust.
 - The UX unit is the group.
 - The app does not auto-delete photos.
 - Confidence is displayed only as `High`, `Medium`, or `Low`.
-- MVP must support a practical authenticated, read-only Google Photos flow for the product owner's real library, focused on Picker-selected photos. Arbitrary single-album and multiple-album source modes are not MVP pass evidence after PP-024 unless a later approved task documents a supported read-only Google Photos path.
+- MVP must support a practical authenticated, read-only Google Photos flow for the product owner's real library, focused on photos selected through the Google Photos Picker API session/media-items flow. Arbitrary single-album and multiple-album source modes are not MVP pass evidence after PP-024 unless a later approved task documents a supported read-only Google Photos path.
 - MVP does not require previous scan history. Session persistence should cover only what is needed to complete the current scan; restarting after browser close is acceptable.
 - Review explanations may describe why photos look identical or similar in plain English, such as shared people or backgrounds.
 - Users must always feel in control.

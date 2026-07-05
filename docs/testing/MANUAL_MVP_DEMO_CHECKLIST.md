@@ -22,7 +22,7 @@ Record the completed checklist result in `docs/delivery/ITERATION_LOG.md`. Store
 - [ ] The app is running from the branch/environment being evaluated.
 - [ ] A real Google account can complete the authenticated flow.
 - [ ] Google Photos access remains read-only; no write scope is requested.
-- [ ] Real Google Photos content exists for Picker selection.
+- [ ] Real Google Photos content exists for Google Photos Picker API session selection.
 - [ ] The runner knows where screenshots, console notes, and failure artifacts will be stored.
 - [ ] The current `docs/product/MVP_EXIT_CRITERIA.md` and `docs/testing/MVP_SMOKE_TEST_PLAN.md` have been reviewed.
 
@@ -43,11 +43,11 @@ Run or explicitly record the result for the MVP source type.
 
 | Source type            | Expected result                                                              | Result                | Evidence / notes |
 | ---------------------- | ---------------------------------------------------------------------------- | --------------------- | ---------------- |
-| Picker-selected photos | User can select real Google Photos items through the picker and start a scan | Pass / Fail / Blocked |                  |
+| Picker-selected photos | User can select real Google Photos items through the Picker API session/media-items flow and start a scan | Pass / Fail / Blocked |                  |
 
 If Picker-selected photos are unsupported, mark the demo `Blocked` or `Fail` and create or reference a follow-up task. Do not treat unsupported source behavior as passing MVP evidence.
 
-After PP-024, arbitrary single-album and multiple-album source modes are not required MVP pass evidence unless a later approved task documents a supported read-only Google Photos path. Raw album ID entry, fixture or paged test data, backend source metadata, app-created-data-only Library API reads, and code inspection do not count as passing evidence for the MVP source path.
+After PP-024, arbitrary single-album and multiple-album source modes are not required MVP pass evidence unless a later approved task documents a supported read-only Google Photos path. Raw album ID entry, fixture or paged test data, backend source metadata, app-created-data-only Library API reads, legacy Google Picker `DocsView(DOCS_IMAGES)` selection without the Photos Picker API session/media-items flow, and code inspection do not count as passing evidence for the MVP source path.
 
 ## Scan And Progress
 

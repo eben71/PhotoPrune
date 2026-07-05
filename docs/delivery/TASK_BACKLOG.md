@@ -314,16 +314,36 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-023 Run real Chrome picker-selected Google Photos demo
 
-- Status: Ready
+- Status: Blocked
 - Type: Product / Verification
 - Links: `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`, `docs/delivery/artifacts/PP-014/pp-014-evidence.md`
 - Goal: Prove the picker-selected Google Photos MVP path in Chrome with a real account and real Google Photos content.
 - Acceptance criteria:
-  - Chrome completes Google OAuth or Picker authorization with a real account and no write scope.
-  - User selects real Google Photos items through the picker.
+  - Chrome completes Google OAuth or Google Photos Picker API authorization with a real account and no write scope.
+  - App creates a Google Photos Picker API session through `v1.sessions`.
+  - App lists selected real Google Photos media items through `v1.mediaItems`.
   - Scan starts from the selected real items and grouped review results render.
   - Manual cleanup guidance and exact-photo link-out/reference behavior are recorded, or PP-016 remains explicitly blocking if exact-photo link-out cannot pass.
   - Evidence is captured under a task artifact folder and summarized in `docs/delivery/ITERATION_LOG.md`.
+- Evidence:
+  - 2026-07-05 PR feedback result: Blocked until PP-025 provides the real Google Photos Picker API session/media-items source path.
+  - Current code inspection found `apps/web/app/hooks/useGooglePhotosPicker.ts` requests the Picker media-items scope but uses legacy `google.picker.DocsView(DOCS_IMAGES)`.
+  - Repo search found no `photospicker.googleapis.com` implementation for `v1.sessions` or `v1.mediaItems`.
+  - A legacy Google Picker `DocsView` selection cannot count as PP-023 or PP-014 MVP source evidence.
+
+### PP-025 Implement Google Photos Picker API session media-items source path
+
+- Status: Ready
+- Type: Product / Integration
+- Links: `docs/delivery/artifacts/PP-024/pp-024-source-scope-decision.md`, `docs/delivery/artifacts/PP-022/pp-022-evidence.md`, `apps/web/app/hooks/useGooglePhotosPicker.ts`
+- Goal: Replace or supplement the legacy Google Picker `DocsView(DOCS_IMAGES)` path with the supported Google Photos Picker API session/media-items flow required for MVP source evidence.
+- Acceptance criteria:
+  - App creates a Google Photos Picker API session using the read-only Picker scope.
+  - User completes selection through the Google Photos Picker session UI.
+  - App lists selected media items through the Picker API `v1.mediaItems` endpoint for that session.
+  - Selected media items feed the existing scan start path without requesting write scope.
+  - Legacy Google Picker `DocsView(DOCS_IMAGES)`, raw album IDs, backend metadata, fixture/paged test data, and code inspection alone cannot satisfy PP-023 or PP-014 MVP source evidence.
+  - Tests or manual evidence cover the session creation/list flow, or blockers are recorded with exact failure evidence.
 
 ### PP-020 Expand Playwright MVP regression coverage
 

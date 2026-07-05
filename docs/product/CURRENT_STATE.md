@@ -12,7 +12,7 @@ This page summarizes repo evidence without assuming the app is MVP-usable.
 ## What still needs validation
 
 - Whether the current app can be demoed end-to-end as an MVP against a real authenticated Google Photos account in Chrome.
-- Whether the app can scan Picker-selected real Google Photos content without full-library scope. PP-024 removed arbitrary single-album and multiple-album source modes from MVP pass evidence because current Google Photos APIs do not expose a supported read-only album selection/fetch path for existing user-library albums.
+- Whether the app can scan Picker-selected real Google Photos content through the Google Photos Picker API session/media-items flow without full-library scope. PP-024 removed arbitrary single-album and multiple-album source modes from MVP pass evidence because current Google Photos APIs do not expose a supported read-only album selection/fetch path for existing user-library albums.
 - Whether the review flow can identify identical and similar photos with understandable reasons.
 - Whether selected photos can open as exact Google Photos links in a new tab for manual cleanup.
 - Whether Settings and Profile/Account affordances show only required MVP account details and settings.
