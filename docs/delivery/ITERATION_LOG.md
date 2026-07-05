@@ -30,7 +30,11 @@ Record every implementation or verification iteration here. The log is repo trut
   - PP-023 is blocked until a real Google Photos Picker API session/media-items source path exists.
   - PP-025 records the implementation follow-up for the missing Photos Picker API session/media-items path.
 - Commands run:
-  - Pending verification.
+  - `apps/web/node_modules/.bin/prettier.cmd --check AGENT_RULES.md _bmad-output/project-context.md docs/delivery/TASK_BACKLOG.md docs/delivery/ITERATION_LOG.md docs/delivery/artifacts/PP-024/pp-024-source-scope-decision.md docs/product/CURRENT_STATE.md docs/product/MVP_EXIT_CRITERIA.md docs/product/MVP_PROGRESS_LEDGER.md docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md docs/testing/MVP_SMOKE_TEST_PLAN.md` passed after formatting `_bmad-output/project-context.md` and `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`.
+  - `pnpm.cmd check:docs` passed and ran `node scripts/check-docs.js`.
+  - `rg -n "album/picker scope|current authenticated read-only album/picker|DocsView\\(DOCS_IMAGES\\).*count|Picker-selected photos from a real authenticated|PP-023 Run real Chrome picker-selected|PP-025" ...` completed; matches were expected PP-023/PP-025 task titles and endpoint-level Picker API evidence requirements.
+  - `rg -n "\b\d+%|auto-delete|automatically delete|write scope|recently deleted|recovery|trash|storage reclaimed|full-library" ...` completed; matches were negative guardrails, historical questionnaire input, task names, or PP-024 rejected-claim wording, not new unsupported product claims.
+  - One-shot adversarial review subagent completed. Patch findings were resolved by adding explicit `v1.sessions` and `v1.mediaItems` requirements to `_bmad-output/project-context.md` and `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`.
 - Manual verification:
   - Confirmed repo search finds `google.picker.DocsView(DOCS_IMAGES)` in `apps/web/app/hooks/useGooglePhotosPicker.ts` and no `photospicker.googleapis.com` session/media-items implementation.
 - Artifacts/screenshots: Not applicable.
