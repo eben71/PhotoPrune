@@ -19,6 +19,39 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-05 - PP-025 Google Photos Picker API session media-items source path
+
+- Role: Builder
+- Status: Done
+- Goal: Replace the legacy Google Picker `DocsView(DOCS_IMAGES)` project source path with the supported Google Photos Picker API session/media-items flow required before PP-023 and PP-014 can pass.
+- Acceptance criteria checked:
+  - `apps/web/app/hooks/useGooglePhotosPicker.ts` now creates Google Photos Picker API sessions through `POST https://photospicker.googleapis.com/v1/sessions`.
+  - The hook opens the returned `pickerUri` with `/autoclose`, polls `GET https://photospicker.googleapis.com/v1/sessions/{sessionId}`, and lists selected media through `GET https://photospicker.googleapis.com/v1/mediaItems?sessionId=...`.
+  - Selected `PHOTO` media items are normalized from Picker API `mediaFile` metadata into the existing picker selection shape used by the saved project scan path.
+  - The implementation does not request write scope, add deletion/recovery behavior, add similarity percentages, or use raw album IDs as MVP evidence.
+  - Legacy Google Picker `DocsView(DOCS_IMAGES)`, fixture data, code inspection, raw album IDs, and backend metadata remain insufficient for PP-023 or PP-014 pass evidence.
+- Commands run:
+  - `pnpm --filter web test -- use-google-photos-picker-hook.test.tsx` initially failed inside the sandbox with `EPERM` reading Vitest from `node_modules`; the approved unsandboxed rerun with the local pnpm executable passed after review fixes: 13 test files, 65 tests, coverage lines 82.67%.
+  - `pnpm --filter web lint` passed.
+  - `pnpm --filter web typecheck` passed.
+  - `apps/web/node_modules/.bin/prettier.cmd --check apps/web/app/hooks/useGooglePhotosPicker.ts apps/web/tests/use-google-photos-picker-hook.test.tsx _bmad-output/implementation-artifacts/spec-pp-025-google-photos-picker-api-session-media-items-source-path.md docs/delivery/TASK_BACKLOG.md docs/delivery/ITERATION_LOG.md` initially found formatting drift in the touched hook, test, and spec; targeted `prettier --write` was run for those files, then the spec frozen block was restored to the approved text.
+  - `make lint` passed.
+  - `make format-check` initially failed after review fixes because `apps/web/app/hooks/useGooglePhotosPicker.ts` needed formatting; after targeted Prettier write, `make format-check` passed.
+  - `make typecheck` passed.
+  - `make test` passed: web 13 files/65 tests, dependency-preflight 6 tests, API 77 tests, worker 2 tests.
+  - `node scripts/check-coverage.mjs` passed: web 82.67, API 92.3, worker 100.
+  - `make build` passed.
+  - `pnpm check:docs` passed.
+  - `rg -n "\b\d+%|auto-delete|automatically delete|write scope|recently deleted|recovery|trash|storage reclaimed|full-library" ...` completed; matches were existing negative guardrails, historical references, design artifacts, or legitimate progress/style percentages, not new unsupported product claims.
+- Manual verification:
+  - Reviewed official Google Photos Picker API docs for `v1.sessions.create`, `v1.sessions.get`, and `v1.mediaItems.list`; the implementation uses those endpoints and the required `photospicker.mediaitems.readonly` scope.
+  - Confirmed the changed hook no longer loads `gapi` or references `google.picker.DocsView(DOCS_IMAGES)`.
+  - BMAD Blind Hunter, Edge Case Hunter, and Acceptance Auditor reviews completed. Patch findings were resolved by adding closed-popup polling grace, centralized session cleanup, repeated page-token protection, Google photo download sizing parameters, expanded tests, and updated PP-023 backlog blocker wording.
+- Artifacts/screenshots: Not applicable; real Chrome Google Photos demo evidence remains PP-023.
+- Backlog updates: Moved PP-025 from Ready to Done and recorded implementation evidence.
+- Follow-up tasks created: None.
+- Residual risk: Real authenticated Google Photos behavior is not proven by PP-025. PP-023 must run Chrome with a real Google account and record `v1.sessions`, `v1.mediaItems`, selected real media, scan start, grouped review results, and exact-photo link-out/reference evidence before PP-014 can pass.
+
 ### 2026-07-05 - PP-024 PR feedback: align agent context and Picker API evidence
 
 - Role: Builder
