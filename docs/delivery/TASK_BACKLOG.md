@@ -326,14 +326,13 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Manual cleanup guidance and exact-photo link-out/reference behavior are recorded, or PP-016 remains explicitly blocking if exact-photo link-out cannot pass.
   - Evidence is captured under a task artifact folder and summarized in `docs/delivery/ITERATION_LOG.md`.
 - Evidence:
-  - 2026-07-05 PR feedback result: Blocked until PP-025 provides the real Google Photos Picker API session/media-items source path.
-  - Current code inspection found `apps/web/app/hooks/useGooglePhotosPicker.ts` requests the Picker media-items scope but uses legacy `google.picker.DocsView(DOCS_IMAGES)`.
-  - Repo search found no `photospicker.googleapis.com` implementation for `v1.sessions` or `v1.mediaItems`.
-  - A legacy Google Picker `DocsView` selection cannot count as PP-023 or PP-014 MVP source evidence.
+  - 2026-07-05 PP-025 implementation added the Google Photos Picker API session/media-items source path.
+  - PP-023 remains blocked until a human runs Chrome with a real Google account and records endpoint-level `v1.sessions` and `v1.mediaItems` evidence, selected real media, scan start, grouped review results, and exact-photo link-out/reference behavior.
+  - Legacy Google Picker `DocsView(DOCS_IMAGES)`, raw album IDs, backend metadata, fixture/paged test data, mocked tests, and code inspection alone still cannot count as PP-023 or PP-014 MVP source evidence.
 
 ### PP-025 Implement Google Photos Picker API session media-items source path
 
-- Status: Ready
+- Status: Done
 - Type: Product / Integration
 - Links: `docs/delivery/artifacts/PP-024/pp-024-source-scope-decision.md`, `docs/delivery/artifacts/PP-022/pp-022-evidence.md`, `apps/web/app/hooks/useGooglePhotosPicker.ts`
 - Goal: Replace or supplement the legacy Google Picker `DocsView(DOCS_IMAGES)` path with the supported Google Photos Picker API session/media-items flow required for MVP source evidence.
@@ -344,6 +343,12 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Selected media items feed the existing scan start path without requesting write scope.
   - Legacy Google Picker `DocsView(DOCS_IMAGES)`, raw album IDs, backend metadata, fixture/paged test data, and code inspection alone cannot satisfy PP-023 or PP-014 MVP source evidence.
   - Tests or manual evidence cover the session creation/list flow, or blockers are recorded with exact failure evidence.
+- Evidence:
+  - 2026-07-05 implementation replaced the web project picker hook's legacy Google Picker `DocsView(DOCS_IMAGES)` flow with Google Photos Picker API `v1.sessions` creation, `pickerUri` opening with `/autoclose`, session polling, and `v1.mediaItems` listing.
+  - Selected Picker API `PHOTO` media items are normalized into the existing picker selection shape and continue through the saved project scan path as `sourceType: "picker"` and `photoItems`.
+  - Focused hook tests cover session creation/listing, closed-window cancellation, missing client configuration, and Picker API failure.
+  - Verification passed: `pnpm --filter web test -- use-google-photos-picker-hook.test.tsx`, `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, `make build`, and `pnpm check:docs`.
+  - PP-023 and PP-014 still require a real Chrome run with a real Google account and recorded endpoint evidence; code inspection and mocked tests alone are not MVP pass evidence.
 
 ### PP-020 Expand Playwright MVP regression coverage
 
