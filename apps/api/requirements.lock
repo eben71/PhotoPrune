@@ -8,13 +8,13 @@ anyio==4.14.1
     # via starlette
 click==8.4.2
     # via uvicorn
-fastapi==0.138.2
+fastapi==0.139.0
     # via photoprune-api (pyproject.toml)
 h11==0.16.0
     # via uvicorn
 idna==3.18
     # via anyio
-pillow==12.2.0
+pillow==12.3.0
     # via photoprune-api (pyproject.toml)
 pydantic==2.13.4
     # via
@@ -30,7 +30,7 @@ python-dotenv==1.2.2
     #   pydantic-settings
 starlette==1.3.1
     # via fastapi
-typing-extensions==4.15.0
+typing-extensions==4.16.0
     # via
     #   anyio
     #   fastapi
@@ -43,5 +43,5 @@ typing-inspection==0.4.2
     #   fastapi
     #   pydantic
     #   pydantic-settings
-uvicorn==0.49.0
+uvicorn==0.50.2
     # via photoprune-api (pyproject.toml)
