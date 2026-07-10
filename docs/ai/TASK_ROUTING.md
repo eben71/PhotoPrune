@@ -2,6 +2,12 @@
 
 Use this gate once, before meaningful planning or implementation work. It recommends a workflow, a relative model tier, and a reasoning level; it does not change the active Codex session.
 
+## Identify the routed task
+
+Identify the concrete task before running the gate. Use the explicit incoming request when it already defines the work. When asked to take the next backlog item, select the first `Ready` task and read its goal, context, acceptance criteria, and linked evidence before classifying it.
+
+Task identification is lightweight intake, not the task being routed. Do not classify the mechanical act of selecting a backlog item. Missing or vague acceptance criteria are evidence of task ambiguity and may justify BMAD-first routing.
+
 ## When to run
 
 Run before meaningful:

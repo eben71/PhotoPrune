@@ -4,8 +4,8 @@ Use this workflow for every delivery task. Repo docs are the source of truth acr
 
 ## Steps
 
-1. Run the advisory gate in `docs/ai/TASK_ROUTING.md`; route unresolved High or materially ambiguous work to BMAD analysis or planning before implementation.
-2. Select the first `Ready` task from `docs/delivery/TASK_BACKLOG.md`.
+1. Identify the concrete delivery task. If the incoming request names a task, confirm its backlog entry and acceptance criteria; otherwise select the first `Ready` task from `docs/delivery/TASK_BACKLOG.md` and read its full entry.
+2. Run the advisory gate in `docs/ai/TASK_ROUTING.md` on that task; route unresolved High or materially ambiguous work to BMAD analysis or planning before implementation.
 3. Create an isolated branch or worktree, optionally via Baton.
 4. Builder agent implements only that task.
 5. Builder updates tests, docs, backlog, and `docs/delivery/ITERATION_LOG.md`.

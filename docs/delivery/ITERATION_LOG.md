@@ -26,6 +26,7 @@ Record every implementation or verification iteration here. The log is repo trut
 - Goal: Add one concise advisory task-routing gate before meaningful Codex, BMAD, or Baton work without automatic model or reasoning changes.
 - Acceptance criteria checked:
   - Root `AGENTS.md` now auto-directs meaningful tasks to the compact gate while the detailed rubric remains canonical in `docs/ai/TASK_ROUTING.md`.
+  - Review feedback corrected the delivery order: identify and read the explicit or next `Ready` task first, then run the gate on that task rather than on the task-selection operation.
   - The canonical policy assesses scope, ambiguity, novelty, architecture, product, security/privacy, data/persistence, infrastructure, system/package span, verification, and existing-pattern likelihood.
   - Light, Medium, and High map to relative model tiers, reasoning levels, and Direct Codex, Baton, or BMAD-first workflow recommendations without invented model names.
   - Session states cover Suitable, Switch recommended, and Unable to determine; High work blocks when suitability is unknown, normal Medium work does not, and no automatic switch is claimed.
@@ -41,9 +42,11 @@ Record every implementation or verification iteration here. The log is repo trut
   - `node scripts/check-coverage.mjs` passed: web 82.67%, API 92.3%, worker 100%.
   - `make build` passed for shared, Next.js, API compileall, and worker compileall.
   - `pnpm check:docs` passed.
+  - After review-ordering feedback, targeted Prettier checks passed for `docs/delivery/WORKFLOW.md`, `docs/ai/TASK_ROUTING.md`, `docs/delivery/TASK_BACKLOG.md`, and `docs/delivery/ITERATION_LOG.md`; `pnpm check:docs` also passed.
 - Manual verification:
   - Audited root/nested instructions, canonical rules, project context, project-owned skills and template, installed BMAD topology and customization boundary, portable role prompts, Baton guidance, delivery workflow, testing guidance, backlog, and iteration log.
   - Reviewed all five dry-run outputs against routing, product-policy, metadata-honesty, stop/continue, and no-loop requirements.
+  - Confirmed task identification is lightweight intake and that missing or vague acceptance criteria feed the ambiguity assessment instead of preventing routing.
 - Artifacts/screenshots: `docs/delivery/artifacts/PP-026/task-routing-dry-runs.md`; screenshots are not applicable to this agent-guidance change.
 - Backlog updates: Added PP-026 with acceptance criteria before implementation and moved it to Verifying after the full builder gate passed.
 - Follow-up tasks created: None.
