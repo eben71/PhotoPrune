@@ -4,6 +4,7 @@ Baton is a workspace manager, not a source of truth. Repo artifacts remain canon
 
 ## Baton rules
 
+- Run `docs/ai/TASK_ROUTING.md` before implementation. Use Baton for scoped Light or Medium execution; route unresolved High or materially ambiguous work to BMAD first.
 - Every Baton workspace must map to one task ID from `docs/delivery/TASK_BACKLOG.md`.
 - Branch naming: `task/PP-001-short-name`.
 - Agents must read `AGENTS.md`, `AGENT_RULES.md`, the task/backlog entry, MVP docs, and `docs/testing/VERIFICATION_CHECKLIST.md` before changes.

@@ -137,6 +137,36 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ## P1
 
+### PP-026 Add advisory task-routing gate for agent workflows
+
+- Status: Verifying
+- Type: Docs / Delivery / Agent Guidance
+- Links: `AGENTS.md`, `docs/ai/TASK_ROUTING.md`, `docs/delivery/WORKFLOW.md`, `docs/delivery/BATON_WORKTREE_GUIDE.md`, `_bmad-output/project-context.md`
+- Goal: Require one concise, advisory complexity and session-suitability assessment before meaningful Codex, BMAD, or Baton planning and implementation work.
+- Acceptance criteria:
+  - Root guidance makes the routing gate reliably discoverable without copying the detailed rubric into `AGENTS.md`.
+  - The concrete incoming or backlog task is identified and read before routing, so the gate never classifies the mechanical act of task selection.
+  - One canonical policy classifies Light, Medium, and High tasks across the required risk and complexity dimensions and maps them to relative model, reasoning, and workflow recommendations.
+  - The gate reports session suitability honestly, never changes the active model or reasoning level, and avoids repeated routing loops.
+  - BMAD work is routed before workflow selection, and Baton work is routed before implementation without weakening backlog, acceptance-criteria, builder/verifier, or verification rules.
+  - Five representative dry runs cover Light, Medium, High/forbidden, ambiguous, and escalation cases without implementing the scenarios.
+  - Delivery records and required verification evidence are updated.
+- Required checks:
+  - `make lint`
+  - `make format-check`
+  - `make typecheck`
+  - `make test`
+  - `node scripts/check-coverage.mjs`
+  - `make build`
+  - `pnpm check:docs`
+- Residual risk:
+  - Codex session metadata may not expose the active model or reasoning level, so suitability detection and switching remain manual.
+- Evidence:
+  - `docs/delivery/artifacts/PP-026/task-routing-dry-runs.md` records the five required dry runs and confirms the forbidden auto-delete scenario stops on repository policy.
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, `make build`, and `pnpm check:docs` passed on 2026-07-10.
+  - Review feedback corrected the delivery sequence so an explicit task or selected `Ready` backlog entry is read before the routing gate runs.
+  - The builder completed the implementation and verification gate; separate verifier sign-off remains pending.
+
 ### PP-005 Reconcile Phase 3 “complete” roadmap status with actual MVP usability
 
 - Status: Ready
