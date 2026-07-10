@@ -19,21 +19,21 @@ certifi==2026.6.17
     #   httpcore
     #   httpx
     #   requests
-charset-normalizer==3.4.7
+charset-normalizer==3.4.8
     # via requests
 click==8.4.2
     # via
     #   black
     #   uvicorn
-coverage==7.14.3
+coverage==7.15.0
     # via pytest-cov
 cyclonedx-python-lib==11.11.0
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
-fastapi==0.138.2
+fastapi==0.139.0
     # via photoprune-api (pyproject.toml)
-filelock==3.29.4
+filelock==3.29.6
     # via cachecontrol
 h11==0.16.0
     # via
@@ -50,7 +50,7 @@ idna==3.18
     #   requests
 iniconfig==2.3.0
     # via pytest
-librt==0.11.0
+librt==0.12.0
     # via mypy
 license-expression==30.4.4
     # via cyclonedx-python-lib
@@ -78,7 +78,7 @@ pathspec==1.1.1
     # via
     #   black
     #   mypy
-pillow==12.2.0
+pillow==12.3.0
     # via photoprune-api (pyproject.toml)
 pip==26.1.2
     # via
@@ -140,7 +140,7 @@ tomli==2.4.1
     # via pip-audit
 tomli-w==1.2.0
     # via pip-audit
-typing-extensions==4.15.0
+typing-extensions==4.16.0
     # via
     #   anyio
     #   cyclonedx-python-lib
@@ -159,5 +159,5 @@ urllib3==2.7.0
     # via
     #   photoprune-api (pyproject.toml:dev)
     #   requests
-uvicorn==0.49.0
+uvicorn==0.50.2
     # via photoprune-api (pyproject.toml)
