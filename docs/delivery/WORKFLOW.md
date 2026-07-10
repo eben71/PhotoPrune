@@ -4,16 +4,17 @@ Use this workflow for every delivery task. Repo docs are the source of truth acr
 
 ## Steps
 
-1. Select the first `Ready` task from `docs/delivery/TASK_BACKLOG.md`.
-2. Create an isolated branch or worktree, optionally via Baton.
-3. Builder agent implements only that task.
-4. Builder updates tests, docs, backlog, and `docs/delivery/ITERATION_LOG.md`.
-5. Separate verifier session reviews against acceptance criteria where practical.
-6. Run relevant checks from `docs/ai/testing.md`.
-7. Run MVP smoke if UI or the main flow changed.
-8. Human reviews product behavior and delivery evidence.
-9. Merge only when verification evidence is recorded.
-10. Create follow-up tasks for discovered gaps instead of expanding scope silently.
+1. Run the advisory gate in `docs/ai/TASK_ROUTING.md`; route unresolved High or materially ambiguous work to BMAD analysis or planning before implementation.
+2. Select the first `Ready` task from `docs/delivery/TASK_BACKLOG.md`.
+3. Create an isolated branch or worktree, optionally via Baton.
+4. Builder agent implements only that task.
+5. Builder updates tests, docs, backlog, and `docs/delivery/ITERATION_LOG.md`.
+6. Separate verifier session reviews against acceptance criteria where practical.
+7. Run relevant checks from `docs/ai/testing.md`.
+8. Run MVP smoke if UI or the main flow changed.
+9. Human reviews product behavior and delivery evidence.
+10. Merge only when verification evidence is recorded.
+11. Create follow-up tasks for discovered gaps instead of expanding scope silently.
 
 ## WIP limits
 
