@@ -21,18 +21,79 @@ async function installGooglePickerStub(page: Page) {
       body: "",
     }),
   );
-  await page.route("https://apis.google.com/js/api.js", (route) =>
-    route.fulfill({
-      contentType: "application/javascript",
-      body: "",
-    }),
-  );
+
+  await page.route("https://photospicker.googleapis.com/v1/**", (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const json = (body: unknown) =>
+      route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(body),
+      });
+
+    if (request.method() === "POST" && url.pathname === "/v1/sessions") {
+      return json({
+        id: "smoke-session",
+        pickerUri: "https://photos.google.com/picker/smoke-session",
+        pollingConfig: { pollInterval: "0s", timeoutIn: "5s" },
+      });
+    }
+
+    if (
+      request.method() === "GET" &&
+      url.pathname === "/v1/sessions/smoke-session"
+    ) {
+      return json({
+        id: "smoke-session",
+        pickerUri: "https://photos.google.com/picker/smoke-session",
+        mediaItemsSet: true,
+        pollingConfig: { pollInterval: "0s", timeoutIn: "5s" },
+      });
+    }
+
+    if (request.method() === "GET" && url.pathname === "/v1/mediaItems") {
+      return json({
+        mediaItems: [
+          {
+            id: "smoke-photo-1",
+            createTime: "2026-01-01T00:00:00Z",
+            type: "PHOTO",
+            productUrl: "https://photos.google.com/photo/smoke-photo-1",
+            mediaFile: {
+              baseUrl: "https://placehold.co/600x400",
+              filename: "smoke-photo-1.jpg",
+              mimeType: "image/jpeg",
+              mediaFileMetadata: { width: 1200, height: 800 },
+            },
+          },
+          {
+            id: "smoke-photo-2",
+            createTime: "2026-01-01T00:00:01Z",
+            type: "PHOTO",
+            productUrl: "https://photos.google.com/photo/smoke-photo-2",
+            mediaFile: {
+              baseUrl: "https://placehold.co/600x400",
+              filename: "smoke-photo-2.jpg",
+              mimeType: "image/jpeg",
+              mediaFileMetadata: { width: 1200, height: 800 },
+            },
+          },
+        ],
+      });
+    }
+
+    if (
+      request.method() === "DELETE" &&
+      url.pathname === "/v1/sessions/smoke-session"
+    ) {
+      return route.fulfill({ status: 204, body: "" });
+    }
+
+    return route.abort();
+  });
 
   await page.addInitScript(() => {
     type SmokeWindow = Window & {
-      gapi?: {
-        load: (_lib: string, callback: () => void) => void;
-      };
       google?: {
         accounts: {
           oauth2: {
@@ -43,113 +104,19 @@ async function installGooglePickerStub(page: Page) {
             };
           };
         };
-        picker: {
-          Action: { PICKED: string; CANCEL: string };
-          DocsView: typeof SmokeDocsView;
-          PickerBuilder: typeof SmokePickerBuilder;
-          ViewId: { DOCS_IMAGES: string };
-        };
       };
     };
 
-    class SmokeDocsView {
-      setMimeTypes() {
-        return this;
-      }
-
-      setSelectFolderEnabled() {
-        return this;
-      }
-
-      setIncludeFolders() {
-        return this;
-      }
-    }
-
-    class SmokePickerBuilder {
-      callback?: (data: unknown) => void;
-
-      addView() {
-        return this;
-      }
-
-      setOAuthToken() {
-        return this;
-      }
-
-      setDeveloperKey() {
-        return this;
-      }
-
-      setCallback(callback: (data: unknown) => void) {
-        this.callback = callback;
-        return this;
-      }
-
-      setAppId() {
-        return this;
-      }
-
-      setSelectableMimeTypes() {
-        return this;
-      }
-
-      build() {
-        return {
-          setVisible: (visible: boolean) => {
-            if (!visible || !this.callback) {
-              return;
-            }
-
-            window.setTimeout(() => {
-              this.callback?.({
-                action: "picked",
-                docs: [
-                  {
-                    id: "smoke-photo-1",
-                    url: "https://photos.google.com/photo/smoke-photo-1",
-                    name: "smoke-photo-1.jpg",
-                    mimeType: "image/jpeg",
-                    photoMediaMetadata: {
-                      width: 1200,
-                      height: 800,
-                      creationTime: "2026-01-01T00:00:00Z",
-                    },
-                    thumbnails: [
-                      {
-                        url: "https://placehold.co/600x400",
-                      },
-                    ],
-                  },
-                  {
-                    id: "smoke-photo-2",
-                    url: "https://photos.google.com/photo/smoke-photo-2",
-                    name: "smoke-photo-2.jpg",
-                    mimeType: "image/jpeg",
-                    photoMediaMetadata: {
-                      width: 1200,
-                      height: 800,
-                      creationTime: "2026-01-01T00:00:01Z",
-                    },
-                    thumbnails: [
-                      {
-                        url: "https://placehold.co/600x400",
-                      },
-                    ],
-                  },
-                ],
-              });
-            }, 0);
-          },
-        };
-      }
-    }
-
     const smokeWindow = window as SmokeWindow;
+    const pickerWindow = {
+      closed: false,
+      location: { href: "" },
+      close() {
+        this.closed = true;
+      },
+    } as unknown as Window;
 
-    smokeWindow.gapi = {
-      load: (_lib: string, callback: () => void) => callback(),
-    };
+    window.open = () => pickerWindow;
     smokeWindow.google = {
       accounts: {
         oauth2: {
@@ -157,12 +124,6 @@ async function installGooglePickerStub(page: Page) {
             requestAccessToken: () => callback({ access_token: "smoke-token" }),
           }),
         },
-      },
-      picker: {
-        Action: { PICKED: "picked", CANCEL: "cancel" },
-        DocsView: SmokeDocsView,
-        PickerBuilder: SmokePickerBuilder,
-        ViewId: { DOCS_IMAGES: "DOCS_IMAGES" },
       },
     };
   });

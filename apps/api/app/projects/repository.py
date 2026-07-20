@@ -311,6 +311,7 @@ class ProjectRepository:
             conn.execute("UPDATE projects SET updated_at = ? WHERE id = ?", (now, project_id))
 
             for item in input_items:
+                persisted_link = item.deep_link if source_type != "picker" else None
                 conn.execute(
                     """
                     INSERT INTO project_items (
@@ -341,8 +342,8 @@ class ProjectRepository:
                         str(uuid4()),
                         project_id,
                         item.id,
-                        item.deep_link,
-                        item.deep_link,
+                        persisted_link,
+                        persisted_link,
                         item.create_time.isoformat(),
                         item.filename,
                         item.mime_type,

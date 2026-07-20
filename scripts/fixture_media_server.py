@@ -63,6 +63,17 @@ class FixtureHandler(BaseHTTPRequestHandler):
                 self.send_error(404)
                 return
             token = token_match.group("token")
+            if token == "fail":
+                self.send_error(503)
+                return
+            if token == "invalid":
+                payload = b"not-an-image"
+                self.send_response(200)
+                self.send_header("Content-Type", "application/octet-stream")
+                self.send_header("Content-Length", str(len(payload)))
+                self.end_headers()
+                self.wfile.write(payload)
+                return
             seed = (zlib.crc32(token.encode("utf-8")) % 500) + 1
         payload = self._cache.get(seed)
         if payload is None:

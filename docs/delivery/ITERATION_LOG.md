@@ -19,6 +19,38 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-20 - PP-027 Repair the real-photo scan input and Picker lifecycle
+
+- Role: Builder
+- Status: Done
+- Goal: Carry Picker-selected image URLs and real metadata through hashing while making popup, authorization, pagination, and per-item failure behavior bounded and explicit.
+- Acceptance criteria checked:
+  - Picker selection now preserves media ID, creation time, filename, MIME type, real dimensions, download-ready URL, and optional product URL through both saved-project and direct scan boundaries.
+  - A named placeholder opens synchronously; blocked, early-closed, cancelled, selected, and failed paths are distinct, with a single refresh/replay after a Picker API 401.
+  - Pagination detects repeated tokens, retains all pages up to 2,000 items, and rejects any response above the shared limit without truncation.
+  - Picker requests require download URLs; unreadable items are reported in `failedItems`, viable items continue, and an all-unreadable selection fails.
+  - Picker download URLs, OAuth tokens, and product links are not written into saved project scope or scan-history records.
+  - Review repairs keep the matching immediate project envelope available for current-session exact links and failed-item guidance while deferring persisted reload truth to PP-015.
+  - Raw Picker payloads are capped and URL-validated before normalization; repeated or incomplete selections are rejected without silent item loss.
+  - OAuth callbacks, Picker fetches, cleanup, and polling terminal paths are bounded, and user-facing errors do not expose raw API details.
+  - Metadata-only album/fixture scans remain compatible while Picker and other real-byte scans fail defensively when nothing is hashable.
+- Commands run:
+  - `pnpm --filter web test -- use-google-photos-picker-hook.test.tsx projects-phase3.test.tsx engine-adapter.test.ts` passed after review repairs: 13 files, 78 tests.
+  - `pnpm --filter web lint` passed.
+  - `pnpm --filter web typecheck` passed.
+  - `uv run pytest tests/test_projects.py tests/test_routes_scan.py tests/test_scan.py tests/test_downloads.py tests/test_schemas.py tests/test_normalizer.py tests/test_pp027_fixture_contract.py` passed after review repairs: 72 tests.
+  - Focused Ruff and Prettier checks passed for all changed Python, TypeScript, Markdown, and fixture files.
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, and `make build` passed.
+  - The full suite passed with 78 web tests, 94 API tests, 2 worker tests, and 6 dependency-preflight tests.
+  - Coverage passed at web 83.59%, API 93.01%, and worker 100%.
+  - `pnpm check:docs` and `git diff --check` passed.
+  - `pnpm smoke:mvp` initially failed because its fixture still used the retired legacy Google Picker stub; replacing it with deterministic Photos Picker REST `v1.sessions`/`v1.mediaItems` responses restored the gate, which then passed with 1 Chromium test.
+- Manual verification: Inspected request mappings, API normalization, scan failure envelopes, SQLite writes, and the current-session results path to confirm URLs reach hashing and ephemeral links remain available without durable Picker URL persistence. Separate blind and edge-case review agents examined the complete baseline diff; their actionable findings were repaired and covered by tests.
+- Artifacts/screenshots: `tests/fixtures/picker/pp027_scan_contract.json`, `scripts/fixture_media_server.py`, and `_bmad-output/implementation-artifacts/deferred-work.md`; screenshots are not applicable to deterministic contract verification.
+- Backlog updates: Moved PP-027 from Ready through Verifying to Done after focused checks, independent review, the full handoff gate, and deterministic browser smoke passed.
+- Follow-up tasks created: None; the existing PP-015 owns persisted failed-item reload truth.
+- Residual risk: Persisted reloads do not yet retain failed-item facts; PP-015 owns that lifecycle redesign. PP-023 still requires separate real-account Chrome evidence and cannot be replaced by deterministic fixtures.
+
 ### 2026-07-20 - Repository review backlog reconciliation
 
 - Role: Planner

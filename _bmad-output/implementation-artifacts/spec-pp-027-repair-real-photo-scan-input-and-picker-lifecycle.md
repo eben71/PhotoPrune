@@ -2,9 +2,9 @@
 title: "PP-027 Repair the Real-Photo Scan Input and Picker Lifecycle"
 type: "feature"
 created: "2026-07-20"
-status: "approved"
+status: "done"
 approved: "2026-07-20"
-baseline_commit: "d4d9a7e"
+baseline_commit: "725f749"
 context:
   - "{project-root}/AGENT_RULES.md"
   - "{project-root}/apps/web/AGENTS.md"
@@ -124,32 +124,32 @@ Pagination must collect all pages, detect repeated page tokens, and reject a col
 
 ### Task 1: Make Picker authorization and window handling resilient
 
-- [ ] Open the placeholder synchronously and represent blocked, closed, cancelled, selected, and failed terminal states explicitly.
-- [ ] Navigate the placeholder after session creation and clean up it and the Picker session on terminal paths.
-- [ ] Remove unused OAuth scopes.
-- [ ] Add one bounded token refresh and replay for Picker API `401` responses.
-- [ ] Preserve complete paginated selection and enforce the 2,000-item limit without truncation.
+- [x] Open the placeholder synchronously and represent blocked, closed, cancelled, selected, and failed terminal states explicitly.
+- [x] Navigate the placeholder after session creation and clean up it and the Picker session on terminal paths.
+- [x] Remove unused OAuth scopes.
+- [x] Add one bounded token refresh and replay for Picker API `401` responses.
+- [x] Preserve complete paginated selection and enforce the 2,000-item limit without truncation.
 
 ### Task 2: Preserve real scan inputs across the web boundary
 
-- [ ] Carry the Picker `baseUrl`, dimensions, media ID, filename, MIME type, creation time, and optional product URL through `PickerItem` and current run state.
-- [ ] Send real dimensions and `downloadUrl` from the saved-project scan page.
-- [ ] Keep the adapter and direct run path consistent with the saved-project path.
-- [ ] Do not persist tokens, photo bytes, or expiring download URLs beyond the current scan.
+- [x] Carry the Picker `baseUrl`, dimensions, media ID, filename, MIME type, creation time, and optional product URL through `PickerItem` and current run state.
+- [x] Send real dimensions and `downloadUrl` from the saved-project scan page.
+- [x] Keep the adapter and direct run path consistent with the saved-project path.
+- [x] Do not persist tokens, photo bytes, or expiring download URLs beyond the current scan.
 
 ### Task 3: Reject or report inputs without usable bytes
 
-- [ ] Validate that Picker-source items have a usable download URL.
-- [ ] Report retrieval/decode failures through the existing failed/skipped-item model where possible.
-- [ ] Fail a scan with no hashable bytes instead of returning successful empty groups.
-- [ ] Preserve valid exact and near-duplicate grouping behavior.
+- [x] Validate that Picker-source items have a usable download URL.
+- [x] Report retrieval/decode failures through the existing failed/skipped-item model where possible.
+- [x] Fail a scan with no hashable bytes instead of returning successful empty groups.
+- [x] Preserve valid exact and near-duplicate grouping behavior.
 
 ### Task 4: Prove the end-to-end contract
 
-- [ ] Add deterministic local-image integration fixtures.
-- [ ] Assert URLs and dimensions survive hook, page, route, adapter, normalizer, and engine boundaries.
-- [ ] Cover popup blocked/closed, token expiry/`401`, repeated `401`, over-limit selection, invalid media, and successful exact grouping.
-- [ ] Update backlog and iteration evidence only after implementation and verification.
+- [x] Add deterministic local-image integration fixtures.
+- [x] Assert URLs and dimensions survive hook, page, route, adapter, normalizer, and engine boundaries.
+- [x] Cover popup blocked/closed, token expiry/`401`, repeated `401`, over-limit selection, invalid media, and successful exact grouping.
+- [x] Update backlog and iteration evidence only after implementation and verification.
 
 ## Acceptance Criteria
 
@@ -203,3 +203,49 @@ PP-023 remains the separate product-owner-controlled real-account Chrome proof. 
 - Stop for renewed human review if implementation would change an approved boundary, acceptance criterion, verification requirement, or non-goal.
 - Update the delivery backlog and iteration log only after implementation and verification evidence exist.
 - Use a separate verifier session where practical before marking PP-027 done.
+
+## Suggested Review Order
+
+**Picker lifecycle and authorization**
+
+- Start with the synchronous popup, bounded authorization, and terminal cleanup orchestration.
+  [`useGooglePhotosPicker.ts:389`](../../apps/web/app/hooks/useGooglePhotosPicker.ts#L389)
+
+- Review strict pagination, completeness, duplicate-ID, and 2,000-item enforcement.
+  [`useGooglePhotosPicker.ts:297`](../../apps/web/app/hooks/useGooglePhotosPicker.ts#L297)
+
+**Current-scan contract**
+
+- Saved scans preserve real metadata, consent, and the immediate ephemeral envelope.
+  [`page.tsx:69`](../../apps/web/app/projects/[id]/run/page.tsx#L69)
+
+- Matching current-session results retain exact links and truthful failed-item guidance.
+  [`page.tsx:132`](../../apps/web/app/projects/[id]/results/page.tsx#L132)
+
+- Direct scans send the same dimensions, URLs, and ephemeral product link.
+  [`engineAdapter.ts:396`](../../apps/web/src/engine/engineAdapter.ts#L396)
+
+**API validation and partial outcomes**
+
+- Picker project requests reject missing URLs and over-limit selections before execution.
+  [`schemas.py:114`](../../apps/api/app/projects/schemas.py#L114)
+
+- Scan execution isolates unreadable items and fails only entirely unhashable real scans.
+  [`scan.py:24`](../../apps/api/app/engine/scan.py#L24)
+
+- Result envelopes count accepted, rejected, grouped, and ungrouped items consistently.
+  [`routes.py:278`](../../apps/api/app/api/routes.py#L278)
+
+- Picker product links are intentionally excluded from durable project records.
+  [`repository.py:314`](../../apps/api/app/projects/repository.py#L314)
+
+**Verification and fixtures**
+
+- Hook tests cover blocked, closed, timeout, 401, pagination, and cleanup branches.
+  [`use-google-photos-picker-hook.test.tsx:43`](../../apps/web/tests/use-google-photos-picker-hook.test.tsx#L43)
+
+- The local fixture contract proves duplicate grouping plus invalid and failed downloads.
+  [`test_pp027_fixture_contract.py:16`](../../apps/api/tests/test_pp027_fixture_contract.py#L16)
+
+- Browser smoke now exercises Photos Picker REST instead of the retired legacy stub.
+  [`mvp-smoke.spec.ts:17`](../../tests/e2e/mvp-smoke.spec.ts#L17)

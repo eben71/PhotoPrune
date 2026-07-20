@@ -45,6 +45,9 @@ class HashingService:
         self.perceptual_hash_count += 1
         return hashes
 
+    def validate_image(self, item: PhotoItem) -> None:
+        _load_image(self._download_manager.get_bytes(item))
+
 
 def compute_dhash(image_bytes: bytes, *, size: int = 8) -> int:
     image = _load_image(image_bytes).resize((size + 1, size), resample=_resample_lanczos())

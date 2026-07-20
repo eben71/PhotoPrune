@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { useEffect } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import ProjectDetailPage from '../app/projects/[id]/page';
@@ -6,7 +7,11 @@ import ProjectResultsPage from '../app/projects/[id]/results/page';
 import ProjectRunPage from '../app/projects/[id]/run/page';
 import NewProjectPage from '../app/projects/new/page';
 import ProjectsPage from '../app/projects/page';
-import { RunSessionProvider } from '../app/state/runSessionStore';
+import {
+  RunSessionProvider,
+  useRunSession
+} from '../app/state/runSessionStore';
+import type { RunEnvelope } from '../src/types/phase2Envelope';
 
 const openPickerMock = vi.fn();
 const routerPushMock = vi.fn();
@@ -14,6 +19,97 @@ let bodyAppendMock: ReturnType<
   typeof vi.fn<(...nodes: (Node | string)[]) => void>
 >;
 let searchParamsValue = 'scanId=scan-1';
+
+function renderProjectResults() {
+  return render(
+    <RunSessionProvider>
+      <ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />
+    </RunSessionProvider>
+  );
+}
+
+function ImmediateProjectResults({ envelope }: { envelope: RunEnvelope }) {
+  const { applyProjectEnvelope, hydrated } = useRunSession();
+  useEffect(() => {
+    if (hydrated) {
+      applyProjectEnvelope('scan-1', envelope);
+    }
+  }, [applyProjectEnvelope, envelope, hydrated]);
+  return <ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />;
+}
+
+function immediateProjectEnvelope(): RunEnvelope {
+  return {
+    schemaVersion: '2.2.0',
+    run: {
+      runId: 'immediate-run',
+      status: 'COMPLETED',
+      startedAt: '2025-01-01T00:00:00Z',
+      finishedAt: '2025-01-01T00:00:01Z',
+      selection: { requestedCount: 2, acceptedCount: 1, rejectedCount: 1 }
+    },
+    progress: {
+      stage: 'FINALIZE',
+      message: 'done',
+      counts: { processed: 2, total: 2 }
+    },
+    telemetry: {
+      cost: {
+        apiCalls: 1,
+        estimatedUnits: 1,
+        softCapUnits: 1200,
+        hardCapUnits: 2000,
+        hitSoftCap: false,
+        hitHardCap: false
+      },
+      warnings: []
+    },
+    results: {
+      summary: {
+        groupsCount: 1,
+        groupedItemsCount: 1,
+        ungroupedItemsCount: 0
+      },
+      groups: [
+        {
+          groupId: 'g1',
+          groupType: 'EXACT',
+          confidence: 'HIGH',
+          reasonCodes: ['HASH_MATCH'],
+          itemsCount: 1,
+          representativeItemIds: ['i1'],
+          items: [
+            {
+              itemId: 'i1',
+              type: 'PHOTO',
+              createTime: '2025-01-01T00:00:00Z',
+              filename: 'current.jpg',
+              mimeType: 'image/jpeg',
+              thumbnail: {
+                baseUrl: 'https://placehold.co/200',
+                suggestedSizePx: 300
+              },
+              links: {
+                googlePhotos: {
+                  url: 'https://photos.google.com/photo/current-i1',
+                  fallbackQuery: 'current.jpg i1'
+                }
+              }
+            }
+          ]
+        }
+      ],
+      skippedItems: [],
+      failedItems: [
+        {
+          itemId: 'bad-1',
+          reasonCode: 'IMAGE_BYTES_UNAVAILABLE',
+          message: 'PhotoPrune could not read this item.'
+        }
+      ]
+    }
+  };
+}
 
 vi.mock('../app/hooks/useGooglePhotosPicker', () => ({
   useGooglePhotosPicker: () => ({
@@ -29,6 +125,9 @@ vi.mock('../app/hooks/useGooglePhotosPicker', () => ({
       filename: item.filename,
       mimeType: item.mimeType,
       baseUrl: item.baseUrl,
+      width: Number(item.width),
+      height: Number(item.height),
+      ...(item.productUrl ? { productUrl: item.productUrl } : {}),
       type: 'PHOTO'
     }))
 }));
@@ -368,7 +467,7 @@ describe('phase 3 projects pages', () => {
   });
 
   it('shows both CSV and JSON export actions on project results', async () => {
-    render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
+    renderProjectResults();
 
     await waitFor(() =>
       expect(
@@ -386,7 +485,7 @@ describe('phase 3 projects pages', () => {
   });
 
   it('renders scan diff categories on project results', async () => {
-    render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
+    renderProjectResults();
 
     await waitFor(() =>
       expect(screen.getAllByText('New since last scan').length).toBeGreaterThan(
@@ -446,7 +545,7 @@ describe('phase 3 projects pages', () => {
       })
     );
 
-    render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
+    renderProjectResults();
 
     await waitFor(() =>
       expect(
@@ -481,7 +580,7 @@ describe('phase 3 projects pages', () => {
       })
     );
 
-    render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
+    renderProjectResults();
 
     await waitFor(() =>
       expect(
@@ -530,7 +629,10 @@ describe('phase 3 projects pages', () => {
         baseUrl: 'https://placehold.co/300',
         filename: 'a.jpg',
         mimeType: 'image/jpeg',
-        createTime: '2025-01-01T00:00:00Z'
+        createTime: '2025-01-01T00:00:00Z',
+        width: 640,
+        height: 480,
+        productUrl: 'https://photos.google.com/photo/i1'
       }
     ]);
 
@@ -548,7 +650,82 @@ describe('phase 3 projects pages', () => {
         expect.objectContaining({ method: 'POST' })
       )
     );
+    const scanCall = fetchSpy.mock.calls.find(
+      ([input]) => input === '/api/projects/p1/scan'
+    );
+    const rawScanBody = scanCall?.[1]?.body;
+    expect(typeof rawScanBody).toBe('string');
+    const scanBody = JSON.parse(rawScanBody as string) as {
+      photoItems: Array<Record<string, unknown>>;
+      consentConfirmed: boolean;
+    };
+    expect(scanBody.consentConfirmed).toBe(true);
+    expect(scanBody.photoItems[0]).toEqual({
+      id: 'i1',
+      createTime: '2025-01-01T00:00:00Z',
+      filename: 'a.jpg',
+      mimeType: 'image/jpeg',
+      width: 640,
+      height: 480,
+      downloadUrl: 'https://placehold.co/300',
+      googlePhotosDeepLink: 'https://photos.google.com/photo/i1'
+    });
   });
+
+  it.each(['network', 'api', 'parse'] as const)(
+    'project run handles %s scan failures with calm guidance',
+    async (failure) => {
+      const defaultFetch = vi.mocked(fetch).getMockImplementation();
+      vi.mocked(fetch).mockImplementation((input, init) => {
+        if (input === '/api/projects/p1/scan') {
+          if (failure === 'network') {
+            return Promise.reject(new TypeError('network detail'));
+          }
+          if (failure === 'api') {
+            return Promise.resolve(
+              new Response(JSON.stringify({ detail: 'internal detail' }), {
+                status: 422
+              })
+            );
+          }
+          return Promise.resolve(
+            new Response(JSON.stringify({ projectScanId: 42 }))
+          );
+        }
+        return defaultFetch!(input, init);
+      });
+      openPickerMock.mockResolvedValue([
+        {
+          id: 'i1',
+          baseUrl: 'https://placehold.co/300',
+          filename: 'a.jpg',
+          mimeType: 'image/jpeg',
+          createTime: '2025-01-01T00:00:00Z',
+          width: 640,
+          height: 480
+        }
+      ]);
+
+      render(
+        <RunSessionProvider>
+          <ProjectRunPage params={Promise.resolve({ id: 'p1' })} />
+        </RunSessionProvider>
+      );
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Select from Google Photos' })
+      );
+      const startButton = await screen.findByText('Start saved scan');
+      await waitFor(() => expect(startButton).not.toBeDisabled());
+      fireEvent.click(startButton);
+
+      expect(
+        await screen.findByText(
+          'Unable to start this saved scan right now. Check your connection and try again.'
+        )
+      ).toBeInTheDocument();
+      expect(screen.queryByText(/internal detail|network detail/)).toBeNull();
+    }
+  );
 
   it('omits empty album mediaItems when starting an album-scoped project scan', async () => {
     const scanBodies: unknown[] = [];
@@ -597,7 +774,9 @@ describe('phase 3 projects pages', () => {
         baseUrl: 'https://placehold.co/300',
         filename: 'a.jpg',
         mimeType: 'image/jpeg',
-        createTime: '2025-01-01T00:00:00Z'
+        createTime: '2025-01-01T00:00:00Z',
+        width: 640,
+        height: 480
       }
     ]);
 
@@ -628,7 +807,7 @@ describe('phase 3 projects pages', () => {
   it('results page loads saved state and marks a group done', async () => {
     const fetchSpy = vi.spyOn(global, 'fetch');
 
-    render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
+    renderProjectResults();
 
     await waitFor(() =>
       expect(
@@ -646,10 +825,37 @@ describe('phase 3 projects pages', () => {
     );
   });
 
+  it('uses the matching immediate envelope for ephemeral links and failures', async () => {
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
+    const envelope = immediateProjectEnvelope();
+
+    render(
+      <RunSessionProvider>
+        <ImmediateProjectResults envelope={envelope} />
+      </RunSessionProvider>
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('One selected photo could not be scanned.')
+      ).toBeInTheDocument()
+    );
+    expect(screen.getByText('current.jpg')).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'Open in Google Photos' })[0]
+    );
+    expect(openSpy).toHaveBeenCalledWith(
+      'https://photos.google.com/photo/current-i1',
+      '_blank',
+      'noopener,noreferrer'
+    );
+  });
+
   it('results page exports csv for the active scan', async () => {
     const fetchSpy = vi.spyOn(global, 'fetch');
 
-    render(<ProjectResultsPage params={Promise.resolve({ id: 'p1' })} />);
+    renderProjectResults();
 
     const exportButton = screen.getByRole('button', { name: 'Export CSV' });
     await waitFor(() => expect(exportButton).not.toBeDisabled());

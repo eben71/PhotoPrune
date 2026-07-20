@@ -7,6 +7,8 @@ from typing import Any
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, EnvSettingsSource, SettingsConfigDict
 
+from app.engine.limits import PICKER_MAX_ITEMS
+
 SettingsSourceCallable = Callable[[], dict[str, Any]]
 
 
@@ -21,7 +23,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://redis:6379/0"
     cors_origins: list[str] = ["http://localhost:3000"]
     environment: str = "local"
-    scan_max_photos: int = 250
+    scan_max_photos: int = PICKER_MAX_ITEMS
     scan_consent_threshold: int = 200
     scan_allowed_download_hosts: list[str] = []
     scan_download_host_overrides: dict[str, str] = {}

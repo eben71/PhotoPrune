@@ -93,6 +93,12 @@ export const trustCopy = {
       'Choose one photo to keep in each group, review the remaining candidates, and handle any cleanup manually in Google Photos.',
     resultsReminder:
       'Nothing is deleted from PhotoPrune. Mark a group done only after you handle it manually.',
+    partialScanHeading: (failedCount: number) =>
+      failedCount === 1
+        ? 'One selected photo could not be scanned.'
+        : `${failedCount} selected photos could not be scanned.`,
+    partialScanBody:
+      'The available photos were still checked. You can select the unavailable photos again in a new scan.',
     scopePicker: 'Picker-selected photos only',
     scopeAlbumSet: 'Album set scope saved for later read-only ingestion'
   },

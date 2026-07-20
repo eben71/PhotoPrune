@@ -12,6 +12,7 @@ from app.engine.schemas import (
     GroupRepresentativePair,
     GroupResult,
     PhotoItemSummary,
+    ScanItemIssue,
     ScanResult,
     StageMetrics,
 )
@@ -123,6 +124,16 @@ def _photo_payloads(*ids: str) -> list[dict[str, str]]:
     ]
 
 
+def _picker_photo_payloads(*ids: str) -> list[dict[str, str]]:
+    return [
+        {
+            **item,
+            "downloadUrl": f"https://photos.google.com/{item['id']}",
+        }
+        for item in _photo_payloads(*ids)
+    ]
+
+
 def _client(monkeypatch, tmp_path):
     monkeypatch.setenv("PROJECT_DB_PATH", str(tmp_path / "projects.db"))
     config.get_settings.cache_clear()
@@ -195,6 +206,32 @@ def test_album_set_scan_accepts_media_items(monkeypatch, tmp_path):
     assert scan.status_code == 200
 
 
+def test_album_set_scan_preserves_metadata_only_media_items(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    project_id = client.post("/api/projects", json={"name": "Album cleanup"}).json()["id"]
+
+    scan = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={
+            "sourceType": "album_set",
+            "sourceRef": {
+                "type": "album_set",
+                "albumIds": ["album-1"],
+                "mediaItems": _photo_payloads("item-1", "item-2"),
+            },
+        },
+    )
+
+    assert scan.status_code == 200
+    envelope = scan.json()["envelope"]
+    assert envelope["run"]["selection"] == {
+        "requestedCount": 2,
+        "acceptedCount": 2,
+        "rejectedCount": 0,
+    }
+    assert envelope["results"]["failedItems"] == []
+
+
 def test_project_scan_persists_groups_and_reviews(monkeypatch, tmp_path):
     client = _client(monkeypatch, tmp_path)
     monkeypatch.setattr(
@@ -205,13 +242,7 @@ def test_project_scan_persists_groups_and_reviews(monkeypatch, tmp_path):
     project_id = client.post("/api/projects", json={"name": "Campaign"}).json()["id"]
     scan = client.post(
         f"/api/projects/{project_id}/scan",
-        json={
-            "photoItems": [
-                {"id": "item-1", "createTime": "2025-01-01T00:00:00Z"},
-                {"id": "item-2", "createTime": "2025-01-01T00:00:01Z"},
-                {"id": "item-3", "createTime": "2025-01-01T00:00:02Z"},
-            ]
-        },
+        json={"photoItems": _picker_photo_payloads("item-1", "item-2", "item-3")},
     )
     assert scan.status_code == 200
     scan_id = scan.json()["projectScanId"]
@@ -222,6 +253,97 @@ def test_project_scan_persists_groups_and_reviews(monkeypatch, tmp_path):
     assert results.json()["envelope"]["run"]["selection"]["requestedCount"] == 3
     assert results.json()["envelope"]["results"]["summary"]["ungroupedItemsCount"] == 1
     assert len(results.json()["reviews"]) == 1
+
+
+def test_explicit_picker_scan_requires_download_url(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    project_id = client.post("/api/projects", json={"name": "Campaign"}).json()["id"]
+
+    response = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={
+            "sourceType": "picker",
+            "sourceRef": {"type": "picker"},
+            "photoItems": [{"id": "item-1", "createTime": "2025-01-01T00:00:00Z"}],
+        },
+    )
+
+    assert response.status_code == 422
+    assert "downloadUrl" in str(response.json()["detail"])
+
+
+def test_default_picker_scan_requires_download_url(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    project_id = client.post("/api/projects", json={"name": "Campaign"}).json()["id"]
+
+    response = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={"photoItems": [{"id": "item-1", "createTime": "2025-01-01T00:00:00Z"}]},
+    )
+
+    assert response.status_code == 422
+    assert "downloadUrl" in str(response.json()["detail"])
+
+
+def test_project_scan_envelope_counts_partial_item_failures(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    result = _fake_scan_result_with_ids("item-a", "item-b", input_count=3)
+    result.failed_items = [
+        ScanItemIssue(
+            itemId="item-c",
+            reasonCode="IMAGE_BYTES_UNAVAILABLE",
+            message="PhotoPrune could not read this item's image bytes.",
+        )
+    ]
+    monkeypatch.setattr("app.api.routes.run_scan", lambda *_args, **_kwargs: result)
+    project_id = client.post("/api/projects", json={"name": "Campaign"}).json()["id"]
+
+    response = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={"photoItems": _picker_photo_payloads("item-a", "item-b", "item-c")},
+    )
+
+    assert response.status_code == 200
+    envelope = response.json()["envelope"]
+    assert envelope["run"]["selection"] == {
+        "requestedCount": 3,
+        "acceptedCount": 2,
+        "rejectedCount": 1,
+    }
+    assert envelope["results"]["summary"]["ungroupedItemsCount"] == 0
+
+
+def test_picker_product_url_is_not_persisted(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    monkeypatch.setattr(
+        "app.api.routes.run_scan",
+        lambda *_args, **_kwargs: _fake_scan_result_with_ids("item-a", "item-b"),
+    )
+    project_id = client.post("/api/projects", json={"name": "Campaign"}).json()["id"]
+
+    response = client.post(
+        f"/api/projects/{project_id}/scan",
+        json={
+            "sourceType": "picker",
+            "sourceRef": {"type": "picker"},
+            "photoItems": [
+                {
+                    **item,
+                    "downloadUrl": f"https://photos.google.com/{item['id']}",
+                    "googlePhotosDeepLink": f"https://photos.google.com/photo/{item['id']}",
+                }
+                for item in _photo_payloads("item-a", "item-b")
+            ],
+        },
+    )
+
+    assert response.status_code == 200
+    with sqlite3.connect(tmp_path / "projects.db") as conn:
+        rows = conn.execute(
+            "SELECT product_url, deep_link FROM project_items WHERE project_id = ?",
+            (project_id,),
+        ).fetchall()
+    assert rows == [(None, None), (None, None)]
 
 
 def test_project_scan_results_are_scoped_to_requested_scan(monkeypatch, tmp_path):
@@ -239,11 +361,11 @@ def test_project_scan_results_are_scoped_to_requested_scan(monkeypatch, tmp_path
 
     first_scan_id = client.post(
         f"/api/projects/{project_id}/scan",
-        json={"photoItems": [{"id": "item-a", "createTime": "2025-01-01T00:00:00Z"}]},
+        json={"photoItems": _picker_photo_payloads("item-a")},
     ).json()["projectScanId"]
     client.post(
         f"/api/projects/{project_id}/scan",
-        json={"photoItems": [{"id": "item-c", "createTime": "2025-01-01T00:00:00Z"}]},
+        json={"photoItems": _picker_photo_payloads("item-c")},
     )
 
     first_results = client.get(f"/api/projects/{project_id}/scans/{first_scan_id}/results").json()
@@ -271,7 +393,7 @@ def test_scan_diff_preserves_reviewed_unchanged_groups(monkeypatch, tmp_path):
     project_id = client.post("/api/projects", json={"name": "Campaign"}).json()["id"]
     first_scan_id = client.post(
         f"/api/projects/{project_id}/scan",
-        json={"photoItems": _photo_payloads("item-a", "item-b")},
+        json={"photoItems": _picker_photo_payloads("item-a", "item-b")},
     ).json()["projectScanId"]
     first_results = client.get(f"/api/projects/{project_id}/scans/{first_scan_id}/results").json()
     group_id = first_results["envelope"]["results"]["groups"][0]["groupId"]
@@ -282,7 +404,7 @@ def test_scan_diff_preserves_reviewed_unchanged_groups(monkeypatch, tmp_path):
 
     second_scan_id = client.post(
         f"/api/projects/{project_id}/scan",
-        json={"photoItems": _photo_payloads("item-a", "item-b")},
+        json={"photoItems": _picker_photo_payloads("item-a", "item-b")},
     ).json()["projectScanId"]
 
     diff = client.get(f"/api/projects/{project_id}/scans/{second_scan_id}/diff")
@@ -311,7 +433,7 @@ def test_scan_diff_marks_changed_groups_for_review(monkeypatch, tmp_path):
     project_id = client.post("/api/projects", json={"name": "Campaign"}).json()["id"]
     first_scan_id = client.post(
         f"/api/projects/{project_id}/scan",
-        json={"photoItems": _photo_payloads("item-a", "item-b")},
+        json={"photoItems": _picker_photo_payloads("item-a", "item-b")},
     ).json()["projectScanId"]
     first_results = client.get(f"/api/projects/{project_id}/scans/{first_scan_id}/results").json()
     first_group_id = first_results["envelope"]["results"]["groups"][0]["groupId"]
@@ -322,7 +444,7 @@ def test_scan_diff_marks_changed_groups_for_review(monkeypatch, tmp_path):
 
     second_scan_id = client.post(
         f"/api/projects/{project_id}/scan",
-        json={"photoItems": _photo_payloads("item-a", "item-b", "item-c")},
+        json={"photoItems": _picker_photo_payloads("item-a", "item-b", "item-c")},
     ).json()["projectScanId"]
 
     diff = client.get(f"/api/projects/{project_id}/scans/{second_scan_id}/diff")
@@ -348,7 +470,7 @@ def test_scan_diff_marks_first_scan_groups_as_new(monkeypatch, tmp_path):
     project_id = client.post("/api/projects", json={"name": "Campaign"}).json()["id"]
     scan_id = client.post(
         f"/api/projects/{project_id}/scan",
-        json={"photoItems": _photo_payloads("item-a", "item-b")},
+        json={"photoItems": _picker_photo_payloads("item-a", "item-b")},
     ).json()["projectScanId"]
 
     diff = client.get(f"/api/projects/{project_id}/scans/{scan_id}/diff")
@@ -365,7 +487,7 @@ def test_review_patch_and_export(monkeypatch, tmp_path):
     project_id = client.post("/api/projects", json={"name": "Campaign"}).json()["id"]
     scan_id = client.post(
         f"/api/projects/{project_id}/scan",
-        json={"photoItems": [{"id": "item-1", "createTime": "2025-01-01T00:00:00Z"}]},
+        json={"photoItems": _picker_photo_payloads("item-1")},
     ).json()["projectScanId"]
 
     results = client.get(f"/api/projects/{project_id}/scans/{scan_id}/results").json()
@@ -399,11 +521,11 @@ def test_export_defaults_to_latest_scan(monkeypatch, tmp_path):
 
     first_scan_id = client.post(
         f"/api/projects/{project_id}/scan",
-        json={"photoItems": [{"id": "item-a", "createTime": "2025-01-01T00:00:00Z"}]},
+        json={"photoItems": _picker_photo_payloads("item-a")},
     ).json()["projectScanId"]
     client.post(
         f"/api/projects/{project_id}/scan",
-        json={"photoItems": [{"id": "item-c", "createTime": "2025-01-01T00:00:00Z"}]},
+        json={"photoItems": _picker_photo_payloads("item-c")},
     )
 
     latest_export = client.get(f"/api/projects/{project_id}/export?format=json")
@@ -428,7 +550,7 @@ def test_export_rejects_scan_from_another_project(monkeypatch, tmp_path):
     second_project_id = client.post("/api/projects", json={"name": "Second"}).json()["id"]
     first_scan_id = client.post(
         f"/api/projects/{first_project_id}/scan",
-        json={"photoItems": [{"id": "item-a", "createTime": "2025-01-01T00:00:00Z"}]},
+        json={"photoItems": _picker_photo_payloads("item-a")},
     ).json()["projectScanId"]
 
     exported = client.get(
@@ -464,21 +586,11 @@ def test_scan_results_legacy_count_fallback_uses_scan_items(monkeypatch, tmp_pat
     project_id = client.post("/api/projects", json={"name": "Campaign"}).json()["id"]
     first_scan_id = client.post(
         f"/api/projects/{project_id}/scan",
-        json={
-            "photoItems": [
-                {"id": "item-a", "createTime": "2025-01-01T00:00:00Z"},
-                {"id": "item-b", "createTime": "2025-01-01T00:00:01Z"},
-            ]
-        },
+        json={"photoItems": _picker_photo_payloads("item-a", "item-b")},
     ).json()["projectScanId"]
     client.post(
         f"/api/projects/{project_id}/scan",
-        json={
-            "photoItems": [
-                {"id": "item-c", "createTime": "2025-01-01T00:00:00Z"},
-                {"id": "item-d", "createTime": "2025-01-01T00:00:01Z"},
-            ]
-        },
+        json={"photoItems": _picker_photo_payloads("item-c", "item-d")},
     )
 
     with sqlite3.connect(db_path) as conn:

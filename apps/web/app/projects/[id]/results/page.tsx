@@ -8,7 +8,12 @@ import { GroupList } from '../../../components/GroupList';
 import { OpenInGooglePhotosButton } from '../../../components/OpenInGooglePhotosButton';
 import { ReviewShell } from '../../../components/ReviewShell';
 import { trustCopy } from '../../../copy/trustCopy';
-import type { Group, Item } from '../../../../src/types/phase2Envelope';
+import { useRunSession } from '../../../state/runSessionStore';
+import type {
+  Group,
+  Item,
+  ItemIssue
+} from '../../../../src/types/phase2Envelope';
 import {
   type ProjectScanDiffGroup,
   type ProjectScanDiffResponse,
@@ -32,12 +37,15 @@ export default function ProjectResultsPage({
 }) {
   const searchParams = useSearchParams();
   const requestedScanId = searchParams.get('scanId');
+  const { state: runSessionState, hydrated: runSessionHydrated } =
+    useRunSession();
 
   const [projectId, setProjectId] = useState('');
   const [projectName, setProjectName] = useState('Project');
   const [scanRecords, setScanRecords] = useState<ProjectScanRecord[]>([]);
   const [activeScanId, setActiveScanId] = useState<string | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
+  const [failedItems, setFailedItems] = useState<ItemIssue[]>([]);
   const [reviews, setReviews] = useState<Record<string, Review>>({});
   const [diff, setDiff] = useState<ProjectScanDiffResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -93,6 +101,7 @@ export default function ProjectResultsPage({
 
     if (!activeScanId) {
       setGroups([]);
+      setFailedItems([]);
       setReviews({});
       setDiff(null);
       setIsLoading(false);
@@ -120,7 +129,14 @@ export default function ProjectResultsPage({
           return;
         }
 
-        setGroups(payload.envelope.results.groups);
+        const immediateResults =
+          runSessionHydrated && runSessionState.projectScanId === activeScanId
+            ? runSessionState.results
+            : null;
+        setGroups(immediateResults?.groups ?? payload.envelope.results.groups);
+        setFailedItems(
+          immediateResults?.failedItems ?? payload.envelope.results.failedItems
+        );
         setReviews(payload.reviews);
         setDiff(diffPayload);
         setError(null);
@@ -128,6 +144,7 @@ export default function ProjectResultsPage({
         if (!cancelled) {
           setError('Unable to load saved results right now.');
           setGroups([]);
+          setFailedItems([]);
           setReviews({});
           setDiff(null);
         }
@@ -141,7 +158,13 @@ export default function ProjectResultsPage({
     return () => {
       cancelled = true;
     };
-  }, [projectId, activeScanId]);
+  }, [
+    projectId,
+    activeScanId,
+    runSessionHydrated,
+    runSessionState.projectScanId,
+    runSessionState.results
+  ]);
 
   const doneCount = useMemo(
     () =>
@@ -330,6 +353,17 @@ export default function ProjectResultsPage({
           <p className="mb-8 rounded-xl bg-[rgba(127,41,39,0.45)] px-4 py-3 text-sm text-[#ffd1cd]">
             {error}
           </p>
+        ) : null}
+
+        {failedItems.length > 0 ? (
+          <section className="mb-8 rounded-xl bg-[rgba(255,207,112,0.12)] px-5 py-4 text-sm text-[#ffe6ad]">
+            <p className="font-bold">
+              {trustCopy.projects.partialScanHeading(failedItems.length)}
+            </p>
+            <p className="mt-2 leading-7">
+              {trustCopy.projects.partialScanBody}
+            </p>
+          </section>
         ) : null}
 
         {scanRecords.length > 1 ? (

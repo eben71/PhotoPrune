@@ -9,6 +9,7 @@ import { useRunSession } from '../app/state/runSessionStore';
 const mockPush = vi.fn();
 const mockReplace = vi.fn();
 const mockApplyEnvelope = vi.fn();
+const mockApplyProjectEnvelope = vi.fn();
 const mockClearResults = vi.fn();
 const mockClearSelection = vi.fn();
 const mockSetSelection = vi.fn();
@@ -24,9 +25,12 @@ const createSession = (): RunSessionContextValue => ({
         filename: 'IMG_1.jpg',
         mimeType: 'image/jpeg',
         createTime: '2024-01-01T00:00:00.000Z',
+        width: 80,
+        height: 80,
         type: 'PHOTO'
       }
     ],
+    projectScanId: null,
     run: null,
     progress: null,
     telemetry: null,
@@ -87,6 +91,7 @@ const createSession = (): RunSessionContextValue => ({
   hydrated: true,
   setSelection: mockSetSelection,
   applyEnvelope: mockApplyEnvelope,
+  applyProjectEnvelope: mockApplyProjectEnvelope,
   clearResults: mockClearResults,
   clearSelection: mockClearSelection
 });

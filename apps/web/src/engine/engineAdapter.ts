@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import fixtureRunEnvelope from '../../tests/fixtures/phase2_2_sample_results.json';
 
+import { PICKER_MAX_ITEMS } from '../constants/scanLimits';
 import type { PickerItem, RunEnvelope } from '../types/phase2Envelope';
 import { shouldUsePhase21FixtureMode } from './runMode';
 
@@ -38,6 +39,11 @@ type ScanResult = {
   groupsExact: ScanGroup[];
   groupsVerySimilar: ScanGroup[];
   groupsPossiblySimilar: ScanGroup[];
+  failedItems?: Array<{
+    itemId: string;
+    reasonCode: string;
+    message: string;
+  }>;
 };
 const categoryMappings: Record<
   string,
@@ -64,7 +70,7 @@ const categoryMappings: Record<
   }
 };
 const DEFAULT_SOFT_CAP_UNITS = 1200;
-const DEFAULT_HARD_CAP_UNITS = 2000;
+const DEFAULT_HARD_CAP_UNITS = PICKER_MAX_ITEMS;
 const COST_UNIT_SCALE = 100000;
 const stagePlan = [
   { stage: 'INGEST', durationMs: 1200 },
@@ -244,10 +250,14 @@ function mapScanResults(record: RunRecord, scan: ScanResult): RunEnvelope {
         createTime: item.createTime,
         filename: item.filename,
         mimeType: item.mimeType,
+        dimensions: {
+          width: item.width,
+          height: item.height
+        },
         thumbnail: { baseUrl: item.baseUrl, suggestedSizePx: 300 },
         links: {
           googlePhotos: {
-            url: null,
+            url: item.productUrl ?? null,
             fallbackQuery: `${item.filename} ${item.id}`,
             fallbackUrl: 'https://photos.google.com/'
           }
@@ -275,9 +285,10 @@ function mapScanResults(record: RunRecord, scan: ScanResult): RunEnvelope {
     groups.flatMap((group) => group.items.map((item) => item.itemId))
   );
   const groupedItemsCount = groupedIds.size;
+  const failedItems = scan.failedItems ?? [];
   const ungroupedItemsCount = Math.max(
     0,
-    record.selection.length - groupedItemsCount
+    record.selection.length - groupedItemsCount - failedItems.length
   );
   const totalTimingMs = Object.values(scan.stageMetrics.timingsMs).reduce(
     (sum, value) => sum + value,
@@ -320,8 +331,8 @@ function mapScanResults(record: RunRecord, scan: ScanResult): RunEnvelope {
       finishedAt: record.finishedAt ?? nowIso(),
       selection: {
         requestedCount: record.selection.length,
-        acceptedCount: record.selection.length,
-        rejectedCount: 0
+        acceptedCount: record.selection.length - failedItems.length,
+        rejectedCount: failedItems.length
       }
     },
     progress: {
@@ -352,7 +363,7 @@ function mapScanResults(record: RunRecord, scan: ScanResult): RunEnvelope {
       },
       groups,
       skippedItems: [],
-      failedItems: []
+      failedItems
     }
   };
 }
@@ -404,7 +415,10 @@ async function executeRun(record: RunRecord): Promise<void> {
         createTime: item.createTime,
         filename: item.filename,
         mimeType: item.mimeType,
-        downloadUrl: item.baseUrl
+        width: item.width,
+        height: item.height,
+        downloadUrl: item.baseUrl,
+        ...(item.productUrl ? { googlePhotosDeepLink: item.productUrl } : {})
       })),
       consentConfirmed: true
     });

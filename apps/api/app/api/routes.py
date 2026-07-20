@@ -62,8 +62,16 @@ def scan(
         x_scan_explain=x_scan_explain,
     )
     settings = get_settings()
+    require_image_bytes = request.picker_payload is not None or any(
+        item.download_url is not None for item in items
+    )
     try:
-        return run_scan(items, settings, explain=explain_requested or settings.scan_explain)
+        return run_scan(
+            items,
+            settings,
+            explain=explain_requested or settings.scan_explain,
+            require_image_bytes=require_image_bytes,
+        )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -171,7 +179,12 @@ def project_scan(project_id: str, request: ProjectScanRequest) -> ProjectScanRes
     items, explain_requested = _prepare_scan_items(scan_request)
     settings = get_settings()
     try:
-        scan_result = run_scan(items, settings, explain=explain_requested or settings.scan_explain)
+        scan_result = run_scan(
+            items,
+            settings,
+            explain=explain_requested or settings.scan_explain,
+            require_image_bytes=source.source_type == "picker",
+        )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -309,6 +322,8 @@ def _to_envelope(scan_result: ScanResult) -> dict[str, Any]:
             )
 
     grouped_items = {item["itemId"] for group in groups for item in group["items"]}
+    failed_count = len(scan_result.failed_items)
+    accepted_count = max(0, scan_result.input_count - failed_count)
     return {
         "schemaVersion": "2.2.0",
         "run": {
@@ -318,8 +333,8 @@ def _to_envelope(scan_result: ScanResult) -> dict[str, Any]:
             "finishedAt": "",
             "selection": {
                 "requestedCount": scan_result.input_count,
-                "acceptedCount": scan_result.input_count,
-                "rejectedCount": 0,
+                "acceptedCount": accepted_count,
+                "rejectedCount": failed_count,
             },
         },
         "progress": {
@@ -343,11 +358,11 @@ def _to_envelope(scan_result: ScanResult) -> dict[str, Any]:
             "summary": {
                 "groupsCount": len(groups),
                 "groupedItemsCount": len(grouped_items),
-                "ungroupedItemsCount": max(0, scan_result.input_count - len(grouped_items)),
+                "ungroupedItemsCount": max(0, accepted_count - len(grouped_items)),
             },
             "groups": groups,
             "skippedItems": [],
-            "failedItems": [],
+            "failedItems": [issue.model_dump(by_alias=True) for issue in scan_result.failed_items],
         },
     }
 

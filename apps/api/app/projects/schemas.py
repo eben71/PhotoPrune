@@ -5,7 +5,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.engine.schemas import ScanRequest
+from app.engine.limits import PICKER_MAX_ITEMS
+from app.engine.schemas import ScanRequest, validate_picker_payload
 
 
 class ProjectCreateRequest(BaseModel):
@@ -111,6 +112,15 @@ class ProjectScanRequest(ScanRequest):
 
     @model_validator(mode="after")
     def validate_payload(self) -> ProjectScanRequest:
+        if self.source_type == "picker" and self.photo_items:
+            if len(self.photo_items) > PICKER_MAX_ITEMS:
+                raise ValueError(f"picker selection cannot exceed {PICKER_MAX_ITEMS} items")
+            if any(not (item.download_url or "").strip() for item in self.photo_items):
+                raise ValueError("picker photo items require a downloadUrl")
+            return self
+        if self.source_type == "picker" and self.picker_payload:
+            validate_picker_payload(self.picker_payload)
+            return self
         if self.photo_items or self.picker_payload:
             return self
         if self.source_type == "album_set" and self.source_ref:

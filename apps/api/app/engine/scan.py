@@ -3,7 +3,10 @@ from __future__ import annotations
 import time
 from collections import defaultdict
 from collections.abc import Iterable
+from http.client import HTTPException as HTTPClientException
 from uuid import uuid4
+
+from PIL import Image
 
 from app.core.config import Settings
 from app.engine.candidates import (
@@ -15,7 +18,7 @@ from app.engine.downloads import DownloadManager
 from app.engine.grouping import SimilarityThresholds, group_exact_duplicates, group_near_duplicates
 from app.engine.hashing import HashingService
 from app.engine.models import PhotoItem
-from app.engine.schemas import CostEstimate, ScanResult, StageMetrics
+from app.engine.schemas import CostEstimate, ScanItemIssue, ScanResult, StageMetrics
 
 
 def run_scan(
@@ -24,6 +27,7 @@ def run_scan(
     download_manager: DownloadManager | None = None,
     *,
     explain: bool = False,
+    require_image_bytes: bool = False,
 ) -> ScanResult:
     run_id = uuid4().hex
     photo_items = list(items)
@@ -67,10 +71,46 @@ def run_scan(
 
     start = time.perf_counter()
     byte_hashes: dict[str, str] = {}
+    failed_items: list[ScanItemIssue] = []
+    download_errors: list[ValueError] = []
     for item in photo_items:
         if item.download_url is None:
+            if require_image_bytes:
+                failed_items.append(
+                    ScanItemIssue(
+                        itemId=item.id,
+                        reasonCode="MISSING_DOWNLOAD_URL",
+                        message="This item did not include image bytes for scanning.",
+                    )
+                )
             continue
-        byte_hashes[item.id] = hashing_service.get_byte_hash(item)
+        try:
+            hashing_service.validate_image(item)
+            byte_hashes[item.id] = hashing_service.get_byte_hash(item)
+        except ValueError as exc:
+            download_errors.append(exc)
+            failed_items.append(
+                ScanItemIssue(
+                    itemId=item.id,
+                    reasonCode="IMAGE_BYTES_UNAVAILABLE",
+                    message="PhotoPrune could not read this item's image bytes.",
+                )
+            )
+        except (HTTPClientException, Image.DecompressionBombError, OSError):
+            failed_items.append(
+                ScanItemIssue(
+                    itemId=item.id,
+                    reasonCode="IMAGE_BYTES_UNAVAILABLE",
+                    message="PhotoPrune could not read this item's image bytes.",
+                )
+            )
+    if require_image_bytes and photo_items and not byte_hashes:
+        if len(photo_items) == 1 and download_errors:
+            raise download_errors[0]
+        raise ValueError(
+            "None of the selected photos supplied readable image bytes. "
+            "Please select them again and retry."
+        )
     timings["byte_hashing_ms"] = _elapsed_ms(start)
     counts["byte_hashes"] = hashing_service.byte_hash_count
 
@@ -86,11 +126,7 @@ def run_scan(
     }
 
     hashable_candidate_sets = [
-        [
-            item
-            for item in group
-            if item.download_url is not None and item.id not in exact_duplicate_ids
-        ]
+        [item for item in group if item.id in byte_hashes and item.id not in exact_duplicate_ids]
         for group in candidate_sets
     ]
     hashable_candidate_sets = [group for group in hashable_candidate_sets if len(group) >= 2]
@@ -146,6 +182,7 @@ def run_scan(
         groupsExact=groups_exact,
         groupsVerySimilar=groups_very,
         groupsPossiblySimilar=groups_possible,
+        failedItems=failed_items,
     )
 
 
