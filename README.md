@@ -10,7 +10,9 @@ It is a **trust-first, review-only** product:
 
 ## Current Product Status
 
-PhotoPrune has completed its Phase 3 picker-scoped recurring workflow:
+**MVP readiness: Not yet verified.** PhotoPrune has implemented and documented
+Phase 3 picker-scoped recurring-workflow components, but technical milestone
+delivery is not evidence that the product is MVP-ready:
 
 - projects can be reopened over time
 - each project stores explicit picker scope metadata
@@ -27,7 +29,21 @@ The Phase 2 trust-first review foundation remains locked:
 - plain-English guidance for manual review actions
 - no hidden destructive behavior
 
-PhotoPrune has scoped album/set project metadata and checkpointing for controlled ingestion paths. That technical path is not MVP pass evidence for arbitrary existing Google Photos albums after PP-024; the MVP source path is real Picker-selected Google Photos content. The app still does not request write scopes, store image bytes, or perform automatic deletion.
+PhotoPrune has scoped album/set project metadata and checkpointing for controlled
+ingestion paths. That technical path is not MVP pass evidence for arbitrary
+existing Google Photos albums after PP-024; the MVP source path is real
+Picker-selected Google Photos content. The app still does not request write
+scopes, store image bytes, or perform automatic deletion.
+
+MVP readiness requires every product, trust, automated-verification, and
+real-account demonstration gate in the
+[MVP exit criteria](docs/product/MVP_EXIT_CRITERIA.md) to pass with recorded
+evidence. The [MVP progress ledger](docs/product/MVP_PROGRESS_LEDGER.md) tracks
+the current blockers. PP-023, the real Chrome demonstration with a real Google
+account and real Picker-selected content, remains blocked by the documented
+real-photo input (PP-027), review-truth (PP-006), exact-link (PP-016), and
+deterministic browser-coverage (PP-020) prerequisites. PP-015 separately owns
+the truthful run and project lifecycle required by the MVP exit criteria.
 
 ## Product Principles
 

@@ -2,7 +2,13 @@
 
 > Purpose: keep delivery focused on a trust-first, review-only product that helps users clean up duplicate and near-duplicate photos without automated deletion.
 
-## Roadmap Snapshot (as of May 9, 2026)
+## Roadmap Snapshot (as of July 20, 2026)
+
+**MVP readiness: Not yet verified.** Completed roadmap checklists record
+technical milestone delivery; they do not establish that PhotoPrune is
+MVP-ready. MVP readiness requires all
+[MVP exit criteria](docs/product/MVP_EXIT_CRITERIA.md) to pass with evidence
+recorded in the iteration log.
 
 ### Completed Foundations
 
@@ -16,11 +22,15 @@
 
 ### Current Focus
 
-Phase 3 recurring workflows are complete for picker-selected and album/set-scoped projects, including retryable album/set ingestion, resumable page checkpoints, large-project rescan validation, and deterministic scan diffs.
+Phase 3 technical components are implemented and documented for picker-selected
+and album/set-scoped projects, including retryable album/set ingestion,
+resumable page checkpoints, large-project rescan validation, and deterministic
+scan diffs. These components have not yet passed the complete MVP usability and
+real-account verification gates.
 
 PP-024 narrowed MVP pass evidence to real Picker-selected Google Photos content because current Google Photos APIs do not expose a supported read-only selection/fetch path for arbitrary existing user-library albums. Album/set-scoped project metadata remains a technical capability, not MVP album-source proof.
 
-## Phase 3 - Recurring Workflow & Scoped Ingestion (Complete)
+## Phase 3 - Recurring Workflow & Scoped Ingestion (Technical Milestone Recorded)
 
 ### 3.1 Projects & Persistence
 
@@ -66,8 +76,17 @@ PP-024 narrowed MVP pass evidence to real Picker-selected Google Photos content 
 
 ## Next Milestones
 
-1. Improve cross-scan matching only where deterministic persisted fingerprints support it.
-2. Confirm recurring workflow outcomes before expanding beyond the current trust boundaries.
+1. PP-027: repair real-photo scan input and the Picker lifecycle.
+2. PP-006: make review actions and trust copy truthful.
+3. PP-016: implement or verify exact-photo Google Photos link-out.
+4. PP-020: replace the stale Picker smoke contract and run deterministic MVP browser coverage in CI.
+5. PP-023: complete the real Chrome demonstration with a real account and real Picker-selected content after its prerequisites pass.
+
+PP-015 separately owns truthful current-run and project lifecycle behavior,
+including timeout, partial-result, retry, cancellation, and persistence
+semantics required by the MVP exit criteria. See the
+[MVP progress ledger](docs/product/MVP_PROGRESS_LEDGER.md) for current statuses;
+none of these milestones may be treated as passed without recorded evidence.
 
 ## Guardrails (Always On)
 

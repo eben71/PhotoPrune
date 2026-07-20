@@ -2,6 +2,13 @@
 
 This ledger is the durable product truth for MVP readiness. Update it when work is accepted, rejected, or discovered.
 
+## Current readiness status
+
+- **MVP readiness: Not yet verified.** MVP-ready means every product, trust, automated-verification, and real-account demonstration gate in `docs/product/MVP_EXIT_CRITERIA.md` has passed with evidence recorded in `docs/delivery/ITERATION_LOG.md`.
+- **Technical milestone status:** Phase 2 and Phase 3 components are implemented and documented, but technical milestone delivery is not MVP-readiness evidence.
+- **Final real-account demonstration gate:** PP-023 is `Blocked` until PP-027, PP-006, and PP-020 pass; PP-020 includes PP-016 automated coverage. It also requires a product-owner-controlled real account, interactive Chrome, and suitable real content.
+- **Separate lifecycle gate:** PP-015 owns truthful timeout, partial-result, retry, cancellation, and persistence behavior required by the exit criteria.
+
 ## Completed / accepted product truths
 
 - PhotoPrune is a trust-first, review-only product for duplicate and near-duplicate photo groups from read-only Google Photos content.
@@ -22,10 +29,10 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 - Product copy should be calm, plain-English, and avoid hypey AI framing.
 - Numeric similarity percentages are an open product-policy decision. The product owner sees them as potentially important for decision-making, but current guardrails require a dedicated resolution task before implementation.
 
-## Completed / accepted technical milestones
+## Implemented / accepted technical milestones
 
-- README states Phase 3 picker-scoped recurring workflow is complete: reopenable projects, explicit picker scope metadata, multiple saved scans, scan history/snapshots, scan diffs, and preserved done state for unchanged reviewed groups.
-- ROADMAP marks Phase 3 recurring workflow and scoped ingestion complete, including retryable album/set ingestion and resumable page checkpoints.
+- Phase 3 records reopenable projects, explicit picker scope metadata, multiple saved scans, scan history/snapshots, scan diffs, and preserved done state for unchanged reviewed groups as implemented technical components.
+- Phase 3 records scoped ingestion components, including retryable album/set ingestion and resumable page checkpoints. These are not evidence for arbitrary existing-album access or MVP readiness.
 - Read-only album/set ingestion exists through scoped source metadata without write scopes or automatic deletion claims.
 - Root package metadata includes Playwright as a dev dependency.
 
@@ -68,15 +75,18 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 - Agents may continue to mark tasks complete without smoke-test or manual-demo evidence unless the delivery workflow is followed.
 - Documentation may drift unless backlog and iteration log updates are required for implementation tasks.
 
-## Next recommended P0/P1 tasks
+## MVP readiness blockers
 
 - P0 PP-027: Repair the real-photo scan input and Picker lifecycle.
 - P0 PP-006: Make review actions, representative language, and trust copy truthful after PP-005 establishes readiness wording.
 - P0 PP-016: Implement or verify exact-photo Google Photos link-out after PP-027 preserves the required Picker metadata.
 - P0 PP-020: Replace the stale Picker smoke contract and add deterministic golden-path coverage after PP-006, PP-016, and PP-027.
 - P0 PP-023: Run the real Chrome Picker-selected Google Photos demo after PP-027, PP-006, and PP-020; this demo validates PP-016's automated result rather than blocking PP-016 completion.
-- P1 PP-005: Reconcile milestone status with demonstrated MVP readiness.
-- P1 PP-013: Resolve the still-open numeric similarity evidence policy with an explicit product-owner decision.
 - P1 PP-015: Make run and project lifecycle behavior reliable and truthful after PP-027.
+- Verification gate: Run and record the full CI gate and manual MVP demo required by `docs/product/MVP_EXIT_CRITERIA.md`.
+
+## Other product-policy and documentation work
+
+- P1 PP-013: Resolve the still-open numeric similarity evidence policy with an explicit product-owner decision.
 - P1 PP-032: Rewrite architecture, privacy, terms, and risk truth, subject to the security and operations decisions it names.
 - P1 PP-033: Enforce documentation and delivery-state consistency from this reconciled baseline.
