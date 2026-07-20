@@ -31,9 +31,6 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 
 ## Known usability gaps
 
-- Settings nav currently routes to `/` and must be fixed so only required MVP settings are visible or unavailable items are hidden.
-- Profile/account icon must expose only required MVP account details or be hidden until needed.
-- Home visible affordances may imply unavailable settings/account behavior.
 - Phase complete claims must be reconciled with actual demo usability.
 - Real authenticated Google Photos login, Picker API session/media-items selection, scan, review, Google Photos link-out, and manual cleanup path must be verified end to end in Chrome.
 - Arbitrary real user-library single-album and multiple-album source modes are not MVP pass evidence after PP-024. Official Google docs now limit Library API album/media listing and retrieval to app-created content after the 2025 broad-scope removal; Picker-selected media items remain the supported user-library path.
@@ -43,9 +40,7 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 ## Known verification gaps
 
 - Playwright MVP smoke gate exists as `pnpm smoke:mvp`; it does not replace the real Google Photos manual demo.
-- Full repo verification must be run and recorded after the reset.
 - Manual MVP demo checklist exists; it still needs to be passed and recorded.
-- CI uses pnpm `9.12.2` while `package.json` declares pnpm `10.30.3`; this is recorded as PP-009 and should be aligned or explicitly documented.
 - PP-014 recorded a blocked result on 2026-07-02. Real Chrome/authenticated Google Photos MVP readiness is not proven.
 - PP-022 recorded a blocked result on 2026-07-02. Real arbitrary user-library single/multiple album selection is not currently supported through documented read-only Google Photos APIs.
 - PP-024 recorded the MVP source-scope decision on 2026-07-02: Picker-selected real Google Photos content through the Google Photos Picker API session/media-items flow is the required MVP source mode, replacing arbitrary single/multiple album source modes for launch evidence.
@@ -75,12 +70,13 @@ This ledger is the durable product truth for MVP readiness. Update it when work 
 
 ## Next recommended P0/P1 tasks
 
-- P1 PP-005: Reconcile Phase 3 “complete” roadmap status with actual MVP usability.
-- P1 PP-006: Audit frontend trust copy and visible unsupported claims.
-- P1 PP-007: Add task-discovery follow-up workflow.
-- P1 PP-008: Baton/git worktree usage guide.
-- P0 PP-013: Resolve numeric similarity evidence policy.
-- P0 PP-015: Implement or verify session-only scan persistence and timeout recovery.
-- P0 PP-016: Implement or verify Google Photos exact-photo link-out for manual cleanup.
-- P0 PP-025: Implement Google Photos Picker API session media-items source path.
-- P0 PP-023: Run real Chrome picker-selected Google Photos demo after PP-025.
+- P0 PP-027: Repair the real-photo scan input and Picker lifecycle.
+- P0 PP-006: Make review actions, representative language, and trust copy truthful after PP-005 establishes readiness wording.
+- P0 PP-016: Implement or verify exact-photo Google Photos link-out after PP-027 preserves the required Picker metadata.
+- P0 PP-020: Replace the stale Picker smoke contract and add deterministic golden-path coverage after PP-006, PP-016, and PP-027.
+- P0 PP-023: Run the real Chrome Picker-selected Google Photos demo after PP-027, PP-006, and PP-020; this demo validates PP-016's automated result rather than blocking PP-016 completion.
+- P1 PP-005: Reconcile milestone status with demonstrated MVP readiness.
+- P1 PP-013: Resolve the still-open numeric similarity evidence policy with an explicit product-owner decision.
+- P1 PP-015: Make run and project lifecycle behavior reliable and truthful after PP-027.
+- P1 PP-032: Rewrite architecture, privacy, terms, and risk truth, subject to the security and operations decisions it names.
+- P1 PP-033: Enforce documentation and delivery-state consistency from this reconciled baseline.

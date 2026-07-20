@@ -314,8 +314,10 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-013 Resolve numeric similarity evidence policy
 
-- Status: Done
+- Status: Ready
+- Priority: P1
 - Type: Product / Trust
+- Dependencies: Requires an explicit product-owner decision; current prohibition remains the binding interim guardrail until then.
 - Links: `AGENT_RULES.md`, `docs/product/DO_NOT_BUILD.md`, `docs/trust-copy.md`, `docs/questionnaires/MVP_ALIGNMENT_QUESTIONNAIRE.md`
 - Goal: Decide whether MVP should show numeric similarity percentages or only plain-English similarity reasons and confidence bands.
 - Acceptance criteria:
@@ -323,7 +325,10 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - If percentages are approved, UI copy rules explain where they may appear and how they differ from confidence.
   - If percentages remain prohibited, review explanation requirements are updated to avoid numeric scoring.
   - Tests and smoke assertions are updated to match the decision.
-- Evidence: `AGENT_RULES.md` and trust documentation explicitly prohibit similarity percentages; current tests enforce confidence bands and forbidden percentage claims.
+- Required verification:
+  - Record the product-owner decision in canonical product and trust documentation.
+  - Update affected tests and smoke assertions, then run `make test`, `pnpm smoke:mvp`, and `pnpm check:docs`.
+- Current evidence: `AGENT_RULES.md` and trust documentation prohibit similarity percentages as an interim guardrail; `docs/product/MVP_PROGRESS_LEDGER.md` confirms the product-policy decision remains open.
 
 ### PP-014 Implement or verify real authenticated Google Photos MVP flow
 
@@ -381,7 +386,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Required verification:
   - Unit and Playwright tests distinguish an exact supported destination from unavailable/fallback states.
   - `make lint`, `make format-check`, `make typecheck`, `make test`, and `pnpm smoke:mvp`.
-  - Real Chrome evidence is recorded under PP-023 before this task is Done.
+  - Automated evidence can complete PP-016 before PP-023. PP-023 then validates the implemented exact-link or honest unavailable state with real Picker output and records any newly discovered defect as a follow-up task.
 
 ### PP-022 Implement real Google Photos album source selection and fetch
 
@@ -428,7 +433,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Status: Blocked
 - Priority: P0
 - Type: Product / Verification
-- Dependencies: PP-027, PP-006, PP-016, and PP-020 must pass first; requires a product-owner-controlled real Google account, interactive Chrome, and suitable real content.
+- Dependencies: PP-027, PP-006, and PP-020 must pass first; PP-020 includes PP-016 automated coverage. The demo also requires a product-owner-controlled real Google account, interactive Chrome, and suitable real content.
 - Links: `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`, `docs/delivery/artifacts/PP-014/pp-014-evidence.md`
 - Goal: Prove the picker-selected Google Photos MVP path in Chrome with a real account and real Google Photos content.
 - Acceptance criteria:
@@ -436,7 +441,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - App creates a Google Photos Picker API session through `v1.sessions`.
   - App lists selected real Google Photos media items through `v1.mediaItems`.
   - Scan starts from the selected real items and grouped review results render.
-  - Manual cleanup guidance and exact-photo link-out/reference behavior are recorded, or PP-016 remains explicitly blocking if exact-photo link-out cannot pass.
+  - The implemented exact-photo link-out or honest unavailable state is validated and recorded; any discrepancy from PP-016 automated evidence becomes a follow-up defect without retroactively making PP-023 a prerequisite for PP-016.
   - Evidence is captured under a task artifact folder and summarized in `docs/delivery/ITERATION_LOG.md`.
 - Evidence:
   - 2026-07-05 PP-025 implementation added the Google Photos Picker API session/media-items source path.
