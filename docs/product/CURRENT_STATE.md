@@ -28,7 +28,7 @@ together.
 
 ## Known UX symptoms from product owner
 
-- Phase 3 is marked complete, but the app is still not solid/usable enough.
+- Phase 3 was previously presented as complete without a clear distinction between technical milestone delivery and demonstrated MVP usability.
 - Home screen Settings/Account affordances are confusing or broken.
 - Agents have completed iterations without clear verified product progress.
 
