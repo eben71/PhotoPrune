@@ -135,11 +135,51 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Tests or workflow dry-runs cover stale Python locks and too-new pnpm lock entries without relying on live package publication timing.
   - The implementation records exact evidence in `docs/delivery/ITERATION_LOG.md` and leaves no unsupported product-scope changes.
 
+### PP-027 Repair the real-photo scan input and Picker lifecycle
+
+- Status: Ready
+- Priority: P0
+- Type: Product / Integration / Reliability
+- Finding coverage: RR-002, RR-008, RR-014
+- Dependencies: PP-025 (Done); blocks PP-006 decision persistence evidence, PP-015 lifecycle work, PP-016 exact-link evidence, and PP-023 real demo.
+- Links: `apps/web/app/projects/[id]/run/page.tsx`, `apps/web/app/hooks/useGooglePhotosPicker.ts`, `apps/web/src/engine/engineAdapter.ts`, `apps/api/app/engine/scan.py`
+- Goal: Ensure Picker-selected real items reach the hashing engine with usable image bytes and truthful metadata through a resilient browser authorization/session lifecycle.
+- Acceptance criteria:
+  - Saved-project scan requests preserve an engine-usable Picker `baseUrl`/download URL, real dimensions, media ID, and only the minimum metadata required for the current scan.
+  - The scan rejects or reports items without retrievable bytes instead of silently producing meaningless empty groups.
+  - The Picker window is opened synchronously from the user gesture, then navigated after session creation; popup-blocked and user-closed states are explicit.
+  - Access-token expiry and 401 responses trigger bounded reauthorization/retry, and unused OAuth scopes are removed.
+  - Picker and API item limits have one documented value or an explicit batching/resume design; selection is never silently truncated after the user finishes choosing.
+- Required verification:
+  - Hook, adapter, route, and API integration tests use deterministic local image bytes and assert dimensions/URLs survive the boundary.
+  - Tests cover blocked popup, closed window, expired token/401, over-limit selection, invalid media, and successful grouped results.
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, `make build`, and `pnpm smoke:mvp`.
+  - PP-023 records the separate real-account Chrome proof.
+
+### PP-028 Enforce the deployment security boundary
+
+- Status: Ready
+- Priority: P0
+- Type: Security / API / Deployment
+- Finding coverage: RR-003, RR-004
+- Dependencies: A documented deployment-scope decision (authenticated multi-user or technically enforced localhost-only); complete before any non-local exposure. Coordinate persistence ownership with PP-015 and readiness checks with PP-030.
+- Links: `apps/api/app/api/routes.py`, `apps/api/app/core/config.py`, `apps/api/app/engine/downloads.py`, `apps/api/app/projects/repository.py`
+- Goal: Prevent unauthorized project access and fail closed at the remote-download boundary before PhotoPrune can be deployed beyond an explicitly local environment.
+- Acceptance criteria:
+  - Either every scan/project/review/export operation authenticates and authorizes the owning user without `local-user`, or runtime/network configuration technically refuses non-local use and docs state that boundary.
+  - Production mode is enum-like and fail-closed; missing host allowlists or security settings prevent startup rather than allowing every host.
+  - Every redirect and resolved address is revalidated; private/link-local/loopback destinations, DNS rebinding, oversized responses, and excessive work are bounded.
+  - Authentication, rate limits, per-request and aggregate byte/item/time limits, audit-safe errors, and CORS responsibilities are tested and documented.
+- Required verification:
+  - Negative API/security tests cover cross-user access, unauthenticated calls, redirects to private addresses, rebinding simulation, bad environment values, empty allowlists, size/work limits, and rate limits.
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, and `make build`.
+  - Deployment review confirms no public listener can start with insecure defaults.
+
 ## P1
 
 ### PP-026 Add advisory task-routing gate for agent workflows
 
-- Status: Verifying
+- Status: Done
 - Type: Docs / Delivery / Agent Guidance
 - Links: `AGENTS.md`, `docs/ai/TASK_ROUTING.md`, `docs/delivery/WORKFLOW.md`, `docs/delivery/BATON_WORKTREE_GUIDE.md`, `_bmad-output/project-context.md`
 - Goal: Require one concise, advisory complexity and session-suitability assessment before meaningful Codex, BMAD, or Baton planning and implementation work.
@@ -165,54 +205,78 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - `docs/delivery/artifacts/PP-026/task-routing-dry-runs.md` records the five required dry runs and confirms the forbidden auto-delete scenario stops on repository policy.
   - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, `make build`, and `pnpm check:docs` passed on 2026-07-10.
   - Review feedback corrected the delivery sequence so an explicit task or selected `Ready` backlog entry is read before the routing gate runs.
-  - The builder completed the implementation and verification gate; separate verifier sign-off remains pending.
+  - Pull request #242 merged as commit `72a6706`; implementation and recorded verification are complete.
 
-### PP-005 Reconcile Phase 3 “complete” roadmap status with actual MVP usability
+### PP-005 Reconcile milestone status with demonstrated MVP readiness
 
 - Status: Ready
+- Priority: P1
 - Type: Docs / Verification
-- Links: `README.md`, `ROADMAP.md`, `docs/product/CURRENT_STATE.md`, `docs/product/MVP_PROGRESS_LEDGER.md`
+- Finding coverage: RR-001
+- Dependencies: None; complete before new feature work is described as product-ready.
+- Links: `README.md`, `ROADMAP.md`, `docs/product/CURRENT_STATE.md`, `docs/product/MVP_PROGRESS_LEDGER.md`, `docs/product/MVP_EXIT_CRITERIA.md`
+- Goal: Separate technical milestone delivery from a demonstrated, usable MVP and make the golden-path blockers the canonical current status.
 - Acceptance criteria:
-  - Phase 3 language distinguishes technical milestone completion from product usability readiness.
-  - Any mismatch found during demo/smoke is recorded as a task.
+  - README, roadmap, current-state docs, and MVP ledger use consistent readiness vocabulary and do not equate “Phase 3 complete” with product readiness.
+  - PP-023 and every unresolved golden-path dependency are visible as blockers to MVP readiness.
+  - Completed engineering components remain credited without implying that the real authenticated flow has passed.
+  - Any newly identified mismatch is linked to an existing task or a narrowly scoped follow-up.
+- Required verification:
+  - `pnpm check:docs`
+  - Targeted internal-link and cross-document status checks introduced by PP-033, if available.
+  - Manual comparison against `docs/product/MVP_EXIT_CRITERIA.md` and the PP-023 evidence record.
 
-### PP-006 Audit frontend trust copy and visible unsupported claims
+### PP-006 Make review actions, representative language, and trust copy truthful
 
 - Status: Ready
-- Type: UI / Docs
-- Links: `AGENT_RULES.md`, `docs/trust-copy.md`, `docs/product/DO_NOT_BUILD.md`
+- Priority: P0
+- Type: UI / Docs / Trust
+- Finding coverage: RR-005, RR-006, RR-025
+- Dependencies: PP-005; coordinate automated browser coverage with PP-020.
+- Links: `AGENT_RULES.md`, `docs/trust-copy.md`, `apps/web/app/components/GroupCard.tsx`, `apps/web/app/copy/trustCopy.ts`, `apps/web/app/components/ReviewShell.tsx`
+- Goal: Ensure every visible review action works or is clearly unavailable and remove unsupported keeper, privacy, whole-library, theatrical, and legal/support claims.
 - Acceptance criteria:
-  - UI copy contains no unsupported similarity percentages, auto-delete claims, unsupported recovery claims, hypey AI copy, or unsupported privacy/local-only claims.
-  - Findings are documented with follow-up tasks if fixes are needed.
+  - `Keep Recommended`, `Mark Externally`, and `Skip For Now` persist a truthful review decision, or are removed/disabled with plain-English unavailable copy.
+  - “Recommended”/“keeper” language is replaced with “Representative” unless a separately approved evidence-backed keeper policy exists.
+  - Selection-scoped and mode-specific copy accurately distinguishes ephemeral runs from persisted projects.
+  - Non-functional Privacy, Terms, Security, and Support labels become working destinations or are removed.
+  - No similarity percentages, auto-delete, recovery, write-scope, or unsupported security/storage claims are introduced.
+- Required verification:
+  - Focused component/unit tests for every review-action state and copy branch.
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, and `pnpm check:docs`.
+  - `pnpm smoke:mvp` plus trust UI review and screenshots at desktop and mobile widths.
 
 ### PP-007 Add task-discovery follow-up workflow
 
-- Status: Ready
+- Status: Done
 - Type: Delivery
 - Links: `docs/delivery/WORKFLOW.md`, `.agent/prompts/task-discovery.md`
 - Acceptance criteria:
   - Discovery workflow explains when to create follow-up tasks rather than expanding scope.
   - New task entries include priority, status, acceptance criteria, and verification expectations.
+- Evidence: `docs/delivery/WORKFLOW.md` and `.agent/prompts/task-discovery.md` implement the follow-up-task rule and required task fields.
 
 ### PP-008 Baton/git worktree usage guide
 
-- Status: Ready
+- Status: Done
 - Type: Delivery
 - Links: `docs/delivery/BATON_WORKTREE_GUIDE.md`
 - Acceptance criteria:
   - Baton and git worktree rules exist and map one workspace to one task ID.
   - Branch naming and handoff requirements are documented.
+- Evidence: `docs/delivery/BATON_WORKTREE_GUIDE.md` exists and records task/worktree isolation and handoff requirements; branch-policy consolidation remains PP-034.
 
 ### PP-009 Align or document pnpm version mismatch between package.json and CI
 
-- Status: Ready
+- Status: Done
 - Type: Chore / Docs
 - Links: `package.json`, `.github/workflows/ci.yml`, `docs/ai/testing.md`
-- Evidence: `package.json` declares pnpm `10.30.3`; CI currently sets pnpm `9.12.2`.
+- Evidence: The repository and CI now use the package-manager version declared by `package.json`; the pnpm 10/9 mismatch described by the original task is stale.
 - Acceptance criteria:
   - Decision is made to align CI or explicitly document why mismatch is intentional.
   - Relevant install/CI docs are updated.
   - CI dependency installation remains reproducible.
+- Evidence: CI installs pnpm from the root `packageManager` declaration; PP-019 and PP-021 recorded the aligned/tooling-hardened implementation.
 
 ### PP-011 Repair Python lock check and cleanup run pruning
 
@@ -251,7 +315,9 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 ### PP-013 Resolve numeric similarity evidence policy
 
 - Status: Ready
+- Priority: P1
 - Type: Product / Trust
+- Dependencies: Requires an explicit product-owner decision; current prohibition remains the binding interim guardrail until then.
 - Links: `AGENT_RULES.md`, `docs/product/DO_NOT_BUILD.md`, `docs/trust-copy.md`, `docs/questionnaires/MVP_ALIGNMENT_QUESTIONNAIRE.md`
 - Goal: Decide whether MVP should show numeric similarity percentages or only plain-English similarity reasons and confidence bands.
 - Acceptance criteria:
@@ -259,6 +325,10 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - If percentages are approved, UI copy rules explain where they may appear and how they differ from confidence.
   - If percentages remain prohibited, review explanation requirements are updated to avoid numeric scoring.
   - Tests and smoke assertions are updated to match the decision.
+- Required verification:
+  - Record the product-owner decision in canonical product and trust documentation.
+  - Update affected tests and smoke assertions, then run `make test`, `pnpm smoke:mvp`, and `pnpm check:docs`.
+- Current evidence: `AGENT_RULES.md` and trust documentation prohibit similarity percentages as an interim guardrail; `docs/product/MVP_PROGRESS_LEDGER.md` confirms the product-policy decision remains open.
 
 ### PP-014 Implement or verify real authenticated Google Photos MVP flow
 
@@ -278,22 +348,33 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Follow-up: PP-022 records evidence that arbitrary real user-library album source modes are blocked by current Google Photos API support; PP-024 changed MVP source scope to Picker-selected real Google Photos content.
   - Follow-up: PP-023 must run and record the real Chrome picker-selected Google Photos path before PP-014 can pass.
 
-### PP-015 Implement or verify session-only scan persistence and timeout recovery
+### PP-015 Make run and project lifecycle reliable and truthful
 
 - Status: Ready
+- Priority: P1
 - Type: Product / Reliability
-- Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/product/MVP_PROGRESS_LEDGER.md`
-- Goal: Store only what is needed to complete the current scan and preserve current-session selections after timeout where technically possible.
+- Finding coverage: RR-009, RR-013
+- Dependencies: PP-027 for valid real-photo scan input; security decisions in PP-028 must constrain any persistence design.
+- Links: `docs/product/MVP_EXIT_CRITERIA.md`, `apps/web/src/engine/engineAdapter.ts`, `apps/api/app/engine/scan.py`, `apps/api/app/projects/repository.py`
+- Goal: Define one intentional current-run lifecycle with truthful persistence, partial outcomes, retry, timeout, and cancellation behavior.
 - Acceptance criteria:
-  - Current-session selections survive an in-session timeout where possible.
-  - Browser close restart behavior is documented as acceptable for MVP.
-  - Previous scan history is not required for MVP readiness.
-  - Tests or manual evidence cover timeout behavior.
+  - The in-memory run registry and SQLite project lifecycle have documented durability, cleanup/TTL, restart, multi-instance, and browser-close semantics.
+  - Reopened results preserve real thumbnails and truthful status, warnings, skipped items, failed items, and review choices rather than fabricating `COMPLETED` state.
+  - Per-item download/decode failures produce bounded retries and truthful partial results instead of aborting every viable result.
+  - Cancellation reaches active backend work; UI state does not claim cancellation while work continues unchecked.
+  - Current-session timeout recovery is tested; previous scan history remains outside MVP requirements unless explicitly approved.
+- Required verification:
+  - API and web unit/integration tests for partial success, retry exhaustion, cancel, TTL cleanup, timeout, restart, and failed/skipped serialization.
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, and `make build`.
+  - Deterministic browser coverage through PP-020 and documented manual restart/timeout evidence.
 
 ### PP-016 Implement or verify Google Photos exact-photo link-out for manual cleanup
 
 - Status: Ready
+- Priority: P0
 - Type: Product / Trust
+- Finding coverage: RR-007
+- Dependencies: PP-027 must preserve the Picker metadata needed to evaluate a supported exact-item destination; blocks PP-023 sign-off.
 - Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`
 - Goal: Let users open the exact selected photo in Google Photos in a new tab for manual cleanup outside PhotoPrune.
 - Acceptance criteria:
@@ -301,10 +382,15 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Link opens in a new tab.
   - No in-app delete option or write-scope action is introduced.
   - Manual cleanup guidance remains clear and non-destructive.
+  - If Google exposes no supported exact-item URL, the requirement and UI are revised honestly; homepage or unproven media-ID search fallbacks are not represented as exact.
+- Required verification:
+  - Unit and Playwright tests distinguish an exact supported destination from unavailable/fallback states.
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, and `pnpm smoke:mvp`.
+  - Automated evidence can complete PP-016 before PP-023. PP-023 then validates the implemented exact-link or honest unavailable state with real Picker output and records any newly discovered defect as a follow-up task.
 
 ### PP-022 Implement real Google Photos album source selection and fetch
 
-- Status: Blocked
+- Status: Discarded
 - Type: Product / Integration
 - Links: `docs/product/MVP_EXIT_CRITERIA.md`, `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`, `docs/delivery/artifacts/PP-014/pp-014-evidence.md`
 - Goal: Provide a product-ready read-only Google Photos flow for selecting and scanning one or more real albums without relying on raw album ID entry or fixture/paged test data.
@@ -319,7 +405,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Official Google Photos documentation says broad Library API scopes were removed after March 31, 2025 and listing/searching/retrieving albums and media items is limited to app-created content.
   - The supported user-library path is the Google Photos Picker API, which returns selected media items for a Picker session and does not expose product-ready arbitrary real album listing/fetch.
   - Local code inspection found the app's real user-library path uses the read-only Picker media-items scope; `album_set` paths accept raw IDs or supplied metadata/test pages and are not sufficient MVP manual-demo evidence.
-  - Follow-up resolved by PP-024: Picker-selected real Google Photos content is the MVP source mode; album-specific arbitrary user-library support is not MVP pass evidence unless a later approved task documents a supported read-only Google Photos path.
+  - PP-024 superseded this task by approving Picker-selected content as the sole MVP source mode. The task is Discarded, not Blocked: arbitrary user-library album support is outside current MVP scope unless a later approved task reopens it around a supported API.
 
 ### PP-024 Decide MVP source scope after Google Photos album API limitation
 
@@ -345,7 +431,9 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 ### PP-023 Run real Chrome picker-selected Google Photos demo
 
 - Status: Blocked
+- Priority: P0
 - Type: Product / Verification
+- Dependencies: PP-027, PP-006, and PP-020 must pass first; PP-020 includes PP-016 automated coverage. The demo also requires a product-owner-controlled real Google account, interactive Chrome, and suitable real content.
 - Links: `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`, `docs/delivery/artifacts/PP-014/pp-014-evidence.md`
 - Goal: Prove the picker-selected Google Photos MVP path in Chrome with a real account and real Google Photos content.
 - Acceptance criteria:
@@ -353,12 +441,15 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - App creates a Google Photos Picker API session through `v1.sessions`.
   - App lists selected real Google Photos media items through `v1.mediaItems`.
   - Scan starts from the selected real items and grouped review results render.
-  - Manual cleanup guidance and exact-photo link-out/reference behavior are recorded, or PP-016 remains explicitly blocking if exact-photo link-out cannot pass.
+  - The implemented exact-photo link-out or honest unavailable state is validated and recorded; any discrepancy from PP-016 automated evidence becomes a follow-up defect without retroactively making PP-023 a prerequisite for PP-016.
   - Evidence is captured under a task artifact folder and summarized in `docs/delivery/ITERATION_LOG.md`.
 - Evidence:
   - 2026-07-05 PP-025 implementation added the Google Photos Picker API session/media-items source path.
   - PP-023 remains blocked until a human runs Chrome with a real Google account and records endpoint-level `v1.sessions` and `v1.mediaItems` evidence, selected real media, scan start, grouped review results, and exact-photo link-out/reference behavior.
   - Legacy Google Picker `DocsView(DOCS_IMAGES)`, raw album IDs, backend metadata, fixture/paged test data, mocked tests, and code inspection alone still cannot count as PP-023 or PP-014 MVP source evidence.
+- Required verification:
+  - Complete every row in `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md` with redacted screenshots/network evidence for OAuth scope, Picker session/list, real scan, grouped review, decisions, and exact-link or honest unavailable state.
+  - Record browser/version, selected-item count, elapsed behavior, failures, artifacts, and any blocker in the iteration log; mocked automation cannot substitute for this evidence.
 
 ### PP-025 Implement Google Photos Picker API session media-items source path
 
@@ -383,12 +474,136 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 ### PP-020 Expand Playwright MVP regression coverage
 
 - Status: Ready
+- Priority: P0
 - Type: Test
+- Finding coverage: RR-010
+- Dependencies: PP-006, PP-016, and PP-027 define the trust-critical behavior to automate.
 - Links: `tests/e2e/mvp-smoke.spec.ts`, `playwright.config.ts`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, `docs/product/MVP_EXIT_CRITERIA.md`
 - Goal: Expand the PP-002 Playwright smoke foundation into focused MVP regression coverage for trust-critical browser behavior without replacing the real-Google manual demo path.
 - Acceptance criteria:
+  - The retired `google.picker.DocsView`/`PickerBuilder` mock is replaced by deterministic Photos Picker REST `v1.sessions` and `v1.mediaItems` contract fixtures that feed the Next and FastAPI scan path.
+  - CI runs the deterministic MVP smoke gate and preserves browser artifacts on failure.
   - Playwright coverage is split into maintainable focused specs or helper modules instead of one oversized smoke test.
   - Coverage includes at least three MVP regression areas beyond the basic golden path, such as route/session guard behavior, trust-copy forbidden-claim checks across key pages, Google Photos link-out behavior, Settings/Account scope, or viewport/accessibility-critical navigation.
   - The existing `pnpm smoke:mvp` command remains fast and deterministic, or any additional Playwright command is documented with when to use it.
   - Reusable Playwright helpers avoid duplicating the Google Picker stub, fixture-mode setup, forbidden-claim assertions, and common navigation flows.
-  - Docs and delivery evidence explain what is automated versus what remains manual/PP-014 real Google Photos verification.
+  - Coverage includes review decisions, exact-link available/unavailable states, partial item failures, cancellation, timeout/restart behavior, and trust-copy assertions.
+  - Docs and delivery evidence explain what is automated versus what remains manual/PP-023 real Google Photos verification.
+- Required verification:
+  - `pnpm smoke:mvp` and the CI workflow-equivalent command pass with Chromium.
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, and `pnpm check:docs`.
+
+## P2
+
+### PP-029 Establish matching-quality evidence and performance budgets
+
+- Status: Draft
+- Priority: P2
+- Type: Engine / Quality / Performance
+- Finding coverage: RR-011, RR-012
+- Dependencies: PP-027 provides a correct real-byte input path; PP-006 must settle representative versus keeper language. Begin corpus design after golden-path correctness, then optimize only from measurements.
+- Links: `apps/api/app/engine/candidates.py`, `apps/api/app/engine/grouping.py`, `apps/api/app/engine/hashing.py`, `apps/api/app/engine/scan.py`, `tests/fixtures`
+- Goal: Measure whether grouping is useful and whether supported selection sizes complete within explicit resource budgets.
+- Acceptance criteria:
+  - A privacy-safe, labelled corpus covers exact copies, crops, edits, exports, screenshots, metadata changes, and difficult non-matches.
+  - Precision, recall, false-positive tolerance, representative-policy evidence, latency, memory, bandwidth, and supported-size targets are approved before algorithm changes.
+  - Candidate-bucket misses and small-input fallback behavior are measured and reported reproducibly.
+  - Benchmarks drive bounded concurrency, optimized hashing, progress, or async-worker decisions; no unsupported scale or quality claim is published.
+- Required verification:
+  - Versioned corpus manifest, expected labels, benchmark harness, repeatable command, and baseline report are committed without private user media.
+  - Regression tests enforce approved quality thresholds and performance smoke budgets with documented environment variance.
+  - Full repo gate and docs guard pass after any engine or claim change.
+
+### PP-030 Simplify infrastructure and harden storage/operations
+
+- Status: Draft
+- Priority: P2
+- Type: Architecture / Operations
+- Finding coverage: RR-015, RR-016, RR-020
+- Dependencies: PP-015 defines the intended run/project lifecycle; PP-028 defines production configuration and exposure; PP-029 supplies evidence if async execution is needed.
+- Links: `docker-compose.yml`, `apps/api/app/projects/repository.py`, `apps/api/app/api/routes.py`, `apps/worker`
+- Goal: Make the runtime topology match actual product behavior and give retained storage an intentional integrity and operational model.
+- Acceptance criteria:
+  - PostgreSQL, Redis, and Celery are removed from the MVP stack unless an approved measured requirement wires and tests them end to end.
+  - If SQLite remains, it has foreign-key enforcement, versioned migrations, WAL/busy-timeout decisions, a durable mounted path where required, backup/concurrency expectations, and deletion/retention behavior.
+  - Readiness checks validate storage and required secure configuration rather than returning static success.
+  - Privacy-safe structured logs include correlation/run IDs, failure categories, lifecycle timing, and reliability signals without exposing photo content or tokens.
+- Required verification:
+  - Compose/config tests prove the minimal stack starts, persists only as documented, migrates safely, reports dependency failure, and does not start unused services.
+  - Migration upgrade/rollback or recovery procedure is tested from a representative prior schema.
+  - `make dev` smoke, full repo gate, container builds, and `pnpm check:docs` pass.
+
+### PP-031 Make builds hermetic and repair security/toolchain automation
+
+- Status: Draft
+- Priority: P2
+- Type: Build / CI / Supply Chain
+- Finding coverage: RR-017, RR-018, RR-019
+- Dependencies: PP-030 should identify the retained service/image set before container simplification.
+- Links: `apps/web/app/layout.tsx`, `infra/docker`, `.github/codeql-config.yml`, `.github/workflows`, `pnpm-workspace.yaml`, `package.json`
+- Goal: Remove avoidable network and version ambiguity from builds and ensure security analysis covers the actual exposed code.
+- Acceptance criteria:
+  - Web production builds do not fetch fonts or other optional assets from the network.
+  - Container build tools/images are pinned appropriately, Next standalone output is used, and duplicate/incompatible Dockerfiles are removed.
+  - A workflow invokes CodeQL for both Python and JavaScript/TypeScript with correct paths, or the unused configuration is removed with rationale.
+  - Turbo release-age exceptions are removed or narrowly time-bounded, and Next/Turbo/package metadata has one canonical aligned version source.
+- Required verification:
+  - Offline/restricted-network production build and retained container builds pass.
+  - CodeQL workflow/config validation covers `apps/web`, `apps/api`, and any retained worker code.
+  - Dependency preflight, full repo gate, image smoke tests, and docs guard pass.
+
+### PP-032 Rewrite architecture, privacy, terms, and risk truth
+
+- Status: Ready
+- Priority: P1
+- Type: Docs / Architecture / Legal / Risk
+- Finding coverage: RR-021, RR-022
+- Dependencies: PP-005 supplies readiness vocabulary; PP-028 and PP-030 decisions must be reflected before final sign-off. An interim privacy/risk correction may proceed immediately and blocks wider testing/deployment.
+- Links: `docs/ARCHITECTURE.md`, `DECISIONS.md`, `docs/PRIVACY_NOTICE_DRAFT.md`, `docs/TERMS_OF_USE_DRAFT.md`, `RISK_REGISTER.md`
+- Goal: Describe the actual system, data lifecycle, security boundary, and material product risks without stale Phase 0/Phase 3 placeholders.
+- Acceptance criteria:
+  - Architecture documents the Picker sequence, scan contract, project routes, run registry, retained storage, service topology, security boundary, deployment model, and failure/cancellation lifecycle as implemented or explicitly planned.
+  - Major persistence, source-scope, execution, and deployment choices are recorded as dated ADRs; stale decision TODOs are resolved or linked to backlog tasks.
+  - Privacy and terms enumerate stored metadata, purpose, retention/deletion behavior, third parties, user controls, limitations, and a real owner/contact path approved by the product owner.
+  - Risk register covers authorization, SSRF/abuse, retention, public exposure, accuracy/false positives, popup/token/URL expiry, and operational failure with owners and mitigations.
+- Required verification:
+  - Product-owner/legal review is recorded for privacy/terms; engineering reviews architecture/data-flow accuracy against current code and PP-028/PP-030 decisions.
+  - All internal links and required sections pass PP-033 checks and `pnpm check:docs`.
+
+### PP-033 Enforce documentation and delivery-state consistency
+
+- Status: Ready
+- Priority: P1
+- Type: Docs / Delivery Automation
+- Finding coverage: RR-023, RR-024
+- Dependencies: PP-005 establishes canonical readiness vocabulary; this reconciliation supplies the baseline statuses.
+- Links: `scripts/check-docs.js`, `docs/delivery/TASK_BACKLOG.md`, `docs/delivery/ITERATION_LOG.md`, `docs/product/MVP_PROGRESS_LEDGER.md`, `.github/workflows/ci.yml`
+- Goal: Turn docs guard into a useful truth/link consistency gate and prevent backlog, ledger, iteration evidence, and version claims from drifting again.
+- Acceptance criteria:
+  - Checks validate internal links, canonical version references, readiness vocabulary, required privacy/risk sections, task IDs, allowed statuses/transitions, and duplicate IDs.
+  - `Done`/`Verifying` states require appropriate artifact or iteration evidence; merged work cannot remain indefinitely `Verifying` without an explicit verifier blocker.
+  - Ledger next-work references resolve to actionable non-Done tasks with satisfied/visible dependencies; stale PP-025 next-work text is corrected.
+  - Historical iteration evidence remains durable while an archive/index policy keeps the active log usable.
+  - Fixtures test contradictory phases, stale task references, missing evidence, invalid transitions, broken links, and version drift.
+- Required verification:
+  - Focused tests for `scripts/check-docs.js` fail on every acceptance fixture and pass on the reconciled repository.
+  - `pnpm check:docs`, `make test`, and CI workflow validation pass.
+
+### PP-034 Consolidate agent guidance and repository hygiene
+
+- Status: Draft
+- Priority: P2
+- Type: Agent System / Repository Hygiene / Docs
+- Finding coverage: RR-026, RR-027, RR-028
+- Dependencies: PP-033 should define canonical-reference and link checks. Use the required `maintain-agent-system` skill for the agent-guidance portion.
+- Links: `AGENT_RULES.md`, `AGENTS.md`, `apps/web/AGENTS.md`, `docs/ai`, `docs/delivery/BATON_WORKTREE_GUIDE.md`, `docs/CONTRIBUTING.md`, `_bmad-output/project-context.md`
+- Goal: Reduce contradictory agent policy and remove stale, generated, duplicate, or personal artifacts without erasing durable delivery evidence.
+- Acceptance criteria:
+  - One canonical policy layer owns trust, verification, done, and branch rules; derivative guidance links to or is validated against it.
+  - Codex and Baton branch conventions are unified or their distinct contexts are explicit, and the `BMAP/Baton` typo is corrected.
+  - Tracked generated/personal artifacts such as empty coverage output and environment dumps are removed and covered by ignore/check rules.
+  - Duplicate frontend-note aliases and historical scratchpads are consolidated or archived with inbound links preserved or updated.
+  - Contributing/project context no longer calls the lockfile a placeholder or duplicates stale Turbo/Ruff versions when canonical manifests suffice.
+- Required verification:
+  - Run the `maintain-agent-system` audit/review workflow and record its evidence.
+  - `pnpm check:docs`, targeted ignore/tracked-artifact checks, link validation, and full repo gate pass.

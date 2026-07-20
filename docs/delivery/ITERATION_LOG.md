@@ -19,6 +19,34 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-20 - Repository review backlog reconciliation
+
+- Role: Planner
+- Status: Done
+- Goal: Reconcile `docs/delivery/TASK_BACKLOG.md` against every finding in `docs/delivery/REPOSITORY_REVIEW_2026-07-20.md` without implementing application fixes.
+- Acceptance criteria checked:
+  - RR-001 through RR-028 are mapped to an existing updated task or one missing task with explicit priority, dependencies, acceptance criteria, and verification requirements.
+  - Existing work was reused for MVP truth (PP-005), review/copy truth (PP-006), run lifecycle (PP-015), exact-photo link-out (PP-016), browser coverage (PP-020), and the real Chrome demonstration (PP-023).
+  - PP-007, PP-008, PP-009, and PP-026 were corrected to Done based on existing canonical artifacts, merged implementation, or superseding delivery evidence; PP-022 was corrected to Discarded because PP-024 removed arbitrary album support from MVP scope.
+  - Review feedback restored PP-013 to Ready because the canonical MVP ledger still identifies numeric similarity as an open product-owner decision.
+  - Review feedback removed the PP-016/PP-023 verification cycle: PP-016 can complete from implementation and automated evidence, while PP-023 later validates that result with real Picker output.
+  - Only missing scopes became PP-027 through PP-034: real-photo input/Picker lifecycle, deployment security, quality/performance evidence, infrastructure/storage operations, hermetic build/security automation, architecture/legal/risk truth, documentation/delivery consistency, and agent/repository hygiene.
+  - No application code or finding fixes were implemented.
+- Commands run:
+  - `prettier --write docs/delivery/TASK_BACKLOG.md docs/delivery/ITERATION_LOG.md docs/product/MVP_PROGRESS_LEDGER.md` passed.
+  - `prettier --check docs/delivery/TASK_BACKLOG.md docs/delivery/ITERATION_LOG.md docs/product/MVP_PROGRESS_LEDGER.md` passed.
+  - `pnpm check:docs` could not start because the installed pnpm 11.9.0 requires Node.js 22.13 or newer while this environment provides Node.js 20.20.2; `node scripts/check-docs.js` passed as the direct docs-guard fallback.
+  - Review-to-task coverage script passed, confirming every RR-001 through RR-028 identifier appears in backlog finding coverage.
+  - `git diff --check` passed.
+- Manual verification:
+  - Compared the complete review, recommended delivery order, existing backlog, current iteration evidence, merge history, and MVP ledger references.
+  - Reconciled the ledger's stale PP-007, PP-008, PP-009, and PP-025 text with backlog status and replaced its next-work list with current actionable P0/P1 tasks.
+  - Confirmed critical golden-path work precedes the real Chrome demo and non-local deployment is blocked on PP-028.
+- Artifacts/screenshots: `docs/delivery/REPOSITORY_REVIEW_2026-07-20.md`; screenshots are not applicable to planning-only documentation.
+- Backlog updates: Corrected stale statuses, expanded six existing finding-owning tasks, added only PP-027 through PP-034 for uncovered scopes, restored unresolved PP-013 to Ready, and removed the PP-016/PP-023 verification cycle.
+- Follow-up tasks created: PP-027, PP-028, PP-029, PP-030, PP-031, PP-032, PP-033, PP-034.
+- Residual risk: The MVP remains unproven until the P0 golden-path, review-truth, exact-link, deterministic browser, and real-account Chrome gates pass. Wider deployment remains prohibited until PP-028 passes.
+
 ### 2026-07-10 - PP-026 Add advisory task-routing gate for agent workflows
 
 - Role: Builder
