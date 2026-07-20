@@ -43,7 +43,11 @@ MVP is ready only when all gates below pass and the evidence is recorded in `doc
 
 ## Known current status
 
-- Phase 3 recurring/scoped workflow: documented as complete in `README.md` and `ROADMAP.md`, but requires product usability verification.
-- Header Settings/Profile usability: needs verification/fix so only required MVP account details and settings are visible.
-- MVP smoke test gate: missing or incomplete until proven otherwise.
-- Real authenticated Google Photos Picker API session/media-items flow: needs end-to-end verification against the product-owner MVP path.
+- **MVP readiness: Not yet verified.** Implemented Phase 2 and Phase 3 technical components remain credited, but technical milestone delivery does not satisfy these exit gates.
+- **PP-027 (`Ready`):** real-photo scan input and the Picker authorization/session lifecycle require repair before the supported path can be proven.
+- **PP-006 (`Ready`):** review decisions, representative language, Settings/Profile behavior, and trust copy require truthful implementation or an honest unavailable state.
+- **PP-016 (`Ready`):** exact-photo Google Photos link-out or a supported exact-item reference requires implementation and automated evidence.
+- **PP-020 (`Ready`):** `pnpm smoke:mvp` exists, but its stale Picker contract must be replaced and the deterministic gate must run in CI; it cannot substitute for the real-account demo.
+- **PP-015 (`Ready`):** current-run and project timeout, partial-result, retry, cancellation, and persistence behavior require truthful implementation and evidence.
+- **PP-023 (`Blocked`):** the final real Chrome demonstration requires PP-027, PP-006, and PP-020 to pass, plus a product-owner-controlled real account, interactive Chrome, and suitable real content. PP-020 includes PP-016 automated coverage.
+- **Full verification:** the complete CI gate and manual MVP demo remain required with evidence recorded in `docs/delivery/ITERATION_LOG.md` before the readiness status can change.
