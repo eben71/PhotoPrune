@@ -217,7 +217,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-005 Reconcile milestone status with demonstrated MVP readiness
 
-- Status: Ready
+- Status: Done
 - Priority: P1
 - Type: Docs / Verification
 - Finding coverage: RR-001
@@ -233,6 +233,11 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - `pnpm check:docs`
   - Targeted internal-link and cross-document status checks introduced by PP-033, if available.
   - Manual comparison against `docs/product/MVP_EXIT_CRITERIA.md` and the PP-023 evidence record.
+- Evidence:
+  - README, roadmap, current-state, MVP ledger, and exit-criteria language now distinguishes implemented technical milestones from demonstrated MVP readiness.
+  - PP-023 and its PP-027, PP-006, PP-016/PP-020 prerequisites are visible alongside PP-015 and the full verification gate; no application behavior or unrelated task scope changed.
+  - Builder and verifier checks, manual cross-document comparison, the pnpm environment limitation, and the direct docs-guard pass are recorded in `docs/delivery/ITERATION_LOG.md`.
+  - Verifier review corrected one stale current-state symptom that still described Phase 3 as presently marked complete, then confirmed the acceptance criteria and scoped documentation-only diff.
 
 ### PP-006 Make review actions, representative language, and trust copy truthful
 

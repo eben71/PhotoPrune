@@ -51,6 +51,57 @@ Record every implementation or verification iteration here. The log is repo trut
 - Follow-up tasks created: None; the existing PP-015 owns persisted failed-item reload truth.
 - Residual risk: Persisted reloads do not yet retain failed-item facts; PP-015 owns that lifecycle redesign. PP-023 still requires separate real-account Chrome evidence and cannot be replaced by deterministic fixtures.
 
+### 2026-07-20 - PP-005 readiness reconciliation verification
+
+- Role: Verifier
+- Status: Done
+- Goal: Skeptically review the committed PP-005 documentation reconciliation against its acceptance criteria, approved scope, trust guardrails, and required evidence.
+- Acceptance criteria checked:
+  - Canonical status documents consistently say `MVP readiness: Not yet verified` and distinguish implemented technical milestones from passed product-readiness gates.
+  - PP-023 and its PP-027, PP-006, PP-016/PP-020 prerequisites remain visible, with PP-015 and the full verification gate recorded separately.
+  - Phase 2 and Phase 3 engineering components remain credited without claiming that the real authenticated Picker-to-review flow, full CI gate, or manual Chrome demo passed.
+  - The diff is limited to the five PP-005 status documents plus the required backlog and iteration-log evidence; no application code, forbidden feature, dependency, or unrelated task scope changed.
+- Commands run:
+  - `prettier --check README.md ROADMAP.md docs/product/CURRENT_STATE.md docs/product/MVP_PROGRESS_LEDGER.md docs/product/MVP_EXIT_CRITERIA.md docs/delivery/TASK_BACKLOG.md docs/delivery/ITERATION_LOG.md` passed.
+  - `node scripts/check-docs.js` passed.
+  - `npm run check:docs` passed, confirming the repository script runs successfully without the pnpm package-restoration path.
+  - `pnpm run check:docs` could not reach the docs script because pnpm attempted to restore missing workspace packages and registry requests failed; the direct invocation above ran the exact `check:docs` script successfully.
+  - Targeted `rg` scans for readiness wording, task statuses, blocker coverage, forbidden product claims, and changed-file scope passed.
+  - PP-033 is still `Ready`, so no separate PP-033 internal-link or cross-document status checker exists to run.
+  - `git diff --check` passed.
+- Manual verification:
+  - Compared the diff against PP-005, `docs/product/MVP_EXIT_CRITERIA.md`, the PP-023 backlog entry and evidence, `docs/product/DO_NOT_BUILD.md`, and `docs/testing/VERIFICATION_CHECKLIST.md`.
+  - Corrected one stale current-state symptom that still said Phase 3 "is marked complete" after the canonical documents had been reconciled.
+  - Confirmed no screenshots, Playwright run, or real-account demo was required for this documentation-only change; PP-023 remains the explicit owner of real Chrome evidence.
+- Artifacts/screenshots: Documentation-only verification; screenshots are not applicable.
+- Backlog updates: Moved PP-005 from `Verifying` to `Done` after the scoped fix and verifier checks passed.
+- Follow-up tasks created: None; all remaining readiness gaps already have owning backlog tasks.
+- Residual risk: Product MVP readiness remains unverified until the named product, lifecycle, automated, full-CI, and real-account Chrome gates pass with recorded evidence. Package-registry availability prevented the pnpm wrapper from completing, but the exact underlying docs-guard script passed directly.
+
+### 2026-07-20 - PP-005 Reconcile milestone status with demonstrated MVP readiness
+
+- Role: Builder
+- Status: Verifying
+- Goal: Separate implemented technical milestones from demonstrated MVP readiness and make the golden-path blockers the canonical current status.
+- Acceptance criteria checked:
+  - README, roadmap, current-state docs, MVP ledger, and exit criteria use consistent readiness vocabulary and no longer equate a recorded Phase 3 technical milestone with MVP readiness.
+  - PP-023 and its PP-027, PP-006, PP-016/PP-020 prerequisites are visible as blockers, with PP-015 and the full verification gate retained as separate exit-gate work.
+  - Implemented Phase 2 and Phase 3 components remain credited without claiming that the real authenticated Picker-to-review flow has passed.
+  - Existing tasks own every identified mismatch; no new follow-up task or application-code change was needed.
+- Commands run:
+  - `prettier --check README.md ROADMAP.md docs/product/CURRENT_STATE.md docs/product/MVP_PROGRESS_LEDGER.md docs/product/MVP_EXIT_CRITERIA.md docs/delivery/TASK_BACKLOG.md docs/delivery/ITERATION_LOG.md` passed.
+  - `pnpm check:docs` could not reach the docs script because pnpm attempted to restore missing workspace packages and registry requests failed in the environment; `node scripts/check-docs.js` passed as the direct docs-guard fallback.
+  - Targeted readiness and blocker `rg` scans passed; PP-033 has not yet introduced a separate internal-link or cross-document status checker.
+  - `git diff --check` passed.
+- Manual verification:
+  - Compared README, roadmap, current state, MVP ledger, and exit criteria against the PP-005 acceptance criteria and the PP-023 backlog evidence.
+  - Confirmed each canonical status document says MVP readiness is not yet verified, credits implemented technical milestones without treating them as pass evidence, and keeps PP-023 plus its unresolved prerequisites visible.
+  - Confirmed the change does not claim a real-account demo, full CI pass, or application behavior that has not been demonstrated.
+- Artifacts/screenshots: Documentation-only change; screenshots are not applicable.
+- Backlog updates: Moved PP-005 from `Ready` to `Verifying` and added builder evidence; separate verifier sign-off remains pending.
+- Follow-up tasks created: None.
+- Residual risk: MVP readiness remains unverified until the named product, lifecycle, automated, full-CI, and real-account Chrome gates pass with recorded evidence.
+
 ### 2026-07-20 - Repository review backlog reconciliation
 
 - Role: Planner
