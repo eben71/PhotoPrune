@@ -25,15 +25,15 @@ click==8.4.2
     # via
     #   black
     #   uvicorn
-coverage==7.15.1
+coverage==7.15.2
     # via pytest-cov
 cyclonedx-python-lib==11.11.0
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
-fastapi==0.139.0
+fastapi==0.139.2
     # via photoprune-api (pyproject.toml)
-filelock==3.29.7
+filelock==3.31.2
     # via cachecontrol
 h11==0.16.0
     # via
@@ -90,7 +90,7 @@ pip-audit==2.10.1
     # via photoprune-api (pyproject.toml:dev)
 pip-requirements-parser==32.0.1
     # via pip-audit
-platformdirs==4.10.0
+platformdirs==4.10.1
     # via
     #   black
     #   pip-audit
