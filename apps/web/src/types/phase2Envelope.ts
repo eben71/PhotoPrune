@@ -27,10 +27,13 @@ export const GroupTypeSchema = z.enum([
 
 export const PickerItemSchema = z.object({
   id: z.string(),
-  baseUrl: z.string(),
+  baseUrl: z.string().min(1),
   filename: z.string(),
   mimeType: z.string(),
   createTime: z.string(),
+  width: z.number().nonnegative(),
+  height: z.number().nonnegative(),
+  productUrl: z.string().url().optional(),
   type: z.enum(['PHOTO', 'VIDEO'])
 });
 

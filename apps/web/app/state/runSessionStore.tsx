@@ -21,6 +21,7 @@ type ResultsSummary = RunEnvelope['results'];
 
 type RunSessionState = {
   selection: PickerItem[];
+  projectScanId: string | null;
   run: RunSummary | null;
   progress: ProgressSummary | null;
   telemetry: TelemetrySummary | null;
@@ -33,11 +34,13 @@ type RunSessionContextValue = {
   setSelection: (selection: PickerItem[]) => void;
   clearSelection: () => void;
   applyEnvelope: (envelope: RunEnvelope) => void;
+  applyProjectEnvelope: (projectScanId: string, envelope: RunEnvelope) => void;
   clearResults: () => void;
 };
 
 const defaultState: RunSessionState = {
   selection: [],
+  projectScanId: null,
   run: null,
   progress: null,
   telemetry: null,
@@ -46,6 +49,7 @@ const defaultState: RunSessionState = {
 
 const isDefaultState = (state: RunSessionState) =>
   state.selection.length === 0 &&
+  state.projectScanId === null &&
   state.run === null &&
   state.progress === null &&
   state.telemetry === null &&
@@ -98,6 +102,7 @@ export function RunSessionProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({
       ...prev,
       selection,
+      projectScanId: null,
       run: null,
       progress: null,
       telemetry: null,
@@ -112,6 +117,7 @@ export function RunSessionProvider({ children }: { children: ReactNode }) {
   const applyEnvelope = useCallback((envelope: RunEnvelope) => {
     setState((prev) => ({
       ...prev,
+      projectScanId: null,
       run: envelope.run,
       progress: envelope.progress,
       telemetry: envelope.telemetry,
@@ -120,9 +126,25 @@ export function RunSessionProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const applyProjectEnvelope = useCallback(
+    (projectScanId: string, envelope: RunEnvelope) => {
+      setState((prev) => ({
+        ...prev,
+        projectScanId,
+        run: envelope.run,
+        progress: envelope.progress,
+        telemetry: envelope.telemetry,
+        results:
+          envelope.run.status === 'COMPLETED' ? envelope.results : prev.results
+      }));
+    },
+    []
+  );
+
   const clearResults = useCallback(() => {
     setState((prev) => ({
       ...prev,
+      projectScanId: null,
       run: null,
       progress: null,
       telemetry: null,
@@ -137,9 +159,18 @@ export function RunSessionProvider({ children }: { children: ReactNode }) {
       setSelection,
       clearSelection,
       applyEnvelope,
+      applyProjectEnvelope,
       clearResults
     }),
-    [state, hydrated, setSelection, clearSelection, applyEnvelope, clearResults]
+    [
+      state,
+      hydrated,
+      setSelection,
+      clearSelection,
+      applyEnvelope,
+      applyProjectEnvelope,
+      clearResults
+    ]
   );
 
   return (

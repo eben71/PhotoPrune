@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import pytest
+from pydantic import ValidationError
+
 from app.engine.schemas import ScanRequest
 from app.projects.schemas import ProjectScanRequest
 
@@ -30,6 +33,16 @@ def test_scan_request_parses_picker_payload_by_alias():
     request = ScanRequest.model_validate(payload)
 
     assert request.picker_payload == {"mediaItems": []}
+
+
+def test_scan_request_rejects_duplicate_picker_payload_ids():
+    item = {
+        "id": "photo-1",
+        "baseUrl": "https://photos.google.com/photo-1",
+    }
+
+    with pytest.raises(ValidationError, match="unique ids"):
+        ScanRequest.model_validate({"pickerPayload": {"mediaItems": [item, item]}})
 
 
 def test_project_scan_request_allows_album_set_source_ref_media_items():

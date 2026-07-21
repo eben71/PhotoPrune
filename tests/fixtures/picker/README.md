@@ -12,6 +12,9 @@ Do not commit live downloadUrl values.
 Then run the following command in a BASH terminal for each file in /tests/fixtures/picker
 
 curl -s -X POST http://localhost:8000/api/scan \
- -H "Content-Type: application/json" \
- --data @tests/fixtures/picker/edit_vs_original.picker.json \
- | tee tests/fixtures/results/edit_vs_original.result.json
+-H "Content-Type: application/json" \
+--data @tests/fixtures/picker/edit_vs_original.picker.json \
+| tee tests/fixtures/results/edit_vs_original.result.json
+
+`pp027_scan_contract.json` uses deterministic duplicate, invalid-byte, and failing-download
+responses from the fixture server to exercise partial item failures without live photo URLs.

@@ -137,7 +137,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-027 Repair the real-photo scan input and Picker lifecycle
 
-- Status: Ready
+- Status: Done
 - Priority: P0
 - Type: Product / Integration / Reliability
 - Finding coverage: RR-002, RR-008, RR-014
@@ -155,6 +155,14 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Tests cover blocked popup, closed window, expired token/401, over-limit selection, invalid media, and successful grouped results.
   - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, `make build`, and `pnpm smoke:mvp`.
   - PP-023 records the separate real-account Chrome proof.
+- Builder evidence:
+  - The review-repaired focused web suite passed with 13 files and 78 tests; web lint and typecheck passed.
+  - Focused API verification passed with 72 tests across project scans, scan routes, schema/normalizer boundaries, partial failures, downloads, and the deterministic fixture contract.
+  - Deterministic duplicate, invalid-byte, and failing-download media are exercised through the real local fixture server and host-override path using `scripts/fixture_media_server.py` and `tests/fixtures/picker/pp027_scan_contract.json`.
+  - The matching current-session envelope preserves exact links and failed-item guidance without persisting Picker URLs; persisted failed-item reload truth remains deferred to PP-015.
+  - Independent blind and edge-case reviews were resolved without expanding persistence or product scope.
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, `make build`, `pnpm check:docs`, and `pnpm smoke:mvp` passed after review repairs.
+  - Coverage passed at web 83.59%, API 93.01%, and worker 100%; PP-023 remains the separate real-account Chrome proof.
 
 ### PP-028 Enforce the deployment security boundary
 

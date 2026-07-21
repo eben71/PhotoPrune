@@ -24,6 +24,9 @@ describe('normalizePickerSelection', () => {
         filename: 'photo.jpg',
         mimeType: 'image/jpeg',
         baseUrl: 'https://example.com/base',
+        width: 100,
+        height: 80,
+        productUrl: 'https://photos.google.com/photo/abc',
         type: 'PHOTO'
       }
     ]);

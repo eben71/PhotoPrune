@@ -1,0 +1,41 @@
+{
+  "photoItems": [
+    {
+      "id": "pp027-duplicate-a",
+      "createTime": "2025-01-01T00:00:00Z",
+      "filename": "duplicate-a.png",
+      "mimeType": "image/png",
+      "width": 64,
+      "height": 64,
+      "downloadUrl": "https://example.test/media/duplicate"
+    },
+    {
+      "id": "pp027-duplicate-b",
+      "createTime": "2025-01-01T00:00:01Z",
+      "filename": "duplicate-b.png",
+      "mimeType": "image/png",
+      "width": 64,
+      "height": 64,
+      "downloadUrl": "https://example.test/media/duplicate"
+    },
+    {
+      "id": "pp027-invalid",
+      "createTime": "2025-01-01T00:00:02Z",
+      "filename": "invalid.png",
+      "mimeType": "image/png",
+      "width": 64,
+      "height": 64,
+      "downloadUrl": "https://example.test/media/invalid"
+    },
+    {
+      "id": "pp027-failing",
+      "createTime": "2025-01-01T00:00:03Z",
+      "filename": "failing.png",
+      "mimeType": "image/png",
+      "width": 64,
+      "height": 64,
+      "downloadUrl": "https://example.test/media/fail"
+    }
+  ],
+  "consentConfirmed": true
+}

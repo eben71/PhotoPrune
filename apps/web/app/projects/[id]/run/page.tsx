@@ -30,7 +30,7 @@ export default function ProjectRunPage({
   const [error, setError] = useState<string | null>(null);
   const [albumIdsInput, setAlbumIdsInput] = useState('');
   const [mediaIdsInput, setMediaIdsInput] = useState('');
-  const { state, setSelection } = useRunSession();
+  const { state, setSelection, applyProjectEnvelope } = useRunSession();
   const { openPicker, isLoading, error: pickerError } = useGooglePhotosPicker();
 
   useEffect(() => {
@@ -80,45 +80,57 @@ export default function ProjectRunPage({
       .map((id) => id.trim())
       .filter(Boolean)
       .map((id) => ({ id, createTime: new Date().toISOString() }));
-    const response = await fetch(`/api/projects/${projectId}/scan`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sourceType: isAlbumScope ? 'album_set' : 'picker',
-        sourceRef: isAlbumScope
-          ? {
-              type: 'album_set',
-              albumIds: albumIdsInput
-                .split(',')
-                .map((id) => id.trim())
-                .filter(Boolean),
-              ...(albumMediaItems.length > 0
-                ? { mediaItems: albumMediaItems }
-                : {})
-            }
-          : { type: 'picker' },
-        photoItems: state.selection.map((item) => ({
-          id: item.id,
-          createTime: item.createTime,
-          filename: item.filename,
-          mimeType: item.mimeType,
-          width: 300,
-          height: 300
-        }))
-      })
-    });
+    setError(null);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/scan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sourceType: isAlbumScope ? 'album_set' : 'picker',
+          sourceRef: isAlbumScope
+            ? {
+                type: 'album_set',
+                albumIds: albumIdsInput
+                  .split(',')
+                  .map((id) => id.trim())
+                  .filter(Boolean),
+                ...(albumMediaItems.length > 0
+                  ? { mediaItems: albumMediaItems }
+                  : {})
+              }
+            : { type: 'picker' },
+          photoItems: state.selection.map((item) => ({
+            id: item.id,
+            createTime: item.createTime,
+            filename: item.filename,
+            mimeType: item.mimeType,
+            width: item.width,
+            height: item.height,
+            downloadUrl: item.baseUrl,
+            ...(item.productUrl
+              ? { googlePhotosDeepLink: item.productUrl }
+              : {})
+          })),
+          consentConfirmed: true
+        })
+      });
 
-    if (!response.ok) {
-      setError(
-        'Unable to start this saved scan. Verify API connectivity and try again.'
+      if (!response.ok) {
+        throw new Error('scan request failed');
+      }
+
+      const payload = ProjectScanResponseSchema.parse(await response.json());
+      if (payload.envelope) {
+        applyProjectEnvelope(payload.projectScanId, payload.envelope);
+      }
+      router.push(
+        `/projects/${projectId}/results?scanId=${payload.projectScanId}`
       );
-      return;
+    } catch {
+      setError(
+        'Unable to start this saved scan right now. Check your connection and try again.'
+      );
     }
-
-    const payload = ProjectScanResponseSchema.parse(await response.json());
-    router.push(
-      `/projects/${projectId}/results?scanId=${payload.projectScanId}`
-    );
   };
 
   const handleSelect = async () => {

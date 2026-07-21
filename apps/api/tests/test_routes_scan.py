@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from io import BytesIO
 from urllib.error import HTTPError
 
 from fastapi.testclient import TestClient
+from PIL import Image
 
 from app.core import config
 from app.engine import downloads
@@ -104,6 +106,7 @@ def test_scan_accepts_picker_payload_alias(monkeypatch):
                             "createTime": "2025-01-01T00:00:00Z",
                             "mimeType": "image/jpeg",
                             "filename": "picker-1.jpg",
+                            "baseUrl": "https://photos.google.com/picker-1",
                         }
                     }
                 ]
@@ -130,6 +133,60 @@ def test_openapi_scan_request_uses_external_aliases():
         assert "photoItems" in properties
         assert "pickerPayload" in properties
         assert "consentConfirmed" in properties
+    finally:
+        config.get_settings.cache_clear()
+
+
+def test_scan_rejects_picker_payload_without_base_url():
+    config.get_settings.cache_clear()
+    try:
+        client = TestClient(create_app())
+        response = client.post(
+            "/api/scan",
+            json={
+                "pickerPayload": {
+                    "mediaItems": [
+                        {
+                            "mediaFile": {
+                                "id": "picker-1",
+                                "createTime": "2025-01-01T00:00:00Z",
+                                "mimeType": "image/jpeg",
+                            }
+                        }
+                    ]
+                }
+            },
+        )
+
+        assert response.status_code == 422
+        assert "baseUrl" in str(response.json()["detail"])
+    finally:
+        config.get_settings.cache_clear()
+
+
+def test_scan_rejects_raw_picker_payload_above_item_limit():
+    config.get_settings.cache_clear()
+    try:
+        client = TestClient(create_app())
+        response = client.post(
+            "/api/scan",
+            json={
+                "pickerPayload": {
+                    "mediaItems": [
+                        {
+                            "id": f"picker-{index}",
+                            "createTime": "2025-01-01T00:00:00Z",
+                            "mimeType": "image/jpeg",
+                            "baseUrl": f"https://photos.google.com/picker-{index}",
+                        }
+                        for index in range(2001)
+                    ]
+                }
+            },
+        )
+
+        assert response.status_code == 422
+        assert "cannot exceed 2000 items" in str(response.json()["detail"])
     finally:
         config.get_settings.cache_clear()
 
@@ -198,3 +255,89 @@ def test_scan_network_failure_returns_422_without_url(monkeypatch):
         assert "https://photos.google.com/file.jpg" not in detail
     finally:
         config.get_settings.cache_clear()
+
+
+def test_scan_returns_exact_group_and_partial_item_failure(monkeypatch):
+    monkeypatch.setenv("SCAN_ALLOWED_DOWNLOAD_HOSTS", "photos.google.com")
+    config.get_settings.cache_clear()
+    duplicate_bytes = _png_bytes()
+
+    def fake_urlopen(request, **_kwargs):
+        if request.full_url.endswith("/invalid"):
+            return BytesIO(b"not-an-image")
+        return BytesIO(duplicate_bytes)
+
+    monkeypatch.setattr(downloads.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(downloads, "_reject_private_addresses", lambda _: None)
+    try:
+        client = TestClient(create_app())
+        response = client.post(
+            "/api/scan",
+            json={
+                "photoItems": [
+                    _photo_payload("one", "duplicate"),
+                    _photo_payload("two", "duplicate"),
+                    _photo_payload("bad", "invalid"),
+                ]
+            },
+        )
+
+        assert response.status_code == 200
+        payload = response.json()
+        assert len(payload["groupsExact"]) == 1
+        assert payload["failedItems"] == [
+            {
+                "itemId": "bad",
+                "reasonCode": "IMAGE_BYTES_UNAVAILABLE",
+                "message": "PhotoPrune could not read this item's image bytes.",
+            }
+        ]
+    finally:
+        config.get_settings.cache_clear()
+
+
+def test_scan_rejects_selection_when_every_item_is_invalid(monkeypatch):
+    monkeypatch.setenv("SCAN_ALLOWED_DOWNLOAD_HOSTS", "photos.google.com")
+    config.get_settings.cache_clear()
+    monkeypatch.setattr(
+        downloads.urllib.request,
+        "urlopen",
+        lambda *_args, **_kwargs: BytesIO(b"not-an-image"),
+    )
+    monkeypatch.setattr(downloads, "_reject_private_addresses", lambda _: None)
+    try:
+        client = TestClient(create_app())
+        response = client.post(
+            "/api/scan",
+            json={
+                "photoItems": [
+                    _photo_payload("one", "invalid-one"),
+                    _photo_payload("two", "invalid-two"),
+                ]
+            },
+        )
+
+        assert response.status_code == 422
+        assert (
+            "None of the selected photos supplied readable image bytes" in response.json()["detail"]
+        )
+    finally:
+        config.get_settings.cache_clear()
+
+
+def _photo_payload(item_id: str, token: str) -> dict[str, object]:
+    return {
+        "id": item_id,
+        "createTime": "2025-01-01T00:00:00Z",
+        "filename": f"{item_id}.png",
+        "mimeType": "image/png",
+        "width": 8,
+        "height": 8,
+        "downloadUrl": f"https://photos.google.com/{token}",
+    }
+
+
+def _png_bytes() -> bytes:
+    output = BytesIO()
+    Image.new("RGB", (8, 8), color=(24, 80, 140)).save(output, format="PNG")
+    return output.getvalue()

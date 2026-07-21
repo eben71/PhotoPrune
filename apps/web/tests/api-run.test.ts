@@ -15,6 +15,8 @@ const selection = [
     filename: 'IMG_TEST.JPG',
     mimeType: 'image/jpeg',
     createTime: '2024-12-12T10:12:00.000Z',
+    width: 200,
+    height: 200,
     type: 'PHOTO'
   }
 ];
