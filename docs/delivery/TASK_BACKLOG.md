@@ -170,16 +170,16 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Priority: P0
 - Type: Security / API / Deployment
 - Finding coverage: RR-003, RR-004
-- Dependencies: A documented deployment-scope decision (authenticated multi-user or technically enforced localhost-only); complete before any non-local exposure. Coordinate persistence ownership with PP-015 and readiness checks with PP-030.
+- Dependencies: The approved PP-028 implementation contract selects technically enforced localhost-only, single-operator use; authenticated multi-user and all non-local exposure are out of scope. Coordinate persistence ownership with PP-015 and readiness checks with PP-030.
 - Links: `apps/api/app/api/routes.py`, `apps/api/app/core/config.py`, `apps/api/app/engine/downloads.py`, `apps/api/app/projects/repository.py`
 - Goal: Prevent unauthorized project access and fail closed at the remote-download boundary before PhotoPrune can be deployed beyond an explicitly local environment.
 - Acceptance criteria:
-  - Either every scan/project/review/export operation authenticates and authorizes the owning user without `local-user`, or runtime/network configuration technically refuses non-local use and docs state that boundary.
+  - Runtime and shipped network configuration technically enforce localhost-only, single-operator use; docs state that project operations are unauthenticated, Google OAuth is not PhotoPrune login, and non-local exposure is unsupported.
   - Production mode is enum-like and fail-closed; missing host allowlists or security settings prevent startup rather than allowing every host.
   - Every redirect and resolved address is revalidated; private/link-local/loopback destinations, DNS rebinding, oversized responses, and excessive work are bounded.
-  - Authentication, rate limits, per-request and aggregate byte/item/time limits, audit-safe errors, and CORS responsibilities are tested and documented.
+  - The absence of application authentication, process-local safety rate limits, per-request and aggregate byte/item/time limits, audit-safe errors, and CORS responsibilities are tested and documented without making multi-user claims.
 - Required verification:
-  - Negative API/security tests cover cross-user access, unauthenticated calls, redirects to private addresses, rebinding simulation, bad environment values, empty allowlists, size/work limits, and rate limits.
+  - Negative API/security tests cover public-bind regressions, identity-header spoofing, redirects to private addresses, rebinding simulation, bad environment values, empty allowlists, redaction, size/work limits, concurrency, and rate limits.
   - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, and `make build`.
   - Deployment review confirms no public listener can start with insecure defaults.
 
