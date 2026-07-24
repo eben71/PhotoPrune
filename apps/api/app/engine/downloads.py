@@ -696,10 +696,24 @@ def _parse_target(url: str, *, allow_fixture_http: bool) -> AuthorizedTarget:
 
 
 def _is_allowed_host(hostname: str, allowed_hosts: list[str]) -> bool:
-    if hostname in allowed_hosts:
+    normalized_hostname = hostname.lower().rstrip(".")
+
+    def _host_matches(candidate: str, target: str) -> bool:
+        normalized_candidate = candidate.lower().rstrip(".")
+        normalized_target = target.lower().rstrip(".")
+        return normalized_candidate == normalized_target or normalized_candidate.endswith(
+            f".{normalized_target}"
+        )
+
+    if any(_host_matches(normalized_hostname, allowed_host) for allowed_host in allowed_hosts):
         return True
-    return "googleusercontent.com" in allowed_hosts and bool(
-        GOOGLEUSERCONTENT_MEDIA_HOST_RE.fullmatch(hostname)
+
+    allows_googleusercontent = any(
+        _host_matches(allowed_host, "googleusercontent.com")
+        for allowed_host in allowed_hosts
+    )
+    return allows_googleusercontent and bool(
+        GOOGLEUSERCONTENT_MEDIA_HOST_RE.fullmatch(normalized_hostname)
     )
 
 
