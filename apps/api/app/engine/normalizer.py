@@ -6,7 +6,7 @@ from typing import Any
 
 from app.engine.deeplinks import build_google_photos_deep_link_from_parts
 from app.engine.models import GPSLocation, PhotoItem
-from app.engine.schemas import PhotoItemPayload
+from app.engine.schemas import PhotoItemPayload, PickerPayload
 
 
 def normalize_photo_items(items: Iterable[PhotoItemPayload]) -> list[PhotoItem]:
@@ -26,7 +26,9 @@ def normalize_photo_items(items: Iterable[PhotoItemPayload]) -> list[PhotoItem]:
     ]
 
 
-def normalize_picker_payload(payload: dict[str, Any]) -> list[PhotoItem]:
+def normalize_picker_payload(payload: PickerPayload | dict[str, Any]) -> list[PhotoItem]:
+    if isinstance(payload, PickerPayload):
+        payload = payload.model_dump(by_alias=True, exclude_none=True)
     raw_items = _extract_picker_items(payload)
     selection = normalize_picker_selection(raw_items)
     normalized: list[PhotoItem] = []

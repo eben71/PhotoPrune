@@ -8,13 +8,13 @@ from uuid import uuid4
 
 from PIL import Image
 
-from app.core.config import Settings
+from app.core.config import RuntimeEnvironment, Settings
 from app.engine.candidates import (
     CandidateDebug,
     build_candidate_sets,
     build_candidate_sets_with_debug,
 )
-from app.engine.downloads import DownloadManager
+from app.engine.downloads import DownloadManager, DownloadSecurityError, ScanDownloadBudget
 from app.engine.grouping import SimilarityThresholds, group_exact_duplicates, group_near_duplicates
 from app.engine.hashing import HashingService
 from app.engine.models import PhotoItem
@@ -32,20 +32,32 @@ def run_scan(
     run_id = uuid4().hex
     photo_items = list(items)
     host_overrides = (
-        settings.scan_download_host_overrides if settings.environment.lower() != "prod" else {}
+        settings.scan_download_host_overrides
+        if settings.environment != RuntimeEnvironment.PRODUCTION
+        else {}
     )
-    allow_override_exceptions = settings.environment.lower() != "prod" and bool(host_overrides)
+    allow_override_exceptions = settings.environment != RuntimeEnvironment.PRODUCTION and bool(
+        host_overrides
+    )
+    scan_budget = ScanDownloadBudget(
+        max_bytes=settings.scan_download_max_bytes_per_scan,
+        wall_seconds=settings.scan_download_wall_seconds,
+    )
     download_manager = download_manager or DownloadManager(
         allowed_hosts=settings.scan_allowed_download_hosts,
         host_overrides=host_overrides,
         allow_override_exceptions=allow_override_exceptions,
+        timeout_seconds=settings.scan_download_timeout_seconds,
+        scan_budget=scan_budget,
+        max_item_bytes=settings.scan_download_max_bytes_per_item,
+        max_redirects=settings.scan_download_max_redirects,
     )
     hashing_service = HashingService(download_manager)
     timings: dict[str, float] = {}
     counts: dict[str, int] = {"selected_images": len(photo_items)}
 
     start = time.perf_counter()
-    explain_enabled = explain and settings.environment.lower() != "prod"
+    explain_enabled = explain and settings.environment != RuntimeEnvironment.PRODUCTION
     candidate_debug: CandidateDebug | None = None
     if explain_enabled:
         candidate_sets, candidate_debug = build_candidate_sets_with_debug(photo_items)
@@ -87,6 +99,17 @@ def run_scan(
         try:
             hashing_service.validate_image(item)
             byte_hashes[item.id] = hashing_service.get_byte_hash(item)
+        except DownloadSecurityError as exc:
+            if exc.fatal_to_scan:
+                raise
+            download_errors.append(exc)
+            failed_items.append(
+                ScanItemIssue(
+                    itemId=item.id,
+                    reasonCode="IMAGE_BYTES_UNAVAILABLE",
+                    message="PhotoPrune could not read this item's image bytes.",
+                )
+            )
         except ValueError as exc:
             download_errors.append(exc)
             failed_items.append(
@@ -105,11 +128,16 @@ def run_scan(
                 )
             )
     if require_image_bytes and photo_items and not byte_hashes:
-        if len(photo_items) == 1 and download_errors:
-            raise download_errors[0]
-        raise ValueError(
+        security_error = next(
+            (error for error in download_errors if isinstance(error, DownloadSecurityError)),
+            None,
+        )
+        if security_error is not None:
+            raise security_error
+        raise DownloadSecurityError(
+            "download_content",
             "None of the selected photos supplied readable image bytes. "
-            "Please select them again and retry."
+            "Please select them again and retry.",
         )
     timings["byte_hashing_ms"] = _elapsed_ms(start)
     counts["byte_hashes"] = hashing_service.byte_hash_count

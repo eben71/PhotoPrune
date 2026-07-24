@@ -60,6 +60,9 @@ authentication.
   PostgreSQL, and Redis have no host-published ports.
 - Browser traffic reaches the API through same-origin Next.js route handlers. Container-to-container
   API traffic remains private and is not evidence of remote support.
+- The web gateway accepts only documented `localhost` and `127.0.0.1` host/port combinations.
+  State-changing browser requests must also satisfy the documented same-origin request policy before
+  forwarding. These are browser-facing local-service protections, not user authentication.
 - Health endpoints reveal only liveness/readiness-safe values and no configuration, credentials,
   storage paths, download URLs, or project data.
 - CORS origins are explicit localhost origins needed by supported development. CORS is browser
@@ -67,6 +70,8 @@ authentication.
 - Every caller-controlled outbound media URL and every redirect target is independently validated
   immediately before connection; the connected peer address must be one of the validated public
   addresses.
+- Media downloads do not inherit proxy settings, ambient credentials, cookies, `.netrc`, or
+  environment-selected trust behavior.
 - Logs and client errors identify a stable error category and correlation ID, not a complete media
   URL, URL query, OAuth token, credentials, response body, or internal exception.
 
@@ -138,8 +143,20 @@ service publishes an empty/unspecified host IP, `0.0.0.0`, `::`, a LAN address, 
 API/database/Redis. Run the same check in CI/docs guard or the normal test gate. The check must also
 cover IPv6 so `localhost-only` cannot accidentally mean IPv4-safe but IPv6-public.
 
-Application `Host`/origin checks may provide defense in depth, but they are not the primary peer
-authorization boundary and must allow the documented private service name for internal forwarding.
+Browser-facing `Host` and same-origin request checks are mandatory defense in depth, but they are
+not the primary peer authorization boundary. The web gateway accepts only documented `localhost`
+and `127.0.0.1` host/port combinations. State-changing same-origin handlers reject an incompatible
+`Origin` or Fetch Metadata signal before forwarding. The explicit policy for absent Fetch Metadata
+must preserve documented legitimate non-browser/internal traffic without accepting an explicitly
+cross-site request. Internal API checks must allow the documented private service name used for
+server-side forwarding.
+
+The supported launcher runs exactly one API process, one application worker, and one API service
+replica so the process-local admission controls below cannot be multiplied silently. The
+deployment-policy check must reject `network_mode: host`, API/database/Redis host publications,
+multiple API replicas or application workers, undocumented shipped override files, and any other
+effective setting that bypasses the private service network. It evaluates the exact merged Compose
+configuration used by every shipped launcher rather than a convenient subset.
 
 The gateway change includes the existing web paths, not only Compose configuration:
 
@@ -190,6 +207,11 @@ Do not forward caller-supplied authorization/cookie headers to media hosts. Test
 connection, and response behavior without real network dependence, including a hostname that first
 resolves public and then attempts a private connected peer.
 
+The media client must disable ambient proxy discovery and must not inherit `HTTP_PROXY`,
+`HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY`, `.netrc`, cookies, credentials, or environment-selected
+trust configuration. The verified connection must be the direct connection to an approved address;
+tests must prove proxy environment variables cannot redirect media traffic.
+
 ### 5. Resource and abuse budgets are fixed
 
 Centralize settings and enforce all lower/equal limits before allocating or scheduling more work:
@@ -222,9 +244,18 @@ fetch policy work. The raw-body ceiling is the pre-parse memory boundary; field 
 is the immediate post-parse semantic boundary.
 
 Stream with a bounded chunk size. Reject an oversized `Content-Length` before reading, still count
-actual streamed bytes, and stop the entire request once the aggregate budget is exhausted. Time and
-byte counters include failed attempts and redirects where bytes are read. The same item must not
-evade aggregate accounting through cache misses or duplicate IDs.
+actual streamed bytes, and stop the entire request once the aggregate budget is exhausted. Per-item
+and aggregate budgets apply to bytes made available to downstream processing after content decoding
+as well as any lower-level transfer ceiling needed to bound transport work. Automatic decompression
+must not allow decoded data to exceed either budget; unsupported or multiply layered content
+encodings fail closed. Time and byte counters include failed attempts and redirects where bytes are
+read. The same item must not evade aggregate accounting through cache misses or duplicate IDs.
+
+Create one monotonic scan deadline before outbound work begins. DNS, connection, TLS, redirects,
+response streaming, scheduling, and cleanup all consume the same remaining budget. Do not begin a
+new item, attempt, or redirect after the deadline, and cancel outstanding reads promptly when it
+expires. Per-attempt timeouts are subordinate to this total deadline rather than independent clocks
+that can extend it.
 
 Because the selected mode has one trusted local operator, rate limits are process-wide and
 in-memory; they are safety fuses, not distributed identity controls. Return `429` with `Retry-After`
@@ -247,6 +278,8 @@ logging boundary.
 | -------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------- | -------------------------------- |
 | Supported local start      | Canonical settings and shipped Compose config                                    | Only `127.0.0.1:3000` is host-published; stack starts         | Config and Compose-policy tests  |
 | Public bind regression     | Web publishes `3000:3000`, `0.0.0.0`, or `::`; API/DB/Redis publishes any port   | Deployment-policy check fails                                 | Fixture-based policy tests       |
+| Alternate exposure         | Host networking, extra API worker/replica, or undocumented shipped override      | Deployment-policy check fails                                 | Fixture-based policy tests       |
+| Host/DNS rebinding ingress | Browser request uses hostile `Host`, cross-site `Origin`, or Fetch Metadata       | Web gateway rejects before forwarding                         | Gateway ingress tests            |
 | Unknown mode               | `DEPLOYMENT_MODE=multi_user` or unknown environment                              | API fails before serving                                      | Settings/startup test            |
 | Unsafe production defaults | Empty allowlist, wildcard/non-local CORS, or host override                       | API fails before serving                                      | Parameterized settings tests     |
 | Identity spoofing          | Bearer token or user/forwarded-user headers                                      | Header has no authority and cannot select ownership           | Route tests                      |
@@ -255,8 +288,11 @@ logging boundary.
 | Redirect to private target | Allowed public host redirects to private/link-local URL                          | Redirect rejected before follow                               | Download test                    |
 | DNS rebinding              | Validation returns public IP; connection peer is private or not in validated set | Connection rejected and no bytes accepted                     | Injected resolver/connector test |
 | Mixed DNS answers          | One public and one non-global address                                            | Entire destination rejected                                   | Download test                    |
+| Ambient proxy              | Proxy environment variables attempt to redirect the media client                 | Client connects directly to a validated approved address      | Transport isolation test         |
 | Redirect loop/excess       | More than 3 redirects or repeating target                                        | Request fails with safe redirect category                     | Download test                    |
 | Oversized response         | Large `Content-Length`, stream over 50 MiB, or aggregate over 500 MiB            | Reading/scheduling stops and scan fails truthfully            | Download/scan tests              |
+| Compressed expansion       | Small transfer expands beyond item or aggregate decoded-byte budget              | Decoding/reading stops at the same documented bound           | Encoded-response test            |
+| Deadline exhaustion        | DNS/connect/TLS/redirect/stream phases consume the total scan deadline            | No new work starts; outstanding reads are cancelled safely    | Injectable-clock test            |
 | Excess work                | 2,001 items, second concurrent scan, or sixth scan in a minute                   | Rejected before excess work; retry semantics are explicit     | Route/limiter tests              |
 | Sensitive upstream error   | URL contains query token and upstream returns an error                           | Client/log captures contain no token, URL path/query, or body | Redaction test                   |
 | Oversized inbound body     | Declared or streamed body exceeds 32 MiB; nested fields are oversized            | Rejected before model parsing or work admission; no scan runs | ASGI/schema test                 |
@@ -305,6 +341,10 @@ logging boundary.
 - [ ] Update the shared web forwarding helper to prefer the internal URL and route browser health
       checks through a tested same-origin handler.
 - [ ] Add an IPv4/IPv6-aware effective-Compose policy check and run it in the repository gate.
+- [ ] Reject host networking, extra API replicas/workers, and undocumented shipped override paths
+      that would multiply or bypass process-local controls.
+- [ ] Enforce and test the web gateway's exact local `Host` and same-origin unsafe-request policy,
+      including hostile DNS-rebinding-style and explicitly cross-site inputs.
 - [ ] Document direct local commands with explicit loopback binds.
 
 ### Task 3: Remove false identity signals
@@ -319,7 +359,10 @@ logging boundary.
 - [ ] Disable automatic redirects and validate every absolute/resolved target.
 - [ ] Reject any non-global or mixed DNS answer and verify the connected peer against validated DNS.
 - [ ] Preserve TLS hostname/certificate verification while connecting safely.
+- [ ] Disable ambient proxy, credential, cookie, `.netrc`, and environment trust inheritance.
 - [ ] Enforce redirect, item-byte, aggregate-byte, item-count, and time budgets.
+- [ ] Count decoded response bytes, bound compressed expansion, and enforce one monotonic deadline
+      across DNS, connection, TLS, redirects, streaming, scheduling, and cleanup.
 - [ ] Redact sensitive URL and upstream response material from errors and logs.
 
 ### Task 5: Bound API work and prove the boundary
@@ -349,18 +392,23 @@ logging boundary.
 
 ## Acceptance Criteria
 
-1. Given the shipped Compose configuration, inspecting the effective configuration shows that only
-   the web port is published and its host IP is exactly `127.0.0.1`; API, PostgreSQL, and Redis have
-   no host-published ports.
+1. Given every shipped merged Compose configuration, inspecting the effective configuration shows
+   that only the web port is published and its host IP is exactly `127.0.0.1`; API, PostgreSQL, and
+   Redis have no host-published ports; host networking, extra API replicas/workers, and undocumented
+   shipped overrides are rejected.
 2. Given an unsupported deployment/environment value or unsafe production security setting, API
    construction fails before any socket can serve a route, with a non-sensitive configuration error.
 3. Given any project/scan/review/export request, no header or Google OAuth state is treated as a
    PhotoPrune identity; docs truthfully state these operations are unauthenticated and local-only.
+   Hostile `Host` and explicitly cross-site state-changing browser requests fail at the web gateway
+   before forwarding, while documented local and internal traffic continues to work.
 4. Given an initial URL, redirect, mixed DNS response, or changed connected peer that is private,
-   loopback, link-local, non-global, or outside the allowlist, no response bytes are accepted.
+   loopback, link-local, non-global, or outside the allowlist, no response bytes are accepted; proxy
+   environment variables and ambient credentials cannot redirect or influence the media transport.
 5. Given excessive redirects, items, per-item bytes, aggregate bytes, elapsed download time,
    concurrent scans, or admission rate, processing stops at the documented bound and returns a
-   stable safe error/retry contract.
+   stable safe error/retry contract. Decoded content counts toward byte budgets, and one monotonic
+   deadline covers DNS, connection, TLS, redirects, streaming, scheduling, and cleanup.
 6. Given a declared or streamed request body above 32 MiB, the API returns a safe `413` before JSON
    or Pydantic parsing and before route admission; given an oversized field or unknown scan-input key,
    bounded schema validation rejects it before scan/download work.
@@ -368,10 +416,11 @@ logging boundary.
    routes and the same-origin health page/handler still reach FastAPI successfully.
 8. Given upstream URLs and failures containing credentials, query tokens, paths, bodies, or internal
    exceptions, client responses and captured logs do not disclose them.
-9. Negative automated tests cover invalid/empty configuration, IPv4 and IPv6 public exposure,
-   declared/streamed body and field limits, identity spoofing, private redirects, DNS rebinding, mixed
-   DNS, size/work/time limits, concurrency, rate limits, and redaction without live external network
-   calls.
+9. Negative automated tests cover invalid/empty configuration, IPv4 and IPv6 public exposure, host
+   networking, multiplied API processes, hostile web `Host`/cross-site ingress, declared/streamed
+   body and field limits, identity spoofing, private redirects, DNS rebinding, mixed DNS, ambient
+   proxy isolation, compressed expansion, total-deadline exhaustion, size/work/time limits,
+   concurrency, rate limits, and redaction without live external network calls.
 10. Given the frozen production dependency graph, `pnpm audit --prod --audit-level=high` exits zero;
     Next.js is at least `16.2.11`, Sharp is at least `0.35.0`, the lockfile matches all manifests and
     overrides, and dependency release-age preflight passes.

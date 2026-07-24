@@ -173,7 +173,6 @@ describe('phase 3 projects pages', () => {
             new Response(
               JSON.stringify({
                 id: 'p1',
-                userId: 'local-user',
                 name: 'Trip',
                 status: 'active',
                 scope: { type: 'picker', albumIds: [] },
@@ -191,7 +190,6 @@ describe('phase 3 projects pages', () => {
                 projects: [
                   {
                     id: 'p1',
-                    userId: 'local-user',
                     name: 'Trip',
                     status: 'active',
                     scope: { type: 'picker', albumIds: [] },
@@ -209,7 +207,6 @@ describe('phase 3 projects pages', () => {
             new Response(
               JSON.stringify({
                 id: 'p1',
-                userId: 'local-user',
                 name: 'Trip',
                 status: 'active',
                 scope: { type: 'picker', albumIds: [] },
@@ -738,7 +735,6 @@ describe('phase 3 projects pages', () => {
             new Response(
               JSON.stringify({
                 id: 'p1',
-                userId: 'local-user',
                 name: 'Album trip',
                 status: 'active',
                 scope: { type: 'album_set', albumIds: ['album-1'] },
@@ -895,7 +891,6 @@ describe('phase 3 projects pages', () => {
             new Response(
               JSON.stringify({
                 id: 'p1',
-                userId: 'local-user',
                 name: 'Trip',
                 status: 'active',
                 scope: { type: 'picker', albumIds: [] },

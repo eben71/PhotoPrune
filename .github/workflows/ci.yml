@@ -110,6 +110,9 @@ jobs:
       - name: Tests
         run: make test
 
+      - name: Check localhost deployment boundary
+        run: pnpm check:deployment-boundary
+
       - name: Coverage gate
         run: node scripts/check-coverage.mjs
 

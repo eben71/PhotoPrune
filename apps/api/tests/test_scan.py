@@ -10,7 +10,7 @@ from PIL import Image
 
 from app.core.config import Settings
 from app.engine import scan
-from app.engine.downloads import DownloadManager
+from app.engine.downloads import DownloadManager, DownloadSecurityError
 from app.engine.hashing import HashingService, PerceptualHashes
 from app.engine.models import PhotoItem
 
@@ -178,6 +178,35 @@ def test_run_scan_preserves_metadata_only_compatibility_unless_bytes_are_require
     assert result.groups_exact == []
     with pytest.raises(ValueError, match="None of the selected photos"):
         scan.run_scan([item], Settings(), require_image_bytes=True)
+
+
+def test_run_scan_stops_after_fatal_aggregate_budget_failure():
+    calls: list[str] = []
+
+    class FatalBudgetManager(DownloadManager):
+        def get_bytes(self, item: PhotoItem) -> bytes:
+            calls.append(item.id)
+            raise DownloadSecurityError(
+                "download_size",
+                "The scan exceeded its download size limit.",
+                fatal_to_scan=True,
+            )
+
+    items = [
+        _photo_item("one", "https://photos.google.com/one"),
+        _photo_item("two", "https://photos.google.com/two"),
+    ]
+
+    with pytest.raises(DownloadSecurityError) as caught:
+        scan.run_scan(
+            items,
+            Settings(),
+            download_manager=FatalBudgetManager(),
+            require_image_bytes=True,
+        )
+
+    assert caught.value.category == "download_size"
+    assert calls == ["one"]
 
 
 def _photo_item(item_id: str, download_url: str | None) -> PhotoItem:

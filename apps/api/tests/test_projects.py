@@ -157,6 +157,93 @@ def test_project_crud(monkeypatch, tmp_path):
     assert fetched.status_code == 200
     assert fetched.json()["name"] == "Trip cleanup"
     assert fetched.json()["scope"] == {"type": "picker", "albumIds": []}
+    assert "userId" not in fetched.json()
+
+
+def test_identity_like_headers_have_no_authority(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    created = client.post(
+        "/api/projects",
+        json={"name": "Local project"},
+        headers={
+            "Authorization": "Bearer seeded-secret",
+            "X-User-Id": "attacker",
+            "X-Forwarded-User": "attacker",
+        },
+    )
+    project_id = created.json()["id"]
+
+    ordinary = client.get(f"/api/projects/{project_id}")
+    spoofed = client.get(
+        f"/api/projects/{project_id}",
+        headers={
+            "Authorization": "Bearer another-secret",
+            "X-User-Id": "different-owner",
+            "X-Forwarded-User": "different-owner",
+        },
+    )
+
+    assert created.status_code == 200
+    assert ordinary.status_code == 200
+    assert spoofed.status_code == 200
+    assert spoofed.json() == ordinary.json()
+    assert "userId" not in spoofed.json()
+
+
+def test_identity_like_headers_cannot_unlock_project_operations(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+    missing_id = "00000000-0000-0000-0000-000000000000"
+    headers = {
+        "Authorization": "Bearer seeded-secret",
+        "X-User-Id": "different-owner",
+        "X-Forwarded-User": "different-owner",
+    }
+    operations = [
+        ("GET", f"/api/projects/{missing_id}", None),
+        ("GET", f"/api/projects/{missing_id}/scope", None),
+        (
+            "POST",
+            f"/api/projects/{missing_id}/scope",
+            {"type": "picker", "albumIds": []},
+        ),
+        (
+            "POST",
+            f"/api/projects/{missing_id}/scan",
+            {
+                "photoItems": [
+                    {
+                        "id": "photo-1",
+                        "createTime": "2025-01-01T00:00:00Z",
+                        "downloadUrl": "https://lh3.googleusercontent.com/item",
+                    }
+                ]
+            },
+        ),
+        ("GET", f"/api/projects/{missing_id}/scans", None),
+        ("GET", f"/api/projects/{missing_id}/scans/{missing_id}/results", None),
+        ("GET", f"/api/projects/{missing_id}/scans/{missing_id}/diff", None),
+        (
+            "PATCH",
+            f"/api/projects/{missing_id}/groups/group-1/review",
+            {"state": "DONE"},
+        ),
+        ("GET", f"/api/projects/{missing_id}/export", None),
+    ]
+
+    for method, path, body in operations:
+        ordinary = client.request(method, path, json=body)
+        spoofed = client.request(method, path, json=body, headers=headers)
+        assert spoofed.status_code == ordinary.status_code
+        assert spoofed.content == ordinary.content
+
+
+def test_path_identifiers_are_bounded_before_repository_access(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+
+    response = client.get(f"/api/projects/{'x' * 513}")
+
+    assert response.status_code == 422
+    assert response.json()["category"] == "request_validation"
 
 
 def test_project_scope_persists(monkeypatch, tmp_path):
@@ -363,10 +450,11 @@ def test_project_scan_results_are_scoped_to_requested_scan(monkeypatch, tmp_path
         f"/api/projects/{project_id}/scan",
         json={"photoItems": _picker_photo_payloads("item-a")},
     ).json()["projectScanId"]
-    client.post(
+    second_scan = client.post(
         f"/api/projects/{project_id}/scan",
         json={"photoItems": _picker_photo_payloads("item-c")},
     )
+    assert second_scan.status_code == 200, second_scan.text
 
     first_results = client.get(f"/api/projects/{project_id}/scans/{first_scan_id}/results").json()
     first_item_ids = {
@@ -712,7 +800,13 @@ def test_album_set_scan_rejects_invalid_source_ref_media_items(monkeypatch, tmp_
 
     assert scan.status_code == 422
     assert run_scan_called is False
-    assert scan.json()["detail"][0]["loc"] == ["photoItems", 0, "createTime"]
+    assert scan.json()["detail"][0]["loc"] == [
+        "body",
+        "sourceRef",
+        "mediaItems",
+        0,
+        "createTime",
+    ]
 
 
 def test_album_set_scan_rejects_invalid_source_ref_paged_media_items(monkeypatch, tmp_path):
@@ -741,7 +835,15 @@ def test_album_set_scan_rejects_invalid_source_ref_paged_media_items(monkeypatch
 
     assert scan.status_code == 422
     assert run_scan_called is False
-    assert scan.json()["detail"][0]["loc"] == ["photoItems", 0, "createTime"]
+    assert scan.json()["detail"][0]["loc"] == [
+        "body",
+        "sourceRef",
+        "pagedMediaItems",
+        0,
+        "items",
+        0,
+        "createTime",
+    ]
 
 
 def test_album_set_scan_uses_real_backoff_by_default(monkeypatch):

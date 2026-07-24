@@ -10,6 +10,7 @@ export async function GET(
   const scanId = url.searchParams.get('scanId');
   const scanQuery = scanId ? `&scanId=${encodeURIComponent(scanId)}` : '';
   return forward(
+    request,
     `/api/projects/${projectId}/export?format=${format}${scanQuery}`
   );
 }

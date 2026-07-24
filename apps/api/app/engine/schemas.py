@@ -1,81 +1,158 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, model_validator
 
 from app.engine.limits import PICKER_MAX_ITEMS
 
+MAX_ID_LENGTH = 512
+MAX_FILENAME_LENGTH = 1024
+MAX_MIME_TYPE_LENGTH = 255
+MAX_URL_LENGTH = 4096
+
 
 class PhotoItemPayload(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
-    id: str
+    id: str = Field(min_length=1, max_length=MAX_ID_LENGTH)
     create_time: datetime = Field(alias="createTime")
-    filename: str | None = None
-    mime_type: str | None = Field(default=None, alias="mimeType")
+    filename: str | None = Field(default=None, max_length=MAX_FILENAME_LENGTH)
+    mime_type: str | None = Field(default=None, alias="mimeType", max_length=MAX_MIME_TYPE_LENGTH)
     width: int | None = None
     height: int | None = None
     gps_latitude: float | None = Field(default=None, alias="gpsLatitude")
     gps_longitude: float | None = Field(default=None, alias="gpsLongitude")
-    download_url: str | None = Field(default=None, alias="downloadUrl")
-    deep_link: str | None = Field(default=None, alias="googlePhotosDeepLink")
+    download_url: str | None = Field(default=None, alias="downloadUrl", max_length=MAX_URL_LENGTH)
+    deep_link: str | None = Field(
+        default=None,
+        alias="googlePhotosDeepLink",
+        max_length=MAX_URL_LENGTH,
+    )
+
+
+class PickerLocationPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    latitude: float | None = None
+    longitude: float | None = None
+
+
+class PickerMediaMetadataPayload(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+    creation_time: str | None = Field(default=None, alias="creationTime", max_length=64)
+    width: int | None = None
+    height: int | None = None
+    location: PickerLocationPayload | None = None
+    camera_make: str | None = Field(default=None, alias="cameraMake", max_length=255)
+    camera_model: str | None = Field(default=None, alias="cameraModel", max_length=255)
+    photo_metadata: "PickerPhotoMetadataPayload | None" = Field(
+        default=None,
+        alias="photoMetadata",
+    )
+
+
+class PickerPhotoMetadataPayload(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+    focal_length: float | None = Field(default=None, alias="focalLength")
+    aperture_f_number: float | None = Field(default=None, alias="apertureFNumber")
+    iso_equivalent: int | None = Field(default=None, alias="isoEquivalent")
+    exposure_time: str | None = Field(default=None, alias="exposureTime", max_length=64)
+
+
+class PickerMediaFilePayload(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+    id: str | None = Field(default=None, min_length=1, max_length=MAX_ID_LENGTH)
+    create_time: str | None = Field(default=None, alias="createTime", max_length=64)
+    filename: str | None = Field(default=None, max_length=MAX_FILENAME_LENGTH)
+    mime_type: str | None = Field(
+        default=None,
+        alias="mimeType",
+        max_length=MAX_MIME_TYPE_LENGTH,
+    )
+    width: int | None = None
+    height: int | None = None
+    base_url: str | None = Field(default=None, alias="baseUrl", max_length=MAX_URL_LENGTH)
+    product_url: str | None = Field(default=None, alias="productUrl", max_length=MAX_URL_LENGTH)
+    media_file_metadata: PickerMediaMetadataPayload | None = Field(
+        default=None,
+        alias="mediaFileMetadata",
+    )
+
+
+class PickerItemPayload(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+    id: str | None = Field(default=None, min_length=1, max_length=MAX_ID_LENGTH)
+    media_type: str | None = Field(default=None, alias="type", max_length=32)
+    create_time: str | None = Field(default=None, alias="createTime", max_length=64)
+    filename: str | None = Field(default=None, max_length=MAX_FILENAME_LENGTH)
+    mime_type: str | None = Field(
+        default=None,
+        alias="mimeType",
+        max_length=MAX_MIME_TYPE_LENGTH,
+    )
+    width: int | None = None
+    height: int | None = None
+    base_url: str | None = Field(default=None, alias="baseUrl", max_length=MAX_URL_LENGTH)
+    product_url: str | None = Field(default=None, alias="productUrl", max_length=MAX_URL_LENGTH)
+    location: PickerLocationPayload | None = None
+    media_file: PickerMediaFilePayload | None = Field(default=None, alias="mediaFile")
+
+    def item_id(self) -> str | None:
+        return self.id or (self.media_file.id if self.media_file else None)
+
+    def download_url(self) -> str | None:
+        return self.base_url or (self.media_file.base_url if self.media_file else None)
+
+
+class PickerPayload(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+    media_items: list[PickerItemPayload] = Field(
+        default_factory=list,
+        validation_alias=AliasChoices("mediaItems", "items", "media_items"),
+        serialization_alias="mediaItems",
+        max_length=PICKER_MAX_ITEMS,
+    )
+
+    @model_validator(mode="after")
+    def validate_items(self) -> "PickerPayload":
+        if any(not item.download_url() for item in self.media_items):
+            raise ValueError("picker payload items require a baseUrl")
+        item_ids = [item.item_id() for item in self.media_items]
+        if any(item_id is None for item_id in item_ids):
+            raise ValueError("picker payload items require an id")
+        if len(set(item_ids)) != len(item_ids):
+            raise ValueError("picker payload items must have unique ids")
+        return self
 
 
 class ScanRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
-    photo_items: list[PhotoItemPayload] | None = Field(default=None, alias="photoItems")
-    picker_payload: dict[str, Any] | None = Field(default=None, alias="pickerPayload")
+    photo_items: list[PhotoItemPayload] | None = Field(
+        default=None,
+        alias="photoItems",
+        max_length=PICKER_MAX_ITEMS,
+    )
+    picker_payload: PickerPayload | None = Field(default=None, alias="pickerPayload")
     consent_confirmed: bool = Field(default=False, alias="consentConfirmed")
 
     @model_validator(mode="after")
     def validate_payload(self) -> "ScanRequest":
+        if self.photo_items and self.picker_payload:
+            raise ValueError("provide exactly one scan input source")
         if not self.photo_items and not self.picker_payload:
             raise ValueError("photo_items or picker_payload is required")
-        if self.photo_items and len(self.photo_items) > PICKER_MAX_ITEMS:
-            raise ValueError(f"photo_items cannot exceed {PICKER_MAX_ITEMS} items")
-        if self.picker_payload:
-            validate_picker_payload(self.picker_payload)
         return self
 
 
-def validate_picker_payload(payload: dict[str, Any]) -> None:
-    raw_items = payload.get("mediaItems") or payload.get("items") or payload.get("media_items")
-    if not isinstance(raw_items, list):
-        return
-    if len(raw_items) > PICKER_MAX_ITEMS:
-        raise ValueError(f"picker selection cannot exceed {PICKER_MAX_ITEMS} items")
-    if any(not _picker_item_base_url(item) for item in raw_items):
-        raise ValueError("picker payload items require a baseUrl")
-    item_ids = [_picker_item_id(item) for item in raw_items]
-    if any(item_id is None for item_id in item_ids):
-        raise ValueError("picker payload items require an id")
-    if len(set(item_ids)) != len(item_ids):
-        raise ValueError("picker payload items must have unique ids")
-
-
-def _picker_item_base_url(item: Any) -> str | None:
-    if not isinstance(item, dict):
-        return None
-    media_file = item.get("mediaFile")
-    raw_url = item.get("baseUrl")
-    if raw_url is None and isinstance(media_file, dict):
-        raw_url = media_file.get("baseUrl")
-    if not isinstance(raw_url, str) or not raw_url.strip():
-        return None
-    return raw_url
-
-
-def _picker_item_id(item: Any) -> str | None:
-    if not isinstance(item, dict):
-        return None
-    media_file = item.get("mediaFile")
-    raw_id = item.get("id")
-    if raw_id is None and isinstance(media_file, dict):
-        raw_id = media_file.get("id")
-    if not isinstance(raw_id, str) or not raw_id.strip():
-        return None
-    return raw_id
+def validate_picker_payload(payload: PickerPayload | dict[str, Any]) -> None:
+    if not isinstance(payload, PickerPayload):
+        PickerPayload.model_validate(payload)
 
 
 class PhotoItemSummary(BaseModel):

@@ -19,6 +19,51 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-24 - PP-028 Picker API schema review repair
+
+- Role: Builder
+- Status: Done
+- Goal: Accept supported Google Photos Picker media-item metadata without weakening strict request-boundary validation.
+- Acceptance criteria checked:
+  - Picker items accept the API's `type` field.
+  - Nested media metadata accepts the committed camera and photo metadata fields.
+  - Unknown item-level request fields remain forbidden.
+  - Download-host entries remain exact matches, with the `googleusercontent.com` policy token limited to `lh<digits>.googleusercontent.com`.
+- Commands run:
+  - `make format-check` passed after formatting the reported API file.
+  - Focused Picker schema and download-host policy coverage passed with 14 tests.
+  - `make test` passed with 89 web tests, 18 deployment-boundary tests, 6 dependency-preflight tests, 156 API tests, and 2 worker tests.
+- Manual verification: Validated `ScanRequest` against all media items in `tests/fixtures/picker/exact_dupes.picker.json`.
+- Artifacts/screenshots: Not applicable.
+- Backlog updates: Added PP-028 review-repair evidence.
+- Follow-up tasks created: None.
+- Residual risk: New Google Photos Picker metadata fields will still require deliberate schema support.
+
+### 2026-07-24 - PP-028 Enforce the localhost deployment security boundary
+
+- Role: Builder
+- Status: Done
+- Goal: Enforce the frozen localhost-only, single-operator boundary across runtime configuration, ingress, outbound downloads, shipped topology, and operator documentation.
+- Acceptance criteria checked:
+  - Only the web gateway publishes `127.0.0.1:3000`; API, worker, database, and Redis remain private with single-process safety controls.
+  - Runtime settings, CORS, gateway host/origin checks, request bodies, fields, scan workload, rate limits, and concurrency fail closed at frozen bounds.
+  - Outbound media uses allowlisted hosts, complete DNS validation, pinned peers, original-host TLS verification, explicit redirects, safe trust roots, and shared byte/item/time budgets.
+  - Identity-like headers grant no authority, and the internal owner sentinel is absent from public project contracts.
+  - Errors retain safe categories and correlation IDs without exposing URLs, credentials, request bodies, or network internals.
+  - The patched Next.js and Sharp dependency graph remains frozen, release-age compliant, and free of known high-severity production audit findings.
+- Commands run:
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, and `make build` passed.
+  - The full suite passed with 89 web tests, 155 API tests, 2 worker tests, 18 deployment-boundary tests, and 6 dependency-preflight tests.
+  - `node scripts/check-coverage.mjs` passed at web 84.9%, API 92.42%, and worker 100%.
+  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml config` was inspected, and `pnpm check:deployment-boundary` passed.
+  - `pnpm dependency:preflight`, `pnpm install --frozen-lockfile`, and `pnpm audit --prod --audit-level=high` passed.
+  - `pnpm check:docs` passed.
+- Manual verification: Inspected the effective Compose topology and resolved all actionable findings from independent blind and edge-case security reviews.
+- Artifacts/screenshots: The completed implementation spec and automated security evidence; screenshots are not applicable.
+- Backlog updates: Moved PP-028 from Ready through In Progress to Done after the full verification gate passed.
+- Follow-up tasks created: None.
+- Residual risk: Authenticated multi-user operation and all remote, LAN, proxy, or tunnel exposure remain explicitly unsupported and out of scope.
+
 ### 2026-07-24 - PP-035 Patch Next.js and Sharp production vulnerabilities
 
 - Role: Builder
