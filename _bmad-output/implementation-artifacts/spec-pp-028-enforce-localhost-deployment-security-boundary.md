@@ -10,6 +10,8 @@ context:
   - "{project-root}/docs/delivery/REPOSITORY_REVIEW_2026-07-20.md"
   - "{project-root}/docs/ARCHITECTURE.md"
   - "{project-root}/_bmad-output/implementation-artifacts/spec-pp-027-repair-real-photo-scan-input-and-picker-lifecycle.md"
+architecture:
+  - "{project-root}/_bmad-output/planning-artifacts/architecture-pp-028-localhost-security-boundary.md"
 ---
 
 # PP-028 Enforce the Localhost Deployment Security Boundary
@@ -105,8 +107,10 @@ Settings validation occurs before middleware or routes are installed. In `produc
 - `scan_allowed_download_hosts` must be non-empty and contain only canonical exact hosts or the one
   existing, explicit `googleusercontent.com` media-host policy token;
 - `scan_download_host_overrides` must be empty;
-- `cors_origins` must be non-empty, use `http`, name only `localhost` or `127.0.0.1`, contain no
-  wildcard, credentials, path, query, or fragment, and use an explicit allowed local port;
+- when browser-direct CORS is enabled, `cors_origins` must be non-empty, use `http`, name only
+  `localhost` or `127.0.0.1`, contain no wildcard, credentials, path, query, or fragment, and use an
+  explicit allowed local port; a wholly same-origin gateway may disable CORS explicitly, but an empty
+  list must never mean allow-all;
 - budget and timeout settings must be positive and no greater than the contract maxima below.
 
 Local/test may use deterministic host overrides only through explicit test/fixture configuration.

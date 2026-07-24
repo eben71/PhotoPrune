@@ -171,7 +171,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Type: Security / API / Deployment
 - Finding coverage: RR-003, RR-004
 - Dependencies: The approved PP-028 implementation contract selects technically enforced localhost-only, single-operator use; authenticated multi-user and all non-local exposure are out of scope. Coordinate persistence ownership with PP-015 and readiness checks with PP-030.
-- Links: `apps/api/app/api/routes.py`, `apps/api/app/core/config.py`, `apps/api/app/engine/downloads.py`, `apps/api/app/projects/repository.py`
+- Links: `_bmad-output/implementation-artifacts/spec-pp-028-enforce-localhost-deployment-security-boundary.md`, `_bmad-output/planning-artifacts/architecture-pp-028-localhost-security-boundary.md`, `apps/api/app/api/routes.py`, `apps/api/app/core/config.py`, `apps/api/app/engine/downloads.py`, `apps/api/app/projects/repository.py`
 - Goal: Prevent unauthorized project access and fail closed at the remote-download boundary before PhotoPrune can be deployed beyond an explicitly local environment.
 - Acceptance criteria:
   - Runtime and shipped network configuration technically enforce localhost-only, single-operator use; docs state that project operations are unauthenticated, Google OAuth is not PhotoPrune login, and non-local exposure is unsupported.
