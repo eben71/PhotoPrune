@@ -170,17 +170,19 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Priority: P0
 - Type: Security / API / Deployment
 - Finding coverage: RR-003, RR-004
-- Dependencies: A documented deployment-scope decision (authenticated multi-user or technically enforced localhost-only); complete before any non-local exposure. Coordinate persistence ownership with PP-015 and readiness checks with PP-030.
-- Links: `apps/api/app/api/routes.py`, `apps/api/app/core/config.py`, `apps/api/app/engine/downloads.py`, `apps/api/app/projects/repository.py`
+- Dependencies: The approved PP-028 implementation contract selects technically enforced localhost-only, single-operator use; authenticated multi-user and all non-local exposure are out of scope. Coordinate persistence ownership with PP-015 and readiness checks with PP-030.
+- Links: `_bmad-output/implementation-artifacts/spec-pp-028-enforce-localhost-deployment-security-boundary.md`, `_bmad-output/planning-artifacts/architecture-pp-028-localhost-security-boundary.md`, `apps/api/app/api/routes.py`, `apps/api/app/core/config.py`, `apps/api/app/engine/downloads.py`, `apps/api/app/projects/repository.py`
 - Goal: Prevent unauthorized project access and fail closed at the remote-download boundary before PhotoPrune can be deployed beyond an explicitly local environment.
 - Acceptance criteria:
-  - Either every scan/project/review/export operation authenticates and authorizes the owning user without `local-user`, or runtime/network configuration technically refuses non-local use and docs state that boundary.
-  - Production mode is enum-like and fail-closed; missing host allowlists or security settings prevent startup rather than allowing every host.
+  - Runtime and shipped network configuration technically enforce localhost-only, single-operator use; docs state that project operations are unauthenticated, Google OAuth is not PhotoPrune login, and non-local exposure is unsupported.
+  - Production mode is enum-like and fail-closed; an empty download-host allowlist denies all in every supported environment, and missing production security settings prevent startup rather than allowing every host.
   - Every redirect and resolved address is revalidated; private/link-local/loopback destinations, DNS rebinding, oversized responses, and excessive work are bounded.
-  - Authentication, rate limits, per-request and aggregate byte/item/time limits, audit-safe errors, and CORS responsibilities are tested and documented.
+  - The absence of application authentication, a pre-parse inbound request-body ceiling, bounded request fields, process-local safety rate limits, per-request and aggregate download byte/item/time limits, audit-safe errors, and CORS responsibilities are tested and documented without making multi-user claims.
+  - The published web gateway resolves Next.js `>=16.2.11` and Sharp `>=0.35.0` through a release-age-compliant frozen lockfile with no high-severity production audit finding.
 - Required verification:
-  - Negative API/security tests cover cross-user access, unauthenticated calls, redirects to private addresses, rebinding simulation, bad environment values, empty allowlists, size/work limits, and rate limits.
+  - Negative API/security tests cover public-bind regressions, identity-header spoofing, declared/streamed oversized bodies before JSON parsing, oversized fields, redirects to private addresses, rebinding simulation, bad environment values, empty allowlists in every mode, redaction, size/work limits, concurrency, and rate limits; web tests prove project proxies and same-origin health work with only the private API URL.
   - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, and `make build`.
+  - `pnpm dependency:preflight`, `pnpm install --frozen-lockfile`, and `pnpm audit --prod --audit-level=high`.
   - Deployment review confirms no public listener can start with insecure defaults.
 
 ## P1
@@ -505,6 +507,23 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Required verification:
   - `pnpm smoke:mvp` and the CI workflow-equivalent command pass with Chromium.
   - `make lint`, `make format-check`, `make typecheck`, `make test`, and `pnpm check:docs`.
+
+### PP-035 Patch Next.js and Sharp production vulnerabilities
+
+- Status: Verifying
+- Priority: P1
+- Type: Build / CI / Supply Chain
+- Links: `apps/web/package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `.github/workflows/ci.yml`
+- Goal: Restore the protected production dependency audit by moving Next.js and its Sharp runtime dependency to patched versions without broadening the dependency update.
+- Acceptance criteria:
+  - Next.js resolves to `16.2.11` or newer and its framework lint packages remain aligned.
+  - Sharp resolves to `0.35.0` or newer, including through Next.js's optional production dependency path.
+  - The pnpm release-age preflight and `pnpm audit --prod --audit-level=high` pass.
+  - The full repository verification gate passes, with any unrelated intermittent failure recorded accurately.
+- Evidence:
+  - Next.js, `@next/eslint-plugin-next`, and `eslint-config-next` resolve to `16.2.11`; the workspace Sharp override resolves the Next.js optional dependency to `0.35.0`.
+  - The dependency preflight passed for 707 locked versions under the 1,440-minute policy, and the production audit reported no known vulnerabilities.
+  - Lint, format check, typecheck, tests, coverage, and build passed; the build identifies Next.js `16.2.11`.
 
 ## P2
 
