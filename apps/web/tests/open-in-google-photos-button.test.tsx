@@ -1,6 +1,14 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { act } from 'react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  type MockInstance,
+  vi
+} from 'vitest';
 
 import { OpenInGooglePhotosButton } from '../app/components/OpenInGooglePhotosButton';
 import type { Item } from '../src/types/phase2Envelope';
@@ -25,13 +33,14 @@ const baseItem: Item = {
 };
 
 describe('OpenInGooglePhotosButton', () => {
+  let openSpy: MockInstance<Window['open']>;
   const originalClipboard = Object.getOwnPropertyDescriptor(
     navigator,
     'clipboard'
   );
 
   beforeEach(() => {
-    vi.spyOn(window, 'open').mockImplementation(() => null);
+    openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
   });
 
   afterEach(() => {
@@ -61,7 +70,7 @@ describe('OpenInGooglePhotosButton', () => {
       screen.getByRole('button', { name: /open in google photos/i })
     );
 
-    expect(window.open).toHaveBeenCalledWith(
+    expect(openSpy).toHaveBeenCalledWith(
       'https://photos.google.com/direct/123',
       '_blank',
       'noopener,noreferrer'

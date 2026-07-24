@@ -29,6 +29,7 @@ Record every implementation or verification iteration here. The log is repo trut
   - Added a narrow `sharp: 0.35.0` workspace override because Next.js `16.2.11` still declares vulnerable `sharp@0.34.5` as an optional dependency.
   - Regenerated the pnpm lockfile without relaxing the 24-hour minimum release-age policy.
   - Confirmed the production dependency audit no longer reports known vulnerabilities.
+  - Replaced eight unbound `window.open` method references in tests with the existing named Vitest spy, preserving call assertions without disabling `@typescript-eslint/unbound-method`.
 - Commands run:
   - `pnpm install --no-frozen-lockfile` passed after each scoped override change.
   - `pnpm dependency:preflight` passed for 707 locked package versions under the 1,440-minute policy.
@@ -38,6 +39,7 @@ Record every implementation or verification iteration here. The log is repo trut
   - `node scripts/check-coverage.mjs` passed at web 83.59%, API 93.01%, and worker 100%.
   - `make build` passed and identified Next.js `16.2.11`.
   - `pnpm install --frozen-lockfile`, focused Prettier checks for the delivery records, `pnpm check:docs`, and `git diff --check` passed.
+  - After the CI lint report, the exact `make lint` gate, `make format-check`, `pnpm --filter web typecheck`, and the web test suite passed with 13 files and 78 tests.
 - Manual verification: Inspected the regenerated lockfile to confirm the production graph resolves `next@16.2.11` and `sharp@0.35.0`.
 - Artifacts/screenshots: Not applicable; dependency and CI-only change.
 - Backlog updates: Added PP-035 in `Verifying`.

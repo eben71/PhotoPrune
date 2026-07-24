@@ -1,5 +1,13 @@
 import { act, renderHook } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  type MockInstance,
+  vi
+} from 'vitest';
 
 import { useGooglePhotosPicker } from '../app/hooks/useGooglePhotosPicker';
 
@@ -44,6 +52,7 @@ describe('useGooglePhotosPicker hook', () => {
   const env = process.env;
   const fetchCalls: FetchCall[] = [];
   let requestedScope = '';
+  let openSpy: MockInstance<Window['open']>;
 
   beforeEach(() => {
     process.env = {
@@ -67,7 +76,7 @@ describe('useGooglePhotosPicker hook', () => {
       }
     };
 
-    vi.spyOn(window, 'open').mockReturnValue(pickerWindowMock());
+    openSpy = vi.spyOn(window, 'open').mockReturnValue(pickerWindowMock());
 
     vi.spyOn(globalThis, 'fetch').mockImplementation(
       (input: RequestInfo | URL, init?: RequestInit) => {
@@ -149,7 +158,7 @@ describe('useGooglePhotosPicker hook', () => {
 
   it('creates a Photos Picker API session and returns selected media items', async () => {
     const openedWindow = pickerWindowMock();
-    vi.mocked(window.open).mockReturnValue(openedWindow);
+    openSpy.mockReturnValue(openedWindow);
     const { result } = renderHook(() => useGooglePhotosPicker());
 
     let output: Awaited<ReturnType<typeof result.current.openPicker>> = null;
@@ -157,7 +166,7 @@ describe('useGooglePhotosPicker hook', () => {
       output = await result.current.openPicker();
     });
 
-    expect(window.open).toHaveBeenCalledWith(
+    expect(openSpy).toHaveBeenCalledWith(
       '',
       'photoprune-google-photos-picker',
       'popup,width=960,height=720'
@@ -198,7 +207,7 @@ describe('useGooglePhotosPicker hook', () => {
 
   it('keeps polling a closed picker window until selected media is available', async () => {
     const location = { href: '' };
-    vi.mocked(window.open).mockReturnValue({
+    openSpy.mockReturnValue({
       get closed() {
         return location.href.length > 0;
       },
@@ -288,7 +297,7 @@ describe('useGooglePhotosPicker hook', () => {
   });
 
   it('returns null when the picker window closes before media is selected', async () => {
-    vi.mocked(window.open).mockReturnValue({
+    openSpy.mockReturnValue({
       closed: true,
       location: { href: '' },
       close: vi.fn()
@@ -622,7 +631,7 @@ describe('useGooglePhotosPicker hook', () => {
   });
 
   it('reports a blocked placeholder before authorization or session creation', async () => {
-    vi.mocked(window.open).mockReturnValue(null);
+    openSpy.mockReturnValue(null);
 
     const { result } = renderHook(() => useGooglePhotosPicker());
 
@@ -641,7 +650,7 @@ describe('useGooglePhotosPicker hook', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-01-01T00:00:00Z'));
     const openedWindow = pickerWindowMock();
-    vi.mocked(window.open).mockReturnValue(openedWindow);
+    openSpy.mockReturnValue(openedWindow);
     vi.mocked(fetch).mockImplementation((input, init) => {
       fetchCalls.push({ input, init });
       const url = requestUrl(input);
@@ -686,7 +695,7 @@ describe('useGooglePhotosPicker hook', () => {
       }
     };
     const openedWindow = pickerWindowMock();
-    vi.mocked(window.open).mockReturnValue(openedWindow);
+    openSpy.mockReturnValue(openedWindow);
     const { result } = renderHook(() => useGooglePhotosPicker());
 
     await act(async () => {
