@@ -19,6 +19,31 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-24 - PP-035 Patch Next.js and Sharp production vulnerabilities
+
+- Role: Builder
+- Status: Verifying
+- Goal: Repair the high-severity pnpm production audit failure with the smallest aligned Next.js and Sharp dependency update.
+- Acceptance criteria checked:
+  - Updated Next.js, `@next/eslint-plugin-next`, and `eslint-config-next` from the vulnerable locked versions to `16.2.11`.
+  - Added a narrow `sharp: 0.35.0` workspace override because Next.js `16.2.11` still declares vulnerable `sharp@0.34.5` as an optional dependency.
+  - Regenerated the pnpm lockfile without relaxing the 24-hour minimum release-age policy.
+  - Confirmed the production dependency audit no longer reports known vulnerabilities.
+- Commands run:
+  - `pnpm install --no-frozen-lockfile` passed after each scoped override change.
+  - `pnpm dependency:preflight` passed for 707 locked package versions under the 1,440-minute policy.
+  - `pnpm audit --prod --audit-level=high` passed with no known vulnerabilities.
+  - `make lint`, `make format-check`, and `make typecheck` passed.
+  - `make test` initially failed one unrelated API ordering test, `test_export_defaults_to_latest_scan`; the isolated test passed immediately, and the full rerun passed with 78 web tests, 94 API tests, 2 worker tests, and 6 dependency-preflight tests.
+  - `node scripts/check-coverage.mjs` passed at web 83.59%, API 93.01%, and worker 100%.
+  - `make build` passed and identified Next.js `16.2.11`.
+  - `pnpm install --frozen-lockfile`, focused Prettier checks for the delivery records, `pnpm check:docs`, and `git diff --check` passed.
+- Manual verification: Inspected the regenerated lockfile to confirm the production graph resolves `next@16.2.11` and `sharp@0.35.0`.
+- Artifacts/screenshots: Not applicable; dependency and CI-only change.
+- Backlog updates: Added PP-035 in `Verifying`.
+- Follow-up tasks created: None; the isolated API ordering failure did not reproduce and is unrelated to the dependency patch.
+- Residual risk: The API latest-scan ordering test showed one intermittent failure before passing in isolation and in a full rerun; no persistence code was changed in this scoped security repair.
+
 ### 2026-07-20 - PP-027 Repair the real-photo scan input and Picker lifecycle
 
 - Role: Builder
