@@ -44,6 +44,21 @@ class PickerMediaMetadataPayload(BaseModel):
     width: int | None = None
     height: int | None = None
     location: PickerLocationPayload | None = None
+    camera_make: str | None = Field(default=None, alias="cameraMake", max_length=255)
+    camera_model: str | None = Field(default=None, alias="cameraModel", max_length=255)
+    photo_metadata: "PickerPhotoMetadataPayload | None" = Field(
+        default=None,
+        alias="photoMetadata",
+    )
+
+
+class PickerPhotoMetadataPayload(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+    focal_length: float | None = Field(default=None, alias="focalLength")
+    aperture_f_number: float | None = Field(default=None, alias="apertureFNumber")
+    iso_equivalent: int | None = Field(default=None, alias="isoEquivalent")
+    exposure_time: str | None = Field(default=None, alias="exposureTime", max_length=64)
 
 
 class PickerMediaFilePayload(BaseModel):
@@ -71,6 +86,7 @@ class PickerItemPayload(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     id: str | None = Field(default=None, min_length=1, max_length=MAX_ID_LENGTH)
+    media_type: str | None = Field(default=None, alias="type", max_length=32)
     create_time: str | None = Field(default=None, alias="createTime", max_length=64)
     filename: str | None = Field(default=None, max_length=MAX_FILENAME_LENGTH)
     mime_type: str | None = Field(

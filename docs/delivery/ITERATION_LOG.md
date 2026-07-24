@@ -19,6 +19,26 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-24 - PP-028 Picker API schema review repair
+
+- Role: Builder
+- Status: Done
+- Goal: Accept supported Google Photos Picker media-item metadata without weakening strict request-boundary validation.
+- Acceptance criteria checked:
+  - Picker items accept the API's `type` field.
+  - Nested media metadata accepts the committed camera and photo metadata fields.
+  - Unknown item-level request fields remain forbidden.
+  - Download-host entries remain exact matches, with the `googleusercontent.com` policy token limited to `lh<digits>.googleusercontent.com`.
+- Commands run:
+  - `make format-check` passed after formatting the reported API file.
+  - Focused Picker schema and download-host policy coverage passed with 14 tests.
+  - `make test` passed with 89 web tests, 18 deployment-boundary tests, 6 dependency-preflight tests, 156 API tests, and 2 worker tests.
+- Manual verification: Validated `ScanRequest` against all media items in `tests/fixtures/picker/exact_dupes.picker.json`.
+- Artifacts/screenshots: Not applicable.
+- Backlog updates: Added PP-028 review-repair evidence.
+- Follow-up tasks created: None.
+- Residual risk: New Google Photos Picker metadata fields will still require deliberate schema support.
+
 ### 2026-07-24 - PP-028 Enforce the localhost deployment security boundary
 
 - Role: Builder

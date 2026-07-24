@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
@@ -34,6 +37,28 @@ def test_scan_request_parses_picker_payload_by_alias():
 
     assert request.picker_payload is not None
     assert request.picker_payload.model_dump(by_alias=True) == {"mediaItems": []}
+
+
+def test_scan_request_accepts_committed_picker_api_fields():
+    repo_root = Path(__file__).resolve().parents[3]
+    fixture = json.loads(
+        (repo_root / "tests" / "fixtures" / "picker" / "exact_dupes.picker.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    request = ScanRequest.model_validate(
+        {"pickerPayload": {"mediaItems": fixture["pickerPayload"]["mediaItems"]}}
+    )
+
+    assert request.picker_payload is not None
+    first_item = request.picker_payload.media_items[0]
+    assert first_item.media_type == "PHOTO"
+    assert first_item.media_file is not None
+    assert first_item.media_file.media_file_metadata is not None
+    assert first_item.media_file.media_file_metadata.camera_make == "Google"
+    assert first_item.media_file.media_file_metadata.photo_metadata is not None
+    assert first_item.media_file.media_file_metadata.photo_metadata.iso_equivalent == 56
 
 
 def test_scan_request_rejects_duplicate_picker_payload_ids():

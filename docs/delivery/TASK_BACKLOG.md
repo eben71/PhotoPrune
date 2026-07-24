@@ -184,6 +184,9 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, and `make build`.
   - `pnpm dependency:preflight`, `pnpm install --frozen-lockfile`, and `pnpm audit --prod --audit-level=high`.
   - Deployment review confirms no public listener can start with insecure defaults.
+- Evidence:
+  - PR review repair models supported Picker `type`, camera, and photo metadata fields and validates the committed exact-duplicates Picker fixture while preserving strict item-boundary validation.
+  - CI repair preserves exact download-host allowlisting, restricts the Google media-host policy token to `lh<digits>.googleusercontent.com`, and passes the full format and test gates.
 
 ## P1
 
