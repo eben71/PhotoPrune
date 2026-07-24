@@ -158,6 +158,13 @@ forwarding uses `INTERNAL_API_BASE_URL=http://api:8000`. `PHOTOPRUNE_API_BASE_UR
 browser to bypass the gateway in the shipped topology. Existing health UI behavior must be routed
 same-origin or explicitly documented as development-only before the API host port is removed.
 
+Concretely, `apps/web/app/api/_lib/backend.ts` prefers `INTERNAL_API_BASE_URL` and falls back to the
+loopback API URL only for the documented non-container development path. A new same-origin
+`apps/web/app/api/health/route.ts` uses that helper to forward `/healthz`, and the client health page
+fetches `/api/health`. Proxy/helper and health tests run with only the internal URL configured. This
+is part of the topology change: removing the API publication without updating these paths would
+break project proxies and leave the health page calling an unreachable browser URL.
+
 ### 4.3 Deployment boundary checker
 
 Add `scripts/check-deployment-boundary.mjs` and expose it as
@@ -197,8 +204,9 @@ Pydantic settings creation.
 ### 5.2 Validation phases
 
 1. **Field parsing:** enum values, positive numeric types, normalized host/origin lists.
-2. **Cross-field policy:** production allowlist required, overrides forbidden, local CORS only,
-   configured maxima cannot exceed hard safety ceilings.
+2. **Cross-field policy:** the download allowlist is deny-all when empty in every environment;
+   production overrides are forbidden; CORS is local or explicitly disabled; configured maxima
+   cannot exceed hard safety ceilings.
 3. **Application construction:** `create_app()` obtains one validated settings snapshot before
    middleware, repositories, or routes become available.
 4. **Launcher policy:** the Compose checker separately proves socket publication. API settings do
@@ -206,6 +214,12 @@ Pydantic settings creation.
 
 This separation prevents a common false guarantee: application configuration can fail closed, but
 it cannot prove how an orchestrator published its socket.
+
+The shipped local environment supplies the narrow Google media allowlist required for Picker scans.
+Tests and deterministic local fixtures explicitly supply their own allowed original hostname.
+`scan_download_host_overrides` changes routing only after the original name passes the allowlist; it
+does not turn an empty list into allow-all. This invariant applies to `local`, `test`, and
+`production`, so the default supported mode cannot retain arbitrary outbound HTTPS access.
 
 ### 5.3 CORS policy
 
@@ -228,15 +242,45 @@ Outermost to innermost:
 
 1. Correlation ID validation/generation and response propagation.
 2. Safe exception translation and redacted structured logging.
-3. General non-health request admission fuse.
-4. Existing CORS middleware, if enabled.
-5. Router dependencies and handlers.
+3. Pure ASGI inbound-body limiter wrapping the request `receive` channel.
+4. General non-health request admission fuse.
+5. Existing CORS middleware, if enabled.
+6. Router dependencies, bounded-body JSON parsing, Pydantic validation, and handlers.
 
 Scan-specific admission wraps only actual scan execution and releases concurrency in a `finally`
 path. Request parsing failures must not consume a long-lived scan slot. Health endpoints bypass rate
 fuses but remain minimal.
 
-### 6.2 Local safety fuses
+### 6.2 Inbound body and field boundary
+
+The application enforces a **32 MiB maximum inbound HTTP request body** before FastAPI parses JSON.
+A pure ASGI middleware checks a valid `Content-Length` before reading and wraps `receive` to count
+actual `http.request` body chunks. It terminates at the first byte over the ceiling and returns a
+safe `413 request_body_too_large` without calling the downstream application. Missing, malformed,
+duplicated, or understated length headers never disable streamed accounting. The implementation
+must not use a convenience middleware that materializes the entire body before applying the check.
+
+This pre-parse ceiling is paired with immediate post-parse schema limits:
+
+| Input                              |          Maximum |
+| ---------------------------------- | ---------------: |
+| Request body                       |           32 MiB |
+| Identifier/source-reference string |   512 characters |
+| Filename                           | 1,024 characters |
+| MIME type                          |   255 characters |
+| Download URL or deep link          | 4,096 characters |
+| Review note                        | 4,096 characters |
+| Photo/Picker items                 |            2,000 |
+
+Replace `picker_payload: dict[str, Any]` and unbounded scan `source_ref`/media-item dictionaries with
+explicit input models for the supported Picker and source shapes. Those boundary models use
+`extra="forbid"`, bounded strings and lists, and no recursively arbitrary values. Response and
+persisted-envelope dictionaries are not automatically in scope; constrain only caller-controlled
+request shapes in PP-028. URL length is checked by schema validation before parsing, resolution, or
+connection policy. Tests instrument the downstream parser/handler to prove it is never invoked for
+declared or streamed oversized bodies.
+
+### 6.3 Local safety fuses
 
 The limits in the implementation specification are initial hard ceilings, not product capacity
 claims. Implement injectable interfaces:
@@ -263,7 +307,7 @@ Return stable categories and HTTP semantics:
 These controls mitigate accidental local overload. They are not authentication, fairness between
 users, or denial-of-service protection against a hostile local process.
 
-### 6.3 Identity-header handling
+### 6.4 Identity-header handling
 
 Do not add middleware that parses or trusts identity-like headers. Tests send spoofed values and
 assert behavior is identical to requests without them. Logging must not preserve bearer values.
@@ -519,10 +563,13 @@ Exit: unsupported modes/settings fail and the shipped effective topology exposes
 ### Slice B: Gateway and API admission
 
 1. Confirm every browser project/scan call is same-origin.
-2. Remove direct browser API dependency from the supported path.
-3. Add correlation/error middleware.
-4. Add general and scan-specific process-local fuses.
-5. Add spoofed-identity and limiter tests.
+2. Make the shared backend helper prefer `INTERNAL_API_BASE_URL`, add a same-origin health handler,
+   and update the client health page and tests.
+3. Remove direct browser API dependency from the supported path.
+4. Add correlation/error and pre-parse body-limit middleware.
+5. Replace arbitrary scan-input dictionaries with bounded, extra-forbidden request models.
+6. Add general and scan-specific process-local fuses.
+7. Add body/field-limit, proxy/health, spoofed-identity, and limiter tests.
 
 Exit: only the local gateway reaches API, identity headers have no authority, and excess work is
 bounded before scan execution.
@@ -556,6 +603,8 @@ Exit: documentation, code, tests, and effective topology agree on local-only beh
 | Settings unit tests       | Exact enums; unsafe production combinations; safe non-secret failures                  |
 | Compose policy unit tests | Public/omitted/IPv6 wildcard hosts; forbidden service ports; override regression       |
 | Effective topology check  | Merged base + development Compose output passes                                        |
+| ASGI/schema tests         | Declared/streamed 32 MiB ceiling before parse; bounded fields; unknown keys rejected   |
+| Web proxy/health tests    | Internal-only base URL keeps project routes and same-origin health working             |
 | Route tests               | Health bypass; 429/503 semantics; slot release; spoofed identity ignored               |
 | Download unit tests       | URL parsing; redirects; mixed DNS; rebinding peer; TLS hostname; budgets; redaction    |
 | Scan integration tests    | One aggregate budget; partial item failures remain truthful; total failure is explicit |
@@ -571,11 +620,14 @@ The builder must add automated checks for these statements:
 
 1. Effective shipped Compose publishes only `web` on `127.0.0.1:3000`.
 2. No unsupported deployment mode constructs the API.
-3. No production configuration permits empty/allow-all download policy or fixture overrides.
-4. No outbound redirect occurs without a fresh URL, DNS-set, and peer validation.
-5. No scan can exceed aggregate bytes, wall deadline, admission rate, or concurrency.
-6. No captured response/log contains seeded URL tokens, credentials, or upstream body text.
-7. No identity-like header changes repository selection or route outcome.
+3. No environment interprets an empty download allowlist as allow-all, and production rejects fixture
+   overrides.
+4. No body above 32 MiB reaches JSON/model parsing, and no oversized field reaches scan work.
+5. Internal-only API configuration keeps all project proxies and same-origin health working.
+6. No outbound redirect occurs without a fresh URL, DNS-set, and peer validation.
+7. No scan can exceed aggregate bytes, wall deadline, admission rate, or concurrency.
+8. No captured response/log contains seeded URL tokens, credentials, or upstream body text.
+9. No identity-like header changes repository selection or route outcome.
 
 ## 12. Risks and Mitigations
 
@@ -604,6 +656,8 @@ Before implementation begins, the builder must confirm:
 4. Which existing error envelope can carry stable safe categories without unnecessary shared-schema
    churn?
 5. Can every limiter and deadline test use injected monotonic time with no sleeps?
+6. Can the ASGI body limiter demonstrate that downstream JSON parsing is not invoked for both a
+   declared oversized body and a chunked/understated oversized body?
 
 Any answer that requires remote ingress, authentication, a reverse proxy, tenant persistence, TLS
 verification bypass, or a higher resource ceiling changes the approved scope and requires renewed

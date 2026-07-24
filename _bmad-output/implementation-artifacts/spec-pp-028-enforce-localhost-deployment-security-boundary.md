@@ -104,8 +104,8 @@ Add typed settings with these canonical values:
 
 Settings validation occurs before middleware or routes are installed. In `production`:
 
-- `scan_allowed_download_hosts` must be non-empty and contain only canonical exact hosts or the one
-  existing, explicit `googleusercontent.com` media-host policy token;
+- `scan_allowed_download_hosts` must contain only canonical exact hosts or the one existing,
+  explicit `googleusercontent.com` media-host policy token;
 - `scan_download_host_overrides` must be empty;
 - when browser-direct CORS is enabled, `cors_origins` must be non-empty, use `http`, name only
   `localhost` or `127.0.0.1`, contain no wildcard, credentials, path, query, or fragment, and use an
@@ -113,9 +113,12 @@ Settings validation occurs before middleware or routes are installed. In `produc
   list must never mean allow-all;
 - budget and timeout settings must be positive and no greater than the contract maxima below.
 
-Local/test may use deterministic host overrides only through explicit test/fixture configuration.
-An override never becomes an implicit production exception. Configuration errors name the invalid
-setting and safe remediation but do not print secret values.
+In **every** supported environment, an empty `scan_allowed_download_hosts` list means deny all
+downloads; it never means allow every HTTPS host. The shipped local configuration must supply the
+minimum Google media allowlist needed by the Picker path. Local/test may use deterministic host
+overrides only through explicit test/fixture configuration, and the original fixture hostname must
+still be explicitly allowlisted. An override never becomes an implicit production exception.
+Configuration errors name the invalid setting and safe remediation but do not print secret values.
 
 ### 2. The shipped topology makes remote ingress impossible
 
@@ -137,6 +140,15 @@ cover IPv6 so `localhost-only` cannot accidentally mean IPv4-safe but IPv6-publi
 
 Application `Host`/origin checks may provide defense in depth, but they are not the primary peer
 authorization boundary and must allow the documented private service name for internal forwarding.
+
+The gateway change includes the existing web paths, not only Compose configuration:
+
+- `apps/web/app/api/_lib/backend.ts` must prefer `INTERNAL_API_BASE_URL`, with the loopback API URL
+  retained only for an explicitly supported non-container development path;
+- add a same-origin web health route that forwards to FastAPI `/healthz`, and change
+  `apps/web/app/health/page.tsx` to call that route rather than reading a browser-side API base URL;
+- update proxy/helper, health page/route, and environment-selection tests so removing the API host
+  port cannot turn project routes into `503` responses or health into a browser network failure.
 
 ### 3. No application authentication or tenant claim is introduced
 
@@ -184,6 +196,7 @@ Centralize settings and enforce all lower/equal limits before allocating or sche
 
 | Budget                                      |         PP-028 maximum |
 | ------------------------------------------- | ---------------------: |
+| Inbound HTTP request body                   |                 32 MiB |
 | Picker/scan items per request               |                  2,000 |
 | Bytes per downloaded item                   |                 50 MiB |
 | Aggregate downloaded bytes per scan request |                500 MiB |
@@ -193,6 +206,20 @@ Centralize settings and enforce all lower/equal limits before allocating or sche
 | Concurrent scan executions per API process  |                      1 |
 | Scan admissions per API process             |   5 per rolling minute |
 | Non-health API requests per API process     | 120 per rolling minute |
+
+Enforce the inbound body ceiling in a pure ASGI receive wrapper **before** Starlette/FastAPI reads or
+JSON-decodes the body. Reject a declared `Content-Length` above the ceiling immediately, count actual
+streamed bytes when the header is absent or false, stop receiving once the ceiling is crossed, and
+return `413 request_body_too_large` without invoking request-model parsing. Do not use
+`BaseHTTPMiddleware` in a way that buffers the complete body first.
+
+After a bounded body is decoded, replace arbitrary request dictionaries with explicit bounded
+Pydantic input models wherever they accept Picker/source data. Forbid unknown keys at the scan input
+boundary and cap IDs/source references at 512 characters, filenames at 1,024 characters, MIME types
+at 255 characters, URLs/deep links at 4,096 characters, review notes at 4,096 characters, and
+collection counts at their existing product limits. URL length validation happens before DNS or URL
+fetch policy work. The raw-body ceiling is the pre-parse memory boundary; field and shape validation
+is the immediate post-parse semantic boundary.
 
 Stream with a bounded chunk size. Reject an oversized `Content-Length` before reading, still count
 actual streamed bytes, and stop the entire request once the aggregate budget is exhausted. Time and
@@ -232,13 +259,14 @@ logging boundary.
 | Oversized response         | Large `Content-Length`, stream over 50 MiB, or aggregate over 500 MiB            | Reading/scheduling stops and scan fails truthfully            | Download/scan tests              |
 | Excess work                | 2,001 items, second concurrent scan, or sixth scan in a minute                   | Rejected before excess work; retry semantics are explicit     | Route/limiter tests              |
 | Sensitive upstream error   | URL contains query token and upstream returns an error                           | Client/log captures contain no token, URL path/query, or body | Redaction test                   |
+| Oversized inbound body     | Declared or streamed body exceeds 32 MiB; nested fields are oversized            | Rejected before model parsing or work admission; no scan runs | ASGI/schema test                 |
 
 ## Code Map
 
 - `apps/api/app/core/config.py` — deployment/environment enums, production invariants, and centralized
   security budgets.
 - `apps/api/app/main.py` — startup validation, local-only defense-in-depth middleware, correlation
-  IDs, and safe error boundary.
+  IDs, pre-parse request-body ceiling, and safe error boundary.
 - `apps/api/app/api/routes.py` — process-wide request/scan admission controls and safe responses.
 - `apps/api/app/engine/downloads.py` — explicit redirects, allowlist enforcement, resolver/connector
   injection, peer verification, and per-item/aggregate/time budgets.
@@ -246,8 +274,12 @@ logging boundary.
 - `apps/api/app/projects/repository.py` — remove caller-facing default ownership semantics without a
   PP-015 persistence redesign.
 - `apps/api/tests/test_config.py`, `test_main.py`, `test_routes_scan.py`, `test_projects.py`, and
-  `test_downloads.py` — negative settings, ingress, spoofing, limiter, SSRF, rebinding, and budget
-  coverage.
+  `test_downloads.py` — negative settings, ingress, pre-parse body/field limits, spoofing, limiter,
+  SSRF, rebinding, and budget coverage.
+- `apps/web/app/api/_lib/backend.ts`, `apps/web/app/api/health/route.ts`, and
+  `apps/web/app/health/page.tsx` — private internal API selection and same-origin health behavior.
+- `apps/web/tests/projects-api-route.test.ts` and health/proxy tests — prove project and health paths
+  continue to work with only `INTERNAL_API_BASE_URL` configured.
 - `docker-compose.yml`, `docker-compose.dev.yml`, and `infra/docker/` — loopback-only host exposure
   with private service networking.
 - `scripts/` and CI/package command wiring — deterministic effective-Compose policy check.
@@ -267,6 +299,8 @@ logging boundary.
 
 - [ ] Publish only web on IPv4 loopback; stop publishing API, PostgreSQL, and Redis.
 - [ ] Keep server-side web-to-API forwarding on the private Compose network.
+- [ ] Update the shared web forwarding helper to prefer the internal URL and route browser health
+      checks through a tested same-origin handler.
 - [ ] Add an IPv4/IPv6-aware effective-Compose policy check and run it in the repository gate.
 - [ ] Document direct local commands with explicit loopback binds.
 
@@ -287,6 +321,9 @@ logging boundary.
 
 ### Task 5: Bound API work and prove the boundary
 
+- [ ] Reject declared and streamed bodies above 32 MiB in ASGI middleware before JSON/model parsing.
+- [ ] Replace arbitrary scan-input dictionaries with bounded, extra-forbidden models and enforce
+      ID, filename, MIME, URL, deep-link, note, and collection limits.
 - [ ] Add deterministic process-wide scan concurrency/rate and general API rate fuses.
 - [ ] Cover invalid config, public exposure, spoofed identity, redirects, rebinding, limits, and safe
       errors with negative tests.
@@ -307,13 +344,19 @@ logging boundary.
 5. Given excessive redirects, items, per-item bytes, aggregate bytes, elapsed download time,
    concurrent scans, or admission rate, processing stops at the documented bound and returns a
    stable safe error/retry contract.
-6. Given upstream URLs and failures containing credentials, query tokens, paths, bodies, or internal
+6. Given a declared or streamed request body above 32 MiB, the API returns a safe `413` before JSON
+   or Pydantic parsing and before route admission; given an oversized field or unknown scan-input key,
+   bounded schema validation rejects it before scan/download work.
+7. Given only `INTERNAL_API_BASE_URL=http://api:8000` and no host-published API port, project proxy
+   routes and the same-origin health page/handler still reach FastAPI successfully.
+8. Given upstream URLs and failures containing credentials, query tokens, paths, bodies, or internal
    exceptions, client responses and captured logs do not disclose them.
-7. Negative automated tests cover invalid/empty configuration, IPv4 and IPv6 public exposure,
-   identity spoofing, private redirects, DNS rebinding, mixed DNS, size/work/time limits, concurrency,
-   rate limits, and redaction without live external network calls.
-8. No multi-user/authentication claim, non-local deployment path, Google write scope, automatic
-   deletion, recovery claim, photo-byte persistence, or similarity percentage is introduced.
+9. Negative automated tests cover invalid/empty configuration, IPv4 and IPv6 public exposure,
+   declared/streamed body and field limits, identity spoofing, private redirects, DNS rebinding, mixed
+   DNS, size/work/time limits, concurrency, rate limits, and redaction without live external network
+   calls.
+10. No multi-user/authentication claim, non-local deployment path, Google write scope, automatic
+    deletion, recovery claim, photo-byte persistence, or similarity percentage is introduced.
 
 ## Verification
 
@@ -323,6 +366,9 @@ logging boundary.
 cd apps/api && uv run pytest tests/test_config.py tests/test_main.py tests/test_downloads.py tests/test_routes_scan.py tests/test_projects.py
 cd apps/api && uv run ruff check app tests
 cd apps/api && uv run mypy app
+pnpm --filter web test -- projects-api-route.test.ts health.test.tsx
+pnpm --filter web lint
+pnpm --filter web typecheck
 docker compose -f docker-compose.yml -f docker-compose.dev.yml config
 pnpm check:deployment-boundary
 pnpm check:docs

@@ -175,11 +175,11 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Goal: Prevent unauthorized project access and fail closed at the remote-download boundary before PhotoPrune can be deployed beyond an explicitly local environment.
 - Acceptance criteria:
   - Runtime and shipped network configuration technically enforce localhost-only, single-operator use; docs state that project operations are unauthenticated, Google OAuth is not PhotoPrune login, and non-local exposure is unsupported.
-  - Production mode is enum-like and fail-closed; missing host allowlists or security settings prevent startup rather than allowing every host.
+  - Production mode is enum-like and fail-closed; an empty download-host allowlist denies all in every supported environment, and missing production security settings prevent startup rather than allowing every host.
   - Every redirect and resolved address is revalidated; private/link-local/loopback destinations, DNS rebinding, oversized responses, and excessive work are bounded.
-  - The absence of application authentication, process-local safety rate limits, per-request and aggregate byte/item/time limits, audit-safe errors, and CORS responsibilities are tested and documented without making multi-user claims.
+  - The absence of application authentication, a pre-parse inbound request-body ceiling, bounded request fields, process-local safety rate limits, per-request and aggregate download byte/item/time limits, audit-safe errors, and CORS responsibilities are tested and documented without making multi-user claims.
 - Required verification:
-  - Negative API/security tests cover public-bind regressions, identity-header spoofing, redirects to private addresses, rebinding simulation, bad environment values, empty allowlists, redaction, size/work limits, concurrency, and rate limits.
+  - Negative API/security tests cover public-bind regressions, identity-header spoofing, declared/streamed oversized bodies before JSON parsing, oversized fields, redirects to private addresses, rebinding simulation, bad environment values, empty allowlists in every mode, redaction, size/work limits, concurrency, and rate limits; web tests prove project proxies and same-origin health work with only the private API URL.
   - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, and `make build`.
   - Deployment review confirms no public listener can start with insecure defaults.
 
