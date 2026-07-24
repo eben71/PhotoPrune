@@ -81,7 +81,42 @@ pnpm check:docs
 
 `make setup` installs the JavaScript workspace and Python service dependencies.
 
-`make dev` starts the local development stack.
+`make dev` starts the supported local development stack. Open
+`http://127.0.0.1:3000`; the effective Compose configuration publishes only
+that web port on IPv4 loopback. FastAPI, PostgreSQL, and Redis remain private
+to the Compose network. Verify the merged topology with:
+
+```bash
+pnpm check:deployment-boundary
+```
+
+PhotoPrune currently has no application accounts, sessions, or authorization.
+Project, scan, review, and export operations are unauthenticated and are safe
+only inside the enforced single-operator boundary. Google Photos Picker OAuth
+authorizes access to selected Google media; it is not a PhotoPrune login.
+CORS is browser policy, not authentication. Do not expose this stack through a
+LAN bind, reverse proxy, tunnel, port-forward, hosted runner, or remote Docker
+ingress.
+
+For explicit non-container development, bind both processes to loopback:
+
+```bash
+cd apps/api
+uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
+
+cd apps/web
+pnpm exec next dev -H 127.0.0.1 -p 3000
+```
+
+The non-container web server may use
+`PHOTOPRUNE_API_BASE_URL=http://127.0.0.1:8000`. The supported Compose gateway
+uses `INTERNAL_API_BASE_URL=http://api:8000` and same-origin `/api/...` routes.
+The gateway accepts only `localhost:3000` and `127.0.0.1:3000` and rejects
+explicitly cross-site state-changing requests before reading or forwarding
+their bodies. Private and loopback API forwarding URLs are allowlisted rather
+than treated as arbitrary deployment configuration.
+Use `docker compose exec` for private database, Redis, or API diagnostics; do
+not republish their ports.
 
 ## Repo Structure
 

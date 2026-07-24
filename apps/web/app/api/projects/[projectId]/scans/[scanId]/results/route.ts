@@ -1,9 +1,9 @@
 import { forward } from '../../../../../_lib/backend';
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ projectId: string; scanId: string }> }
 ) {
   const { projectId, scanId } = await params;
-  return forward(`/api/projects/${projectId}/scans/${scanId}/results`);
+  return forward(request, `/api/projects/${projectId}/scans/${scanId}/results`);
 }

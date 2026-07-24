@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from 'react';
 
-const API_BASE_URL =
-  process.env.PHOTOPRUNE_API_BASE_URL ?? 'http://localhost:8000';
-
 function readHealthStatus(data: unknown) {
   if (
     typeof data === 'object' &&
@@ -24,7 +21,7 @@ export default function HealthPage() {
   useEffect(() => {
     async function fetchHealth() {
       try {
-        const res = await fetch(`${API_BASE_URL}/healthz`);
+        const res = await fetch('/api/health');
         if (!res.ok) {
           throw new Error('Health check failed');
         }

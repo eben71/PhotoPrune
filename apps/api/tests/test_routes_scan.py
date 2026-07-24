@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from io import BytesIO
-from urllib.error import HTTPError
 
 from fastapi.testclient import TestClient
 from PIL import Image
 
 from app.core import config
+from app.core.config import Settings
+from app.core.security import AdmissionError
 from app.engine import downloads
 from app.engine.schemas import CostEstimate, ScanResult, StageMetrics
 from app.main import create_app
@@ -31,8 +34,9 @@ def test_scan_rejects_disallowed_download_host_returns_422(monkeypatch):
 
         assert response.status_code == 422
         detail = response.json()["detail"]
-        assert "not allowed" in detail
-        assert "Download URL host" in detail
+        assert detail["category"] == "download_host"
+        assert "not allowed" in detail["message"]
+        assert "correlationId" in detail
     finally:
         config.get_settings.cache_clear()
 
@@ -73,6 +77,88 @@ def test_scan_accepts_photo_items_alias(monkeypatch):
         assert response.status_code == 200
     finally:
         config.get_settings.cache_clear()
+
+
+def test_scan_preparation_uses_the_validated_app_settings(monkeypatch):
+    invoked = False
+
+    def fail_if_called(*_args, **_kwargs):
+        nonlocal invoked
+        invoked = True
+
+    monkeypatch.setattr("app.api.routes.run_scan", fail_if_called)
+    client = TestClient(
+        create_app(
+            Settings(
+                environment="production",
+                scan_allowed_download_hosts=["googleusercontent.com"],
+                scan_max_photos=1,
+            )
+        )
+    )
+    response = client.post(
+        "/api/scan",
+        json={
+            "photoItems": [
+                {"id": "one", "createTime": "2025-01-01T00:00:00Z"},
+                {"id": "two", "createTime": "2025-01-01T00:00:01Z"},
+            ]
+        },
+    )
+
+    assert response.status_code == 400
+    assert invoked is False
+
+
+def test_scan_rate_limit_returns_safe_retry_contract(monkeypatch):
+    def fake_run_scan(*_, **__):
+        return ScanResult(
+            runId="run-rate",
+            inputCount=1,
+            stageMetrics=StageMetrics(timingsMs={}, counts={}),
+            costEstimate=CostEstimate(
+                totalCost=0.0,
+                downloadCost=0.0,
+                hashCost=0.0,
+                comparisonCost=0.0,
+            ),
+            groupsExact=[],
+            groupsVerySimilar=[],
+            groupsPossiblySimilar=[],
+        )
+
+    monkeypatch.setattr("app.api.routes.run_scan", fake_run_scan)
+    client = TestClient(create_app(Settings(scan_admissions_per_minute=1)))
+    payload = {"photoItems": [{"id": "x", "createTime": "2025-01-01T00:00:00Z"}]}
+
+    assert client.post("/api/scan", json=payload).status_code == 200
+    limited = client.post("/api/scan", json=payload)
+
+    assert limited.status_code == 429
+    assert limited.headers["Retry-After"] == "60"
+    assert limited.json()["detail"]["category"] == "scan_rate_limited"
+    assert "correlationId" in limited.json()["detail"]
+
+
+def test_scan_busy_returns_safe_retry_contract():
+    class BusyController:
+        @contextmanager
+        def lease(self) -> Iterator[None]:
+            raise AdmissionError(503, "scan_busy", "A scan is already running.", 1)
+            yield
+
+    app = create_app()
+    app.state.scan_admission = BusyController()
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/scan",
+        json={"photoItems": [{"id": "x", "createTime": "2025-01-01T00:00:00Z"}]},
+    )
+
+    assert response.status_code == 503
+    assert response.headers["Retry-After"] == "1"
+    assert response.json()["detail"]["category"] == "scan_busy"
 
 
 def test_scan_accepts_picker_payload_alias(monkeypatch):
@@ -186,7 +272,7 @@ def test_scan_rejects_raw_picker_payload_above_item_limit():
         )
 
         assert response.status_code == 422
-        assert "cannot exceed 2000 items" in str(response.json()["detail"])
+        assert "at most 2000 items" in str(response.json()["detail"])
     finally:
         config.get_settings.cache_clear()
 
@@ -209,8 +295,8 @@ def test_scan_rejects_host_docker_internal_with_guidance(monkeypatch):
 
         assert response.status_code == 422
         detail = response.json()["detail"]
-        assert "host.docker.internal" in detail
-        assert "https://host.docker.internal" not in detail
+        assert detail["category"] == "download_host"
+        assert "host.docker.internal" not in str(detail)
     finally:
         config.get_settings.cache_clear()
 
@@ -219,17 +305,13 @@ def test_scan_network_failure_returns_422_without_url(monkeypatch):
     monkeypatch.setenv("SCAN_ALLOWED_DOWNLOAD_HOSTS", "photos.google.com")
     config.get_settings.cache_clear()
 
-    def fake_urlopen(*_, **__):
-        raise HTTPError(
-            url="https://photos.google.com/file.jpg",
-            code=404,
-            msg="Not Found",
-            hdrs=None,
-            fp=None,
+    def fail_download(*_args, **_kwargs):
+        raise downloads.DownloadSecurityError(
+            "download_http",
+            "The selected photo could not be downloaded.",
         )
 
-    monkeypatch.setattr(downloads.urllib.request, "urlopen", fake_urlopen)
-    monkeypatch.setattr(downloads, "_reject_private_addresses", lambda _: None)
+    monkeypatch.setattr(downloads.DownloadManager, "_download", fail_download)
     try:
         client = TestClient(create_app())
         payload = {
@@ -246,13 +328,9 @@ def test_scan_network_failure_returns_422_without_url(monkeypatch):
 
         assert response.status_code == 422
         detail = response.json()["detail"]
-        expected_detail = (
-            "Download failed for host 'photos.google.com' with status 404. "
-            "Allow this host via SCAN_ALLOWED_DOWNLOAD_HOSTS or map obfuscated hosts "
-            "with SCAN_DOWNLOAD_HOST_OVERRIDES."
-        )
-        assert detail == expected_detail
-        assert "https://photos.google.com/file.jpg" not in detail
+        assert detail["category"] == "download_http"
+        assert detail["message"] == "The selected photo could not be downloaded."
+        assert "https://photos.google.com/file.jpg" not in str(detail)
     finally:
         config.get_settings.cache_clear()
 
@@ -262,13 +340,12 @@ def test_scan_returns_exact_group_and_partial_item_failure(monkeypatch):
     config.get_settings.cache_clear()
     duplicate_bytes = _png_bytes()
 
-    def fake_urlopen(request, **_kwargs):
-        if request.full_url.endswith("/invalid"):
-            return BytesIO(b"not-an-image")
-        return BytesIO(duplicate_bytes)
+    def fake_download(_manager, item):
+        if item.download_url and item.download_url.endswith("/invalid"):
+            return b"not-an-image"
+        return duplicate_bytes
 
-    monkeypatch.setattr(downloads.urllib.request, "urlopen", fake_urlopen)
-    monkeypatch.setattr(downloads, "_reject_private_addresses", lambda _: None)
+    monkeypatch.setattr(downloads.DownloadManager, "_download", fake_download)
     try:
         client = TestClient(create_app())
         response = client.post(
@@ -300,11 +377,10 @@ def test_scan_rejects_selection_when_every_item_is_invalid(monkeypatch):
     monkeypatch.setenv("SCAN_ALLOWED_DOWNLOAD_HOSTS", "photos.google.com")
     config.get_settings.cache_clear()
     monkeypatch.setattr(
-        downloads.urllib.request,
-        "urlopen",
-        lambda *_args, **_kwargs: BytesIO(b"not-an-image"),
+        downloads.DownloadManager,
+        "_download",
+        lambda *_args, **_kwargs: b"not-an-image",
     )
-    monkeypatch.setattr(downloads, "_reject_private_addresses", lambda _: None)
     try:
         client = TestClient(create_app())
         response = client.post(
@@ -318,8 +394,9 @@ def test_scan_rejects_selection_when_every_item_is_invalid(monkeypatch):
         )
 
         assert response.status_code == 422
-        assert (
-            "None of the selected photos supplied readable image bytes" in response.json()["detail"]
+        assert response.json()["detail"]["category"] == "download_content"
+        assert "None of the selected photos supplied readable image bytes" in (
+            response.json()["detail"]["message"]
         )
     finally:
         config.get_settings.cache_clear()

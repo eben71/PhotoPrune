@@ -166,7 +166,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-028 Enforce the deployment security boundary
 
-- Status: Ready
+- Status: Done
 - Priority: P0
 - Type: Security / API / Deployment
 - Finding coverage: RR-003, RR-004

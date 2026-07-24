@@ -1,4 +1,4 @@
-import { forward } from '../../../../../_lib/backend';
+import { forwardRequestBody } from '../../../../../_lib/backend';
 
 export async function PATCH(
   request: Request,
@@ -7,11 +7,11 @@ export async function PATCH(
   }: { params: Promise<{ projectId: string; groupFingerprint: string }> }
 ): Promise<Response> {
   const { projectId, groupFingerprint } = await params;
-  return forward(
+  return forwardRequestBody(
+    request,
     `/api/projects/${projectId}/groups/${groupFingerprint}/review`,
     {
-      method: 'PATCH',
-      body: await request.text()
+      method: 'PATCH'
     }
   );
 }

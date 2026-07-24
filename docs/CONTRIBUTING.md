@@ -14,7 +14,7 @@
    ```
    - JS/TS uses pnpm + Turborepo.
    - Python services use `uv` with pinned requirement files (`requirements-dev.lock`).
-   - The initial `pnpm-lock.yaml` is a placeholder; regenerate it on first install and commit the updated lockfile.
+   - Keep the committed `pnpm-lock.yaml` aligned with workspace manifests.
 
 ## Development commands
 - Lint: `make lint`
@@ -29,8 +29,14 @@
 - Verify Python lock files are in sync with the service `pyproject.toml` files without modifying the working tree or upgrading committed pins: `make python-locks-check`
 - Check Node lockfile package age against pnpm supply-chain policy: `pnpm dependency:preflight`
 - Test dependency preflight scripts with deterministic fixtures: `pnpm test:dependency-preflight`
+- Verify the effective localhost-only Compose topology: `pnpm check:deployment-boundary`
 - Local stack: `make dev`
 - Install git hooks: `make hooks`
+
+`make dev` publishes only the web gateway at `127.0.0.1:3000`. The API,
+PostgreSQL, and Redis remain private to Compose. Project APIs are
+unauthenticated, so do not add a LAN bind, proxy, tunnel, port-forward, or
+remote ingress. Use `docker compose exec` for private service diagnostics.
 
 ## CI gates
 The GitHub Actions workflow runs on PRs and `main` updates. It performs:
@@ -40,9 +46,10 @@ The GitHub Actions workflow runs on PRs and `main` updates. It performs:
 - Format check (Prettier + Black)
 - Type checking (TypeScript + MyPy)
 - Tests with coverage (Vitest, pytest) and combined coverage gate (>=80% each surface)
+- Effective localhost deployment-boundary verification
 - Builds (Next.js, shared package build, Python bytecode compile as a smoke test)
 - Documentation guard (`scripts/check-docs.js`) ensuring README stays in sync with commands/structure
-- Dependency audits (`pnpm audit --audit-level=high`, `pip-audit`)
+- Dependency audits (`pnpm audit --prod --audit-level=high`, `pip-audit`)
 
 A scheduled GitHub Actions workflow runs `make python-locks-upgrade` before the weekly Dependabot window and opens or updates a Python lock refresh PR when allowed versions change. CI pins the `uv` version used for lock checks and refreshes so lock metadata does not churn when a new `uv` release changes output formatting. This keeps transient audit fixes, such as patched tooling packages pulled in by `pip-audit`, from repeatedly breaking Dependabot PRs.
 A same-repository pull request that changes `apps/api/pyproject.toml` or `apps/worker/pyproject.toml` also runs a Python lock repair workflow. When permissions allow, it runs `make python-locks` and pushes only synchronized lock files back to the PR branch. Protected CI remains non-mutating and continues to verify with `make python-locks-check`.

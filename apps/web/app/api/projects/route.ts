@@ -1,12 +1,9 @@
-import { forward } from '../_lib/backend';
+import { forward, forwardRequestBody } from '../_lib/backend';
 
-export async function GET() {
-  return forward('/api/projects');
+export async function GET(request: Request) {
+  return forward(request, '/api/projects');
 }
 
 export async function POST(request: Request) {
-  return forward('/api/projects', {
-    method: 'POST',
-    body: await request.text()
-  });
+  return forwardRequestBody(request, '/api/projects', { method: 'POST' });
 }

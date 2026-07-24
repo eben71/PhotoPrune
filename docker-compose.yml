@@ -5,8 +5,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-photoprune}
-    ports:
-      - "5432:5432"
+    expose:
+      - "5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 10s
@@ -17,8 +17,8 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -34,14 +34,30 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/photoprune}
       REDIS_URL: redis://redis:6379/0
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      DEPLOYMENT_MODE: local_only
+      ENVIRONMENT: ${ENVIRONMENT:-local}
+      SCAN_ALLOWED_DOWNLOAD_HOSTS: ${SCAN_ALLOWED_DOWNLOAD_HOSTS:-googleusercontent.com}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    ports:
-      - "8000:8000"
+    command:
+      [
+        "uv",
+        "run",
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--workers",
+        "1"
+      ]
+    expose:
+      - "8000"
 
   worker:
     build:
@@ -54,7 +70,17 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    command: ["celery", "-A", "app.celery_app.app", "worker", "-l", "info"]
+    command:
+      [
+        "celery",
+        "-A",
+        "app.celery_app.app",
+        "worker",
+        "-l",
+        "info",
+        "--pool=solo",
+        "--concurrency=1"
+      ]
 
   web:
     build:
@@ -63,12 +89,12 @@ services:
     env_file:
       - .env
     environment:
-      PHOTOPRUNE_API_BASE_URL: http://api:8000
+      INTERNAL_API_BASE_URL: http://api:8000
     depends_on:
       api:
         condition: service_started
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
 
 volumes:
   postgres_data:
