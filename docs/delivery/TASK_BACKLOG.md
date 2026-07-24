@@ -506,6 +506,23 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - `pnpm smoke:mvp` and the CI workflow-equivalent command pass with Chromium.
   - `make lint`, `make format-check`, `make typecheck`, `make test`, and `pnpm check:docs`.
 
+### PP-035 Patch Next.js and Sharp production vulnerabilities
+
+- Status: Verifying
+- Priority: P1
+- Type: Build / CI / Supply Chain
+- Links: `apps/web/package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `.github/workflows/ci.yml`
+- Goal: Restore the protected production dependency audit by moving Next.js and its Sharp runtime dependency to patched versions without broadening the dependency update.
+- Acceptance criteria:
+  - Next.js resolves to `16.2.11` or newer and its framework lint packages remain aligned.
+  - Sharp resolves to `0.35.0` or newer, including through Next.js's optional production dependency path.
+  - The pnpm release-age preflight and `pnpm audit --prod --audit-level=high` pass.
+  - The full repository verification gate passes, with any unrelated intermittent failure recorded accurately.
+- Evidence:
+  - Next.js, `@next/eslint-plugin-next`, and `eslint-config-next` resolve to `16.2.11`; the workspace Sharp override resolves the Next.js optional dependency to `0.35.0`.
+  - The dependency preflight passed for 707 locked versions under the 1,440-minute policy, and the production audit reported no known vulnerabilities.
+  - Lint, format check, typecheck, tests, coverage, and build passed; the build identifies Next.js `16.2.11`.
+
 ## P2
 
 ### PP-029 Establish matching-quality evidence and performance budgets
