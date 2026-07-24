@@ -749,6 +749,13 @@ def _sanitize_headers(headers: Mapping[str, str]) -> dict[str, str]:
 
 def _create_isolated_ssl_context() -> ssl.SSLContext:
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    tls_version = getattr(ssl, "TLSVersion", None)
+    if tls_version is not None and hasattr(context, "minimum_version"):
+        context.minimum_version = tls_version.TLSv1_2
+    else:
+        op_no_tlsv1 = getattr(ssl, "OP_NO_TLSv1", 0)
+        op_no_tlsv1_1 = getattr(ssl, "OP_NO_TLSv1_1", 0)
+        context.options |= op_no_tlsv1 | op_no_tlsv1_1
     context.check_hostname = True
     context.verify_mode = ssl.CERT_REQUIRED
     loaded_trust = False
