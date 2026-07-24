@@ -280,6 +280,9 @@ logging boundary.
   `apps/web/app/health/page.tsx` — private internal API selection and same-origin health behavior.
 - `apps/web/tests/projects-api-route.test.ts` and health/proxy tests — prove project and health paths
   continue to work with only `INTERNAL_API_BASE_URL` configured.
+- `apps/web/package.json`, `pnpm-workspace.yaml`, and `pnpm-lock.yaml` — resolve the audited Next.js
+  and Sharp production vulnerabilities with release-age-compliant patched versions and one coherent
+  lock graph.
 - `docker-compose.yml`, `docker-compose.dev.yml`, and `infra/docker/` — loopback-only host exposure
   with private service networking.
 - `scripts/` and CI/package command wiring — deterministic effective-Compose policy check.
@@ -330,6 +333,20 @@ logging boundary.
 - [ ] Update canonical deployment/architecture docs and only record completion evidence after the
       full implementation gate passes.
 
+### Task 6: Close audited production dependency vulnerabilities
+
+- [ ] Upgrade the production Next.js graph to at least `16.2.11`, including aligned Next.js lint
+      packages, to resolve `GHSA-6gpp-xcg3-4w24`, `GHSA-m99w-x7hq-7vfj`,
+      `GHSA-89xv-2m56-2m9x`, and `GHSA-p9j2-gv94-2wf4`.
+- [ ] Ensure Next.js resolves Sharp at least `0.35.0` to resolve
+      `GHSA-f88m-g3jw-g9cj` and its inherited libvips findings; use the existing root override policy
+      if a transitive optional dependency otherwise remains vulnerable.
+- [ ] Select the newest compatible patched versions that satisfy the repository's 24-hour
+      `minimumReleaseAge` policy, regenerate the lockfile with pnpm rather than hand-editing it, and
+      keep Next.js framework/lint packages aligned.
+- [ ] Run the dependency preflight before installation, then prove the frozen production graph has
+      no high-severity advisory with `pnpm audit --prod --audit-level=high`.
+
 ## Acceptance Criteria
 
 1. Given the shipped Compose configuration, inspecting the effective configuration shows that only
@@ -355,7 +372,10 @@ logging boundary.
    declared/streamed body and field limits, identity spoofing, private redirects, DNS rebinding, mixed
    DNS, size/work/time limits, concurrency, rate limits, and redaction without live external network
    calls.
-10. No multi-user/authentication claim, non-local deployment path, Google write scope, automatic
+10. Given the frozen production dependency graph, `pnpm audit --prod --audit-level=high` exits zero;
+    Next.js is at least `16.2.11`, Sharp is at least `0.35.0`, the lockfile matches all manifests and
+    overrides, and dependency release-age preflight passes.
+11. No multi-user/authentication claim, non-local deployment path, Google write scope, automatic
     deletion, recovery claim, photo-byte persistence, or similarity percentage is introduced.
 
 ## Verification
@@ -369,6 +389,9 @@ cd apps/api && uv run mypy app
 pnpm --filter web test -- projects-api-route.test.ts health.test.tsx
 pnpm --filter web lint
 pnpm --filter web typecheck
+pnpm dependency:preflight
+pnpm install --frozen-lockfile
+pnpm audit --prod --audit-level=high
 docker compose -f docker-compose.yml -f docker-compose.dev.yml config
 pnpm check:deployment-boundary
 pnpm check:docs
@@ -383,6 +406,8 @@ make typecheck
 make test
 node scripts/check-coverage.mjs
 make build
+pnpm dependency:preflight
+pnpm audit --prod --audit-level=high
 pnpm check:docs
 ```
 

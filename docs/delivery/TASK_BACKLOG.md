@@ -178,9 +178,11 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Production mode is enum-like and fail-closed; an empty download-host allowlist denies all in every supported environment, and missing production security settings prevent startup rather than allowing every host.
   - Every redirect and resolved address is revalidated; private/link-local/loopback destinations, DNS rebinding, oversized responses, and excessive work are bounded.
   - The absence of application authentication, a pre-parse inbound request-body ceiling, bounded request fields, process-local safety rate limits, per-request and aggregate download byte/item/time limits, audit-safe errors, and CORS responsibilities are tested and documented without making multi-user claims.
+  - The published web gateway resolves Next.js `>=16.2.11` and Sharp `>=0.35.0` through a release-age-compliant frozen lockfile with no high-severity production audit finding.
 - Required verification:
   - Negative API/security tests cover public-bind regressions, identity-header spoofing, declared/streamed oversized bodies before JSON parsing, oversized fields, redirects to private addresses, rebinding simulation, bad environment values, empty allowlists in every mode, redaction, size/work limits, concurrency, and rate limits; web tests prove project proxies and same-origin health work with only the private API URL.
   - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, and `make build`.
+  - `pnpm dependency:preflight`, `pnpm install --frozen-lockfile`, and `pnpm audit --prod --audit-level=high`.
   - Deployment review confirms no public listener can start with insecure defaults.
 
 ## P1
