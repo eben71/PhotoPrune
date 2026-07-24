@@ -524,6 +524,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Next.js, `@next/eslint-plugin-next`, and `eslint-config-next` resolve to `16.2.11`; the workspace Sharp override resolves the Next.js optional dependency to `0.35.0`.
   - The dependency preflight passed for 707 locked versions under the 1,440-minute policy, and the production audit reported no known vulnerabilities.
   - Lint, format check, typecheck, tests, coverage, and build passed; the build identifies Next.js `16.2.11`.
+  - CI's stricter type-aware lint run was repaired by retaining the `window.open` spy and asserting/configuring that bound spy directly in the two affected test files.
 
 ## P2
 
