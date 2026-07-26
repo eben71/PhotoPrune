@@ -5,7 +5,7 @@ packages:
 
 overrides:
   next: 16.2.11
-  postcss: 8.5.14
+  postcss: 8.5.18
   rollup: 4.59.0
   sharp: 0.35.0
 
