@@ -678,3 +678,30 @@ Record every implementation or verification iteration here. The log is repo trut
 - Backlog updates: Added PP-035 as Verifying.
 - Follow-up tasks created: None.
 - Residual risk: GitHub Actions rerun remains required to prove the hosted runner path.
+
+### 2026-07-26 - PP-036 Patch the PostCSS production dependency
+
+- Role: Builder
+- Status: Verifying
+- Goal: Upgrade the centrally overridden PostCSS version to the patched release required by GHSA-r28c-9q8g-f849.
+- Acceptance criteria checked:
+  - Workspace and lockfile resolve PostCSS `8.5.18`.
+  - The 24-hour minimum-release-age preflight passes.
+  - The production audit reports no known vulnerabilities.
+- Commands run:
+  - `corepack pnpm install --no-frozen-lockfile` passed and reported the lockfile satisfies supply-chain policy.
+  - `pnpm dependency:preflight` passed for 706 locked package versions.
+  - `pnpm audit --prod --audit-level=high` passed with no known vulnerabilities.
+  - `make lint` passed.
+  - `make format-check` passed.
+  - `make typecheck` passed.
+  - `make test` passed: 89 web tests, 19 deployment-boundary tests, 6 dependency-preflight tests, 156 API tests, and 2 worker tests.
+  - `node scripts/check-coverage.mjs` passed.
+  - `make build` passed.
+  - `node scripts/check-deployment-boundary.mjs` passed.
+  - `node scripts/check-docs.js` passed.
+- Manual verification: Confirmed the reviewed GitHub advisory affects PostCSS through `8.5.17` and identifies `8.5.18` as patched.
+- Artifacts/screenshots: Not applicable; dependency-only security repair.
+- Backlog updates: Added PP-036 as Verifying.
+- Follow-up tasks created: None.
+- Residual risk: GitHub Actions rerun remains required to confirm the hosted audit gate.

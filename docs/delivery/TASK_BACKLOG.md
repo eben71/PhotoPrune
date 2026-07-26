@@ -661,3 +661,21 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - `pnpm test:deployment-boundary`
   - `pnpm check:deployment-boundary`
   - `pnpm check:docs`
+
+### PP-036 Patch the PostCSS production dependency
+
+- Status: Verifying
+- Priority: P1
+- Type: Build / CI / Supply Chain
+- Finding coverage: GHSA-r28c-9q8g-f849
+- Dependencies: None.
+- Links: `pnpm-workspace.yaml`, `pnpm-lock.yaml`
+- Goal: Remove the high-severity PostCSS path-traversal advisory from the production dependency graph without weakening the audit gate.
+- Acceptance criteria:
+  - The workspace override and lockfile resolve PostCSS to patched version `8.5.18` or later.
+  - The dependency satisfies the repository minimum-release-age policy.
+  - The production Node audit reports no high-severity vulnerabilities.
+- Required verification:
+  - `pnpm dependency:preflight`
+  - `pnpm audit --prod --audit-level=high`
+  - Full repository handoff gate.
