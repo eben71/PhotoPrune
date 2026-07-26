@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import fixtureRunEnvelope from '../../tests/fixtures/phase2_2_sample_results.json';
 
 import { PICKER_MAX_ITEMS } from '../constants/scanLimits';
+import { apiBaseUrls } from '../../app/api/_lib/backend';
 import type { PickerItem, RunEnvelope } from '../types/phase2Envelope';
 import { shouldUsePhase21FixtureMode } from './runMode';
 
@@ -402,13 +403,7 @@ async function executeRun(record: RunRecord): Promise<void> {
       return;
     }
 
-    const baseUrls = Array.from(
-      new Set([
-        process.env.INTERNAL_API_BASE_URL,
-        process.env.PHOTOPRUNE_API_BASE_URL,
-        'http://localhost:8000'
-      ])
-    ).filter((url): url is string => Boolean(url));
+    const baseUrls = apiBaseUrls();
     const payload = JSON.stringify({
       photoItems: record.selection.map((item) => ({
         id: item.id,
@@ -423,13 +418,10 @@ async function executeRun(record: RunRecord): Promise<void> {
       consentConfirmed: true
     });
     let response: Response | undefined;
-    let lastNetworkError: unknown;
-    let lastAttemptedUrl: string | undefined;
 
     for (const baseUrl of baseUrls) {
       try {
         const scanUrl = `${baseUrl.replace(/\/$/, '')}/api/scan`;
-        lastAttemptedUrl = scanUrl;
         response = await fetch(scanUrl, {
           method: 'POST',
           headers: {
@@ -438,18 +430,14 @@ async function executeRun(record: RunRecord): Promise<void> {
           body: payload
         });
         break;
-      } catch (error) {
-        lastNetworkError = error;
+      } catch {
+        // Try only another documented local URL, if one is configured.
       }
     }
 
     if (!response) {
-      const networkMessage =
-        lastNetworkError instanceof Error
-          ? lastNetworkError.message
-          : 'fetch failed';
       throw new Error(
-        `Unable to reach the scan API (${networkMessage}). Check that the API is running and PHOTOPRUNE_API_BASE_URL / INTERNAL_API_BASE_URL are correct. Last URL: ${lastAttemptedUrl ?? 'n/a'}`
+        'Unable to reach the local scan API. Start the API service and retry.'
       );
     }
 

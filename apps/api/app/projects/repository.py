@@ -17,6 +17,7 @@ from app.engine.schemas import ScanResult
 from app.projects.schemas import ProjectGroupReviewPatch
 
 DEFAULT_SCOPE = {"type": "picker", "albumIds": []}
+SINGLE_OPERATOR_STORAGE_OWNER = "local-user"
 
 
 class ProjectRepository:
@@ -182,11 +183,11 @@ class ProjectRepository:
                 ),
             )
 
-    def create_project(self, name: str, user_id: str = "local-user") -> dict[str, Any]:
+    def create_project(self, name: str) -> dict[str, Any]:
         now = _now_iso()
         project: dict[str, Any] = {
             "id": str(uuid4()),
-            "user_id": user_id,
+            "user_id": SINGLE_OPERATOR_STORAGE_OWNER,
             "name": name,
             "status": "active",
             "scope": DEFAULT_SCOPE,

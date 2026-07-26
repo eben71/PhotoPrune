@@ -166,7 +166,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-028 Enforce the deployment security boundary
 
-- Status: Ready
+- Status: Done
 - Priority: P0
 - Type: Security / API / Deployment
 - Finding coverage: RR-003, RR-004
@@ -184,6 +184,9 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, and `make build`.
   - `pnpm dependency:preflight`, `pnpm install --frozen-lockfile`, and `pnpm audit --prod --audit-level=high`.
   - Deployment review confirms no public listener can start with insecure defaults.
+- Evidence:
+  - PR review repair models supported Picker `type`, camera, and photo metadata fields and validates the committed exact-duplicates Picker fixture while preserving strict item-boundary validation.
+  - CI repair preserves exact download-host allowlisting, restricts the Google media-host policy token to `lh<digits>.googleusercontent.com`, and passes the full format and test gates.
 
 ## P1
 
@@ -640,3 +643,39 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Required verification:
   - Run the `maintain-agent-system` audit/review workflow and record its evidence.
   - `pnpm check:docs`, targeted ignore/tracked-artifact checks, link validation, and full repo gate pass.
+
+### PP-035 Repair deployment-boundary CI environment
+
+- Status: Verifying
+- Priority: P1
+- Type: Build / CI
+- Finding coverage: CI deployment-boundary failure
+- Dependencies: None.
+- Links: `.github/workflows/ci.yml`, `scripts/check-deployment-boundary.mjs`, `tests/deployment-boundary/deployment-boundary.test.mjs`
+- Goal: Ensure CI can inspect the effective Compose configuration and reports the underlying Docker Compose diagnostic when inspection fails.
+- Acceptance criteria:
+  - CI creates its ignored `.env` from the committed example before running the deployment-boundary check.
+  - Compose inspection failures include the available Docker Compose stderr or process error.
+  - Focused deployment-boundary tests and the effective Compose boundary check pass.
+- Required verification:
+  - `pnpm test:deployment-boundary`
+  - `pnpm check:deployment-boundary`
+  - `pnpm check:docs`
+
+### PP-036 Patch the PostCSS production dependency
+
+- Status: Verifying
+- Priority: P1
+- Type: Build / CI / Supply Chain
+- Finding coverage: GHSA-r28c-9q8g-f849
+- Dependencies: None.
+- Links: `pnpm-workspace.yaml`, `pnpm-lock.yaml`
+- Goal: Remove the high-severity PostCSS path-traversal advisory from the production dependency graph without weakening the audit gate.
+- Acceptance criteria:
+  - The workspace override and lockfile resolve PostCSS to patched version `8.5.18` or later.
+  - The dependency satisfies the repository minimum-release-age policy.
+  - The production Node audit reports no high-severity vulnerabilities.
+- Required verification:
+  - `pnpm dependency:preflight`
+  - `pnpm audit --prod --audit-level=high`
+  - Full repository handoff gate.

@@ -22,7 +22,7 @@ services:
       [
         "/bin/bash",
         "-lc",
-        "uv run celery -A app.celery_app.app worker -l info --pool=solo --autoreload || uv run celery -A app.celery_app.app worker -l info --pool=solo"
+        "uv run celery -A app.celery_app.app worker -l info --pool=solo --concurrency=1 --autoreload || uv run celery -A app.celery_app.app worker -l info --pool=solo --concurrency=1"
       ]
     volumes:
       - ./apps/worker/app:/app/app

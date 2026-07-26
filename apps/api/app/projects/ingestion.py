@@ -63,7 +63,7 @@ class AlbumSetSourceAdapter:
         *,
         checkpoint_writer: CheckpointWriter | None = None,
     ) -> ResolvedProjectSource:
-        source_ref = request.source_ref or {}
+        source_ref = request.source_ref.as_dict() if request.source_ref else {}
         album_ids = list(source_ref.get("albumIds") or (project_scope or {}).get("albumIds") or [])
         media_item_ids = list(
             source_ref.get("mediaItemIds") or (project_scope or {}).get("mediaItemIds") or []

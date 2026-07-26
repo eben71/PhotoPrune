@@ -8,7 +8,6 @@ export const ProjectScopeSchema = z.object({
 
 export const ProjectSchema = z.object({
   id: z.string(),
-  userId: z.string(),
   name: z.string(),
   status: z.enum(["active", "archived"]),
   scope: ProjectScopeSchema.nullable().optional(),

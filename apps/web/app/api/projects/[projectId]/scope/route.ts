@@ -1,11 +1,11 @@
-import { forward } from '../../../_lib/backend';
+import { forward, forwardRequestBody } from '../../../_lib/backend';
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   const { projectId } = await params;
-  return forward(`/api/projects/${projectId}/scope`);
+  return forward(request, `/api/projects/${projectId}/scope`);
 }
 
 export async function POST(
@@ -13,8 +13,7 @@ export async function POST(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   const { projectId } = await params;
-  return forward(`/api/projects/${projectId}/scope`, {
-    method: 'POST',
-    body: await request.text()
+  return forwardRequestBody(request, `/api/projects/${projectId}/scope`, {
+    method: 'POST'
   });
 }

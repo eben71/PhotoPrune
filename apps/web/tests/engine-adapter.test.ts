@@ -254,15 +254,10 @@ describe('engineAdapter', () => {
     expect(getFetchCallUrl(fetchMock, 0)).toBe('http://api:8000/api/scan');
   });
 
-  it('falls back to PHOTOPRUNE_API_BASE_URL when internal host is unreachable', async () => {
+  it('does not fall back outside the private API path in Compose', async () => {
     const fetchMock = vi
       .fn((): Promise<unknown> => Promise.resolve({}))
-      .mockRejectedValueOnce(new TypeError('fetch failed'))
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: () => Promise.resolve(buildScanResult())
-      });
+      .mockRejectedValueOnce(new TypeError('fetch failed'));
     vi.stubGlobal('fetch', fetchMock);
     const adapter = await loadAdapter({
       NODE_ENV: 'development',
@@ -274,11 +269,11 @@ describe('engineAdapter', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     const completed = adapter.pollRun(runId);
 
-    expect(completed.run.status).toBe('COMPLETED');
+    expect(completed.run.status).toBe('FAILED');
     expect(getFetchCallUrl(fetchMock, 0)).toBe('http://api:8000/api/scan');
-    expect(getFetchCallUrl(fetchMock, 1)).toBe(
-      'http://localhost:8000/api/scan'
-    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(completed.progress.message).not.toContain('fetch failed');
+    expect(completed.progress.message).not.toContain('http://api:8000');
   });
 
   it('uses fixture mode in development when explicitly enabled', async () => {

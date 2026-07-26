@@ -26,6 +26,7 @@ def test_pp027_fixture_contract_uses_host_override_and_reports_partial_failures(
     thread.start()
 
     port = server.server_address[1]
+    monkeypatch.setenv("SCAN_ALLOWED_DOWNLOAD_HOSTS", "example.test")
     monkeypatch.setenv(
         "SCAN_DOWNLOAD_HOST_OVERRIDES",
         json.dumps({"example.test": f"http://127.0.0.1:{port}"}),
@@ -35,7 +36,7 @@ def test_pp027_fixture_contract_uses_host_override_and_reports_partial_failures(
         payload = json.loads(fixture_path.read_text(encoding="utf-8"))
         response = TestClient(create_app()).post("/api/scan", json=payload)
 
-        assert response.status_code == 200
+        assert response.status_code == 200, response.text
         result = response.json()
         assert len(result["groupsExact"]) == 1
         assert {item["itemId"] for item in result["failedItems"]} == {

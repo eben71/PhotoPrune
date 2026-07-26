@@ -60,7 +60,7 @@ describe('run API lifecycle', () => {
         })
       )
     );
-    const request = new Request('http://localhost/api/run', {
+    const request = new Request('http://127.0.0.1:3000/api/run', {
       method: 'POST',
       body: JSON.stringify({ selection })
     });
@@ -70,9 +70,12 @@ describe('run API lifecycle', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const envelopeResponse = await getRun(new Request('http://localhost'), {
-      params: Promise.resolve({ runId })
-    });
+    const envelopeResponse = await getRun(
+      new Request('http://127.0.0.1:3000/api/run'),
+      {
+        params: Promise.resolve({ runId })
+      }
+    );
     const envelope = RunEnvelopeSchema.parse(await envelopeResponse.json());
 
     expect(envelope.run.status).toBe('COMPLETED');
@@ -101,7 +104,7 @@ describe('run API lifecycle', () => {
         })
       )
     );
-    const request = new Request('http://localhost/api/run', {
+    const request = new Request('http://127.0.0.1:3000/api/run', {
       method: 'POST',
       body: JSON.stringify({ selection })
     });
@@ -109,11 +112,36 @@ describe('run API lifecycle', () => {
     const response = await startRun(request);
     const { runId } = StartRunResponseSchema.parse(await response.json());
 
-    const cancelResponse = await cancelRun(new Request('http://localhost'), {
-      params: Promise.resolve({ runId })
-    });
+    const cancelResponse = await cancelRun(
+      new Request('http://127.0.0.1:3000/api/run', { method: 'POST' }),
+      {
+        params: Promise.resolve({ runId })
+      }
+    );
     const envelope = RunEnvelopeSchema.parse(await cancelResponse.json());
 
     expect(envelope.run.status).toBe('CANCELLED');
+  });
+
+  it('rejects more than the frozen item ceiling before starting work', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const response = await startRun(
+      new Request('http://127.0.0.1:3000/api/run', {
+        method: 'POST',
+        body: JSON.stringify({
+          selection: Array.from({ length: 2001 }, (_, index) => ({
+            ...selection[0],
+            id: `item-${index}`
+          }))
+        })
+      })
+    );
+
+    expect(response.status).toBe(422);
+    await expect(response.json()).resolves.toMatchObject({
+      detail: { category: 'request_validation' }
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

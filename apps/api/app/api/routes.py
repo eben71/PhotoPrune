@@ -1,16 +1,34 @@
 import json
 import logging
+from collections.abc import Iterator
 from functools import lru_cache
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Header, HTTPException, Query, Response, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    Header,
+    HTTPException,
+    Path,
+    Query,
+    Request,
+    Response,
+    status,
+)
 from pydantic import ValidationError
 
-from app.core.config import get_settings
+from app.core.config import Settings, get_settings
+from app.core.security import (
+    AdmissionError,
+    ScanAdmissionController,
+    safe_validation_errors,
+    security_detail,
+)
+from app.engine.downloads import DownloadSecurityError
 from app.engine.models import PhotoItem
 from app.engine.normalizer import normalize_photo_items, normalize_picker_payload
 from app.engine.scan import run_scan
-from app.engine.schemas import ScanRequest, ScanResult
+from app.engine.schemas import MAX_ID_LENGTH, ScanRequest, ScanResult
 from app.projects.ingestion import (
     ProjectSourceUnavailableError,
     UnsupportedProjectSourceError,
@@ -34,12 +52,31 @@ from app.projects.scope import ScopeDefinition, resolve_scope
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+BoundedPathId = Annotated[str, Path(min_length=1, max_length=MAX_ID_LENGTH)]
 
 
 @lru_cache
 def get_project_repo() -> ProjectRepository:
     settings = get_settings()
     return ProjectRepository(settings.project_db_path)
+
+
+def get_app_settings(request: Request) -> Settings:
+    settings: Settings = request.app.state.settings
+    return settings
+
+
+def require_scan_admission(request: Request) -> Iterator[None]:
+    controller: ScanAdmissionController = request.app.state.scan_admission
+    try:
+        with controller.lease():
+            yield
+    except AdmissionError as exc:
+        raise HTTPException(
+            status_code=exc.status_code,
+            detail=security_detail(request.scope, exc.category, exc.message),
+            headers={"Retry-After": str(exc.retry_after)},
+        ) from exc
 
 
 @router.get("/healthz")
@@ -55,13 +92,16 @@ async def health() -> dict[str, str]:
 @router.post("/api/scan", response_model=ScanResult)
 def scan(
     request: ScanRequest,
+    http_request: Request,
+    _admission: Annotated[None, Depends(require_scan_admission)],
+    settings: Annotated[Settings, Depends(get_app_settings)],
     x_scan_explain: str | None = Header(default=None, alias="X-Scan-Explain"),
 ) -> ScanResult:
     items, explain_requested = _prepare_scan_items(
         request,
+        settings,
         x_scan_explain=x_scan_explain,
     )
-    settings = get_settings()
     require_image_bytes = request.picker_payload is not None or any(
         item.download_url is not None for item in items
     )
@@ -72,6 +112,11 @@ def scan(
             explain=explain_requested or settings.scan_explain,
             require_image_bytes=require_image_bytes,
         )
+    except DownloadSecurityError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=security_detail(http_request.scope, exc.category, exc.safe_message),
+        ) from exc
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -92,7 +137,7 @@ def list_projects() -> ProjectListResponse:
 
 
 @router.get("/api/projects/{project_id}", response_model=ProjectResponse)
-def get_project(project_id: str) -> ProjectResponse:
+def get_project(project_id: BoundedPathId) -> ProjectResponse:
     project = get_project_repo().get_project(project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -100,7 +145,10 @@ def get_project(project_id: str) -> ProjectResponse:
 
 
 @router.post("/api/projects/{project_id}/scope")
-def set_project_scope(project_id: str, request: ProjectScopeRequest) -> ProjectScopeResponse:
+def set_project_scope(
+    project_id: BoundedPathId,
+    request: ProjectScopeRequest,
+) -> ProjectScopeResponse:
     project = get_project_repo().get_project(project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -118,7 +166,7 @@ def set_project_scope(project_id: str, request: ProjectScopeRequest) -> ProjectS
 
 
 @router.get("/api/projects/{project_id}/scope", response_model=ProjectScopeResponse)
-def get_project_scope(project_id: str) -> ProjectScopeResponse:
+def get_project_scope(project_id: BoundedPathId) -> ProjectScopeResponse:
     scope = get_project_repo().get_scope(project_id)
     if scope is None:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -126,7 +174,13 @@ def get_project_scope(project_id: str) -> ProjectScopeResponse:
 
 
 @router.post("/api/projects/{project_id}/scan", response_model=ProjectScanResponse)
-def project_scan(project_id: str, request: ProjectScanRequest) -> ProjectScanResponse:
+def project_scan(
+    project_id: BoundedPathId,
+    request: ProjectScanRequest,
+    http_request: Request,
+    _admission: Annotated[None, Depends(require_scan_admission)],
+    settings: Annotated[Settings, Depends(get_app_settings)],
+) -> ProjectScanResponse:
     project = get_project_repo().get_project(project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -168,16 +222,15 @@ def project_scan(project_id: str, request: ProjectScanRequest) -> ProjectScanRes
                 {
                     "photoItems": source.photo_items,
                     "sourceType": request.source_type,
-                    "sourceRef": request.source_ref,
+                    "sourceRef": request.source_ref.as_dict() if request.source_ref else None,
                 }
             )
         except ValidationError as exc:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=exc.errors(),
+                detail=safe_validation_errors(exc.errors()),
             ) from exc
-    items, explain_requested = _prepare_scan_items(scan_request)
-    settings = get_settings()
+    items, explain_requested = _prepare_scan_items(scan_request, settings)
     try:
         scan_result = run_scan(
             items,
@@ -185,6 +238,11 @@ def project_scan(project_id: str, request: ProjectScanRequest) -> ProjectScanRes
             explain=explain_requested or settings.scan_explain,
             require_image_bytes=source.source_type == "picker",
         )
+    except DownloadSecurityError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=security_detail(http_request.scope, exc.category, exc.safe_message),
+        ) from exc
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -217,12 +275,15 @@ def project_scan(project_id: str, request: ProjectScanRequest) -> ProjectScanRes
 
 
 @router.get("/api/projects/{project_id}/scans", response_model=list[ProjectScanRecord])
-def list_project_scans(project_id: str) -> list[ProjectScanRecord]:
+def list_project_scans(project_id: BoundedPathId) -> list[ProjectScanRecord]:
     return [ProjectScanRecord(**scan) for scan in get_project_repo().list_scans(project_id)]
 
 
 @router.get("/api/projects/{project_id}/scans/{scan_id}/results")
-def get_project_scan_results(project_id: str, scan_id: str) -> dict[str, object]:
+def get_project_scan_results(
+    project_id: BoundedPathId,
+    scan_id: BoundedPathId,
+) -> dict[str, object]:
     loaded = get_project_repo().get_scan_results(project_id, scan_id)
     if not loaded:
         raise HTTPException(status_code=404, detail="Scan not found")
@@ -234,7 +295,10 @@ def get_project_scan_results(project_id: str, scan_id: str) -> dict[str, object]
     "/api/projects/{project_id}/scans/{scan_id}/diff",
     response_model=ProjectScanDiffResponse,
 )
-def get_project_scan_diff(project_id: str, scan_id: str) -> ProjectScanDiffResponse:
+def get_project_scan_diff(
+    project_id: BoundedPathId,
+    scan_id: BoundedPathId,
+) -> ProjectScanDiffResponse:
     diff = get_project_repo().get_scan_diff(project_id, scan_id)
     if not diff:
         raise HTTPException(status_code=404, detail="Scan not found")
@@ -246,7 +310,9 @@ def get_project_scan_diff(project_id: str, scan_id: str) -> ProjectScanDiffRespo
     response_model=ProjectGroupReviewResponse,
 )
 def patch_group_review(
-    project_id: str, group_fingerprint: str, request: ProjectGroupReviewPatch
+    project_id: BoundedPathId,
+    group_fingerprint: BoundedPathId,
+    request: ProjectGroupReviewPatch,
 ) -> ProjectGroupReviewResponse:
     updated = get_project_repo().upsert_review(project_id, group_fingerprint, request)
     if not updated:
@@ -256,9 +322,12 @@ def patch_group_review(
 
 @router.get("/api/projects/{project_id}/export")
 def export_project(
-    project_id: str,
+    project_id: BoundedPathId,
     format: str = Query(default="json"),
-    scan_id: str | None = Query(default=None, alias="scanId"),
+    scan_id: Annotated[
+        str | None,
+        Query(min_length=1, max_length=MAX_ID_LENGTH, alias="scanId"),
+    ] = None,
 ) -> Response:
     if format not in {"json", "csv"}:
         raise HTTPException(
@@ -375,10 +444,10 @@ def _parse_explain_header(value: str | None) -> bool:
 
 def _prepare_scan_items(
     request: ScanRequest,
+    settings: Settings,
     *,
     x_scan_explain: str | None = None,
 ) -> tuple[list[PhotoItem], bool]:
-    settings = get_settings()
     if request.photo_items:
         items = normalize_photo_items(request.photo_items)
     else:

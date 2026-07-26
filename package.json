@@ -12,7 +12,9 @@
     "smoke:mvp": "playwright test --config=playwright.config.ts",
     "test:dependency-preflight": "node --test tests/dependency-preflight/*.test.mjs",
     "typecheck": "turbo typecheck",
-    "test": "turbo test",
+    "test": "turbo test && node --test tests/deployment-boundary/*.test.mjs",
+    "test:deployment-boundary": "node --test tests/deployment-boundary/*.test.mjs",
+    "check:deployment-boundary": "node scripts/check-deployment-boundary.mjs",
     "build": "turbo build",
     "check:docs": "node scripts/check-docs.js",
     "prepare": "node scripts/prepare-lefthook.cjs"

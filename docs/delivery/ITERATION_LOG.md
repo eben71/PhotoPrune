@@ -19,6 +19,51 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-24 - PP-028 Picker API schema review repair
+
+- Role: Builder
+- Status: Done
+- Goal: Accept supported Google Photos Picker media-item metadata without weakening strict request-boundary validation.
+- Acceptance criteria checked:
+  - Picker items accept the API's `type` field.
+  - Nested media metadata accepts the committed camera and photo metadata fields.
+  - Unknown item-level request fields remain forbidden.
+  - Download-host entries remain exact matches, with the `googleusercontent.com` policy token limited to `lh<digits>.googleusercontent.com`.
+- Commands run:
+  - `make format-check` passed after formatting the reported API file.
+  - Focused Picker schema and download-host policy coverage passed with 14 tests.
+  - `make test` passed with 89 web tests, 18 deployment-boundary tests, 6 dependency-preflight tests, 156 API tests, and 2 worker tests.
+- Manual verification: Validated `ScanRequest` against all media items in `tests/fixtures/picker/exact_dupes.picker.json`.
+- Artifacts/screenshots: Not applicable.
+- Backlog updates: Added PP-028 review-repair evidence.
+- Follow-up tasks created: None.
+- Residual risk: New Google Photos Picker metadata fields will still require deliberate schema support.
+
+### 2026-07-24 - PP-028 Enforce the localhost deployment security boundary
+
+- Role: Builder
+- Status: Done
+- Goal: Enforce the frozen localhost-only, single-operator boundary across runtime configuration, ingress, outbound downloads, shipped topology, and operator documentation.
+- Acceptance criteria checked:
+  - Only the web gateway publishes `127.0.0.1:3000`; API, worker, database, and Redis remain private with single-process safety controls.
+  - Runtime settings, CORS, gateway host/origin checks, request bodies, fields, scan workload, rate limits, and concurrency fail closed at frozen bounds.
+  - Outbound media uses allowlisted hosts, complete DNS validation, pinned peers, original-host TLS verification, explicit redirects, safe trust roots, and shared byte/item/time budgets.
+  - Identity-like headers grant no authority, and the internal owner sentinel is absent from public project contracts.
+  - Errors retain safe categories and correlation IDs without exposing URLs, credentials, request bodies, or network internals.
+  - The patched Next.js and Sharp dependency graph remains frozen, release-age compliant, and free of known high-severity production audit findings.
+- Commands run:
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, and `make build` passed.
+  - The full suite passed with 89 web tests, 155 API tests, 2 worker tests, 18 deployment-boundary tests, and 6 dependency-preflight tests.
+  - `node scripts/check-coverage.mjs` passed at web 84.9%, API 92.42%, and worker 100%.
+  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml config` was inspected, and `pnpm check:deployment-boundary` passed.
+  - `pnpm dependency:preflight`, `pnpm install --frozen-lockfile`, and `pnpm audit --prod --audit-level=high` passed.
+  - `pnpm check:docs` passed.
+- Manual verification: Inspected the effective Compose topology and resolved all actionable findings from independent blind and edge-case security reviews.
+- Artifacts/screenshots: The completed implementation spec and automated security evidence; screenshots are not applicable.
+- Backlog updates: Moved PP-028 from Ready through In Progress to Done after the full verification gate passed.
+- Follow-up tasks created: None.
+- Residual risk: Authenticated multi-user operation and all remote, LAN, proxy, or tunnel exposure remain explicitly unsupported and out of scope.
+
 ### 2026-07-24 - PP-035 Patch Next.js and Sharp production vulnerabilities
 
 - Role: Builder
@@ -613,3 +658,50 @@ Record every implementation or verification iteration here. The log is repo trut
 - Backlog updates: Updated PP-004 for the Chrome real-Google manual demo checklist, added PP-012 through PP-016.
 - Follow-up tasks created: PP-013, PP-014, PP-015, PP-016.
 - Residual risk: MVP usability remains unverified until PP-014 and the manual demo checklist pass. Markdown formatting was not fully verified because the local `node_modules` tree has a Prettier permission/install issue.
+
+### 2026-07-26 - PP-035 Repair deployment-boundary CI environment
+
+- Role: Builder
+- Status: Verifying
+- Goal: Restore the CI deployment-boundary check by preparing its ignored Compose environment file and expose actionable Compose diagnostics on future failures.
+- Acceptance criteria checked:
+  - CI copies `.env.example` to `.env` before inspecting effective Compose configuration.
+  - Compose inspection failures retain available stderr or process errors.
+  - Focused regression coverage verifies diagnostic propagation.
+- Commands run:
+  - `node --test tests/deployment-boundary/*.test.mjs` passed: 19 tests.
+  - `node scripts/check-deployment-boundary.mjs` passed.
+  - `node scripts/check-docs.js` passed.
+  - Prettier could not run because the existing pnpm package store denied access to `prettier/package.json` (`EPERM`).
+- Manual verification: Reviewed the workflow ordering and confirmed `docker-compose.yml` requires the gitignored `.env` file through `env_file`.
+- Artifacts/screenshots: Not applicable; CI-only change.
+- Backlog updates: Added PP-035 as Verifying.
+- Follow-up tasks created: None.
+- Residual risk: GitHub Actions rerun remains required to prove the hosted runner path.
+
+### 2026-07-26 - PP-036 Patch the PostCSS production dependency
+
+- Role: Builder
+- Status: Verifying
+- Goal: Upgrade the centrally overridden PostCSS version to the patched release required by GHSA-r28c-9q8g-f849.
+- Acceptance criteria checked:
+  - Workspace and lockfile resolve PostCSS `8.5.18`.
+  - The 24-hour minimum-release-age preflight passes.
+  - The production audit reports no known vulnerabilities.
+- Commands run:
+  - `corepack pnpm install --no-frozen-lockfile` passed and reported the lockfile satisfies supply-chain policy.
+  - `pnpm dependency:preflight` passed for 706 locked package versions.
+  - `pnpm audit --prod --audit-level=high` passed with no known vulnerabilities.
+  - `make lint` passed.
+  - `make format-check` passed.
+  - `make typecheck` passed.
+  - `make test` passed: 89 web tests, 19 deployment-boundary tests, 6 dependency-preflight tests, 156 API tests, and 2 worker tests.
+  - `node scripts/check-coverage.mjs` passed.
+  - `make build` passed.
+  - `node scripts/check-deployment-boundary.mjs` passed.
+  - `node scripts/check-docs.js` passed.
+- Manual verification: Confirmed the reviewed GitHub advisory affects PostCSS through `8.5.17` and identifies `8.5.18` as patched.
+- Artifacts/screenshots: Not applicable; dependency-only security repair.
+- Backlog updates: Added PP-036 as Verifying.
+- Follow-up tasks created: None.
+- Residual risk: GitHub Actions rerun remains required to confirm the hosted audit gate.
