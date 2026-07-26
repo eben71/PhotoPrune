@@ -246,7 +246,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-006 Make review actions, representative language, and trust copy truthful
 
-- Status: Ready
+- Status: Verifying
 - Priority: P0
 - Type: UI / Docs / Trust
 - Finding coverage: RR-005, RR-006, RR-025
@@ -263,6 +263,11 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Focused component/unit tests for every review-action state and copy branch.
   - `make lint`, `make format-check`, `make typecheck`, `make test`, and `pnpm check:docs`.
   - `pnpm smoke:mvp` plus trust UI review and screenshots at desktop and mobile widths.
+- Evidence:
+  - Ephemeral result cards remove inert decisions and explain that group decisions are not saved; saved projects persist Representative selection, skip, and done states with rollback on failure.
+  - Focused tests (34), the final full web suite (91), repository lint/format/type/test, coverage, build, deployment boundary, docs guard, forbidden-claim scans, desktop/mobile trust review, and independent adversarial review passed.
+  - Screenshots and exact command evidence are recorded in `docs/delivery/artifacts/PP-006/pp-006-evidence.md`.
+  - `pnpm smoke:mvp` was run but failed before results when the fixture run remained at 0% with a generic interruption; PP-020 owns the existing smoke-path repair, so PP-006 remains `Verifying`.
 
 ### PP-007 Add task-discovery follow-up workflow
 

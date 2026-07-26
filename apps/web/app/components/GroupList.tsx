@@ -35,12 +35,12 @@ export function GroupList({
               Review Queue
             </p>
             <h2 className="mt-3 text-[2.1rem] font-bold tracking-[-0.04em] text-[var(--pp-on-background)]">
-              Choose the best photo in each group.
+              Review each photo group.
             </h2>
           </div>
           <p className="max-w-[430px] text-sm leading-7 text-[var(--pp-on-surface-muted)]">
-            Recommended keepers are suggestions only. Review each image before
-            making any decision outside this app.
+            Representative photos are starting points only. Review each image
+            before making any decision outside this app.
           </p>
         </div>
       ) : null}

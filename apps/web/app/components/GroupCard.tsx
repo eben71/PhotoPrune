@@ -50,11 +50,11 @@ function getReasonSummary(group: Group) {
 
 function getDescription(group: Group) {
   if (group.confidence === 'HIGH') {
-    return `We found ${group.itemsCount} very similar photos. Review the recommended keeper before making any decision outside this app.`;
+    return `We found ${group.itemsCount} very similar photos. Review the representative photo before making any decision outside this app.`;
   }
 
   if (group.confidence === 'MEDIUM') {
-    return `These images appear visually related. This frame is recommended for review first.`;
+    return `These images appear visually related. The representative photo is a useful place to start your review.`;
   }
 
   return 'These images share some visual traits. Review carefully before acting outside this app.';
@@ -113,7 +113,7 @@ export function GroupCard({
               <span
                 className={`text-[0.58rem] font-black uppercase tracking-[0.18em] ${tone.accent}`}
               >
-                Recommended Photo
+                {trustCopy.groupDetail.representativeLabel}
               </span>
             </div>
           </div>
@@ -177,27 +177,9 @@ export function GroupCard({
 
           {showActions ? (
             <div className="space-y-3">
-              <button
-                className="w-full rounded-lg bg-[var(--pp-primary)] px-4 py-4 text-sm font-black text-[#09423f] transition hover:bg-[var(--pp-primary-dim)]"
-                type="button"
-              >
-                Keep Recommended
-              </button>
-
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  className="rounded-lg border border-[rgba(255,127,125,0.18)] px-3 py-3 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#e06f6d] transition hover:bg-[rgba(255,127,125,0.06)]"
-                  type="button"
-                >
-                  Mark Externally
-                </button>
-                <button
-                  className="rounded-lg border border-[#eef1f6] px-3 py-3 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#9aa6bf] transition hover:bg-[#f6f8fc]"
-                  type="button"
-                >
-                  Skip For Now
-                </button>
-              </div>
+              <p className="text-sm leading-6 text-[var(--pp-paper-muted)]">
+                {trustCopy.groupDetail.ephemeralGuidance}
+              </p>
 
               {group.itemsCount > representativeItems.length ? (
                 <button

@@ -62,7 +62,7 @@ export default function HomePage() {
             Review and declutter
             <br className="home-title-break" />
             <span className="bg-gradient-to-r from-[var(--pp-primary)] to-[#2c8d86] bg-clip-text text-transparent">
-              your photo library
+              your selected photos
             </span>{' '}
             with confidence.
           </h1>
@@ -81,7 +81,7 @@ export default function HomePage() {
               >
                 {isLoading
                   ? 'Opening Google Photos...'
-                  : 'Connect Photo Library'}
+                  : 'Select from Google Photos'}
               </button>
 
               <a
@@ -98,7 +98,8 @@ export default function HomePage() {
                 className="h-[14px] w-[14px] text-[var(--pp-primary)]"
               />
               <span>
-                Nothing is removed automatically. You review every group first.
+                Nothing is removed automatically.{' '}
+                {trustCopy.landing.safetyLines[2]}
               </span>
             </div>
           </div>
@@ -135,8 +136,9 @@ export default function HomePage() {
 
                 <div className="home-paper-copy">
                   <p className="home-paper-lede">
-                    Your photos, curated with care. No photos are deleted
-                    automatically. You stay in control of every decision.
+                    Your selected photos are grouped for review. No photos are
+                    deleted automatically. You stay in control of every
+                    decision.
                   </p>
                   <p className="home-paper-detail">
                     {trustCopy.landing.doesBullets[0]}.{' '}
@@ -199,7 +201,7 @@ export default function HomePage() {
                   className="home-side-card-icon text-[var(--pp-secondary)]"
                 />
                 <div>
-                  <h3 className="home-side-card-title">Private &amp; Secure</h3>
+                  <h3 className="home-side-card-title">You stay in control</h3>
                   <div className="home-side-card-list">
                     <p>{trustCopy.landing.doesNotBullets[0]}.</p>
                     <p>{trustCopy.landing.doesNotBullets[1]}.</p>
@@ -212,7 +214,9 @@ export default function HomePage() {
         </section>
 
         <section className="home-bottom-cta">
-          <h2 className="home-bottom-title">Ready to reclaim your library?</h2>
+          <h2 className="home-bottom-title">
+            Ready to review selected photos?
+          </h2>
           <p className="home-bottom-copy">
             Start a single-session review and keep every decision in your hands.
           </p>
@@ -225,7 +229,7 @@ export default function HomePage() {
             {isLoading ? 'Opening Google Photos...' : 'Get Started For Free'}
           </button>
           <p className="home-bottom-note">
-            Safe and secure. Nothing can be deleted from this screen.
+            PhotoPrune cannot delete photos from this screen.
           </p>
         </section>
       </main>
@@ -237,13 +241,6 @@ export default function HomePage() {
             <p className="home-footer-meta">
               Copyright 2026 PhotoPrune. All rights reserved.
             </p>
-          </div>
-
-          <div className="home-footer-links">
-            <span>Privacy Policy</span>
-            <span>Terms of Service</span>
-            <span>Security</span>
-            <span>Contact Support</span>
           </div>
         </div>
       </footer>

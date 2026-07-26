@@ -62,6 +62,15 @@ describe('HomePage', () => {
     expect(
       screen.getByText(/it does not delete anything/i)
     ).toBeInTheDocument();
+    expect(
+      screen.getByText(/items you select.*representative examples/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/session results are temporary unless/i)
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/privacy policy/i)).toBeNull();
+    expect(screen.queryByText(/terms of service/i)).toBeNull();
+    expect(screen.queryByText(/contact support/i)).toBeNull();
   });
 
   it('stores picker selection and routes to run', async () => {
@@ -143,6 +152,7 @@ describe('HomePage', () => {
     expect(
       within(topNav as HTMLElement).queryByRole('link', { name: /^review$/i })
     ).toBeNull();
+    expect(screen.queryByText(/^support$/i)).toBeNull();
   });
 
   it('does not mark Results active in the review shell away from results routes', () => {

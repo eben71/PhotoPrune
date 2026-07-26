@@ -2,11 +2,11 @@ export const trustCopy = {
   landing: {
     header: 'Review Similar Photos - Safely',
     subheader:
-      'PhotoPrune helps you reclaim your library by grouping visually similar shots and surfacing highlights for your review.',
+      'PhotoPrune groups visually similar photos from the items you select and surfaces representative examples for your review.',
     safetyLines: [
       'It does not delete anything.',
-      'Nothing is stored.',
-      'This session is temporary.'
+      'Your selected photos are used for this review session.',
+      'Session results are temporary unless you start from a saved project.'
     ],
     doesTitle: 'What this tool does:',
     doesBullets: [
@@ -18,7 +18,7 @@ export const trustCopy = {
     doesNotBullets: [
       'It does not delete photos',
       'It does not make automatic decisions',
-      'It does not permanently store your data',
+      'It does not access photos you did not select',
       'It does not guarantee accuracy'
     ],
     sessionWarning: [
@@ -34,10 +34,7 @@ export const trustCopy = {
   },
   run: {
     header: 'Scanning for visually similar photos...',
-    subtext: [
-      'Analyzing your library to organize photos.',
-      'This may take a moment.'
-    ],
+    subtext: ['Analyzing the photos you selected.', 'This may take a moment.'],
     transparency:
       'We group photos based on image structure and visual features, not file names or dates.',
     cancelButton: 'Stop Scan (No Changes Made)',
@@ -79,7 +76,7 @@ export const trustCopy = {
     emptyHeader: 'No similar photo groups detected',
     emptyDescription: [
       'No groups met the minimum similarity threshold for this session.',
-      'This does not mean your library has no duplicates - only that none met the current grouping criteria.'
+      'This only means none of the selected photos met the current grouping criteria.'
     ]
   },
   projects: {
@@ -90,7 +87,7 @@ export const trustCopy = {
     runIntro:
       'Scans remain read-only. Picker selections are grouped and saved to this project so you can review them across sessions.',
     resultsIntro:
-      'Choose one photo to keep in each group, review the remaining candidates, and handle any cleanup manually in Google Photos.',
+      'Choose a representative photo in each group, review the remaining candidates, and handle any cleanup manually in Google Photos. Your review decisions are saved to this project.',
     resultsReminder:
       'Nothing is deleted from PhotoPrune. Mark a group done only after you handle it manually.',
     partialScanHeading: (failedCount: number) =>
@@ -103,6 +100,9 @@ export const trustCopy = {
     scopeAlbumSet: 'Album set scope saved for later read-only ingestion'
   },
   groupDetail: {
+    representativeLabel: 'Representative Photo',
+    ephemeralGuidance:
+      'This temporary review does not save group decisions. Review the photos here, then handle any cleanup manually in Google Photos.',
     reviewLines: [
       'Review each image carefully.',
       'Visual similarity does not always mean duplication.'

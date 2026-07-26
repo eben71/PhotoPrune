@@ -49,7 +49,8 @@ export default function ProjectResultsPage({
   const [reviews, setReviews] = useState<Record<string, Review>>({});
   const [diff, setDiff] = useState<ProjectScanDiffResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [busyGroupId, setBusyGroupId] = useState<string | null>(null);
+  const [reviewErrors, setReviewErrors] = useState<Record<string, string>>({});
+  const [busyGroupIds, setBusyGroupIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -198,6 +199,10 @@ export default function ProjectResultsPage({
     groupId: string,
     patch: { keepMediaItemId?: string; state?: Review['state'] }
   ) => {
+    if (busyGroupIds.has(groupId)) {
+      return;
+    }
+
     const current = reviews[groupId] ?? { state: 'UNREVIEWED' as const };
     const nextReview: Review = {
       ...current,
@@ -211,7 +216,7 @@ export default function ProjectResultsPage({
       ...existing,
       [groupId]: nextReview
     }));
-    setBusyGroupId(groupId);
+    setBusyGroupIds((existing) => new Set(existing).add(groupId));
 
     try {
       const response = await fetch(
@@ -226,11 +231,35 @@ export default function ProjectResultsPage({
       if (!response.ok) {
         throw new Error('review update failed');
       }
-      setError(null);
+      const savedReview = normalizeReviewResponse(
+        await response.json().catch(() => null)
+      );
+      if (savedReview) {
+        setReviews((existing) => ({
+          ...existing,
+          [groupId]: savedReview
+        }));
+      }
+      setReviewErrors((existing) => {
+        const next = { ...existing };
+        delete next[groupId];
+        return next;
+      });
     } catch {
-      setError('Unable to save that review change right now.');
+      setReviews((existing) => ({
+        ...existing,
+        [groupId]: current
+      }));
+      setReviewErrors((existing) => ({
+        ...existing,
+        [groupId]: 'Unable to save that review change right now.'
+      }));
     } finally {
-      setBusyGroupId(null);
+      setBusyGroupIds((existing) => {
+        const next = new Set(existing);
+        next.delete(groupId);
+        return next;
+      });
     }
   };
 
@@ -454,7 +483,7 @@ export default function ProjectResultsPage({
                 <DiffSummaryCard
                   label="Changed since last scan"
                   count={diff.summary.changed}
-                  detail="Review recommended"
+                  detail="Review needed"
                   tone="secondary"
                 />
                 <DiffSummaryCard
@@ -476,13 +505,15 @@ export default function ProjectResultsPage({
 
             <section className="mt-10 space-y-5">
               {orderedGroups.map((group, index) => {
-                const keepId =
-                  reviews[group.groupId]?.keep_media_item_id ??
-                  group.representativeItemIds[0];
-                const removeCandidates = group.items.filter(
-                  (item) => item.itemId !== keepId
-                );
+                const selectedRepresentativeId =
+                  reviews[group.groupId]?.keep_media_item_id ?? null;
+                const removeCandidates = selectedRepresentativeId
+                  ? group.items.filter(
+                      (item) => item.itemId !== selectedRepresentativeId
+                    )
+                  : [];
                 const state = reviews[group.groupId]?.state ?? 'UNREVIEWED';
+                const isBusy = busyGroupIds.has(group.groupId);
                 const groupDiff = diffByGroup.get(group.groupId);
                 const isPreviouslyReviewed =
                   groupDiff?.previouslyReviewed === true;
@@ -500,15 +531,17 @@ export default function ProjectResultsPage({
                           Group {String(index + 1).padStart(2, '0')}
                         </p>
                         <h2 className="mt-3 text-3xl font-bold tracking-[-0.04em] text-[var(--pp-on-background)]">
-                          Keep one photo. Review the rest manually.
+                          Choose a representative. Review the rest manually.
                         </h2>
                         <p className="mt-4 text-sm leading-7 text-[var(--pp-on-surface-muted)]">
                           Remove candidates:{' '}
-                          {removeCandidates.length > 0
-                            ? removeCandidates
-                                .map((item) => item.filename || item.itemId)
-                                .join(', ')
-                            : 'None'}
+                          {!selectedRepresentativeId
+                            ? 'Choose a representative first'
+                            : removeCandidates.length > 0
+                              ? removeCandidates
+                                  .map((item) => item.filename || item.itemId)
+                                  .join(', ')
+                              : 'None'}
                         </p>
                       </div>
 
@@ -521,7 +554,13 @@ export default function ProjectResultsPage({
                               : 'bg-[#22304a] text-[#96a8cf]'
                           }`}
                         >
-                          {state === 'DONE' ? 'Done' : 'Unreviewed'}
+                          {state === 'DONE'
+                            ? 'Done'
+                            : state === 'SNOOZED'
+                              ? 'Skipped for now'
+                              : state === 'IN_PROGRESS'
+                                ? 'In progress'
+                                : 'Unreviewed'}
                         </span>
                       </div>
                     </div>
@@ -532,13 +571,15 @@ export default function ProjectResultsPage({
                           key={item.itemId}
                           groupId={group.groupId}
                           item={item}
-                          isRecommended={group.representativeItemIds.includes(
+                          isRepresentative={group.representativeItemIds.includes(
                             item.itemId
                           )}
-                          isSelected={keepId === item.itemId}
+                          isSelected={selectedRepresentativeId === item.itemId}
+                          disabled={isBusy}
                           onSelect={() =>
                             void updateReview(group.groupId, {
-                              keepMediaItemId: item.itemId
+                              keepMediaItemId: item.itemId,
+                              state: 'IN_PROGRESS'
                             })
                           }
                         />
@@ -546,6 +587,18 @@ export default function ProjectResultsPage({
                     </div>
 
                     <div className="mt-8 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void updateReview(group.groupId, {
+                            state: 'SNOOZED'
+                          })
+                        }
+                        disabled={isBusy}
+                        className="rounded-md border border-[#52617d] px-5 py-3 text-sm font-bold text-[#c5d0e7] transition hover:bg-[#18243a] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isBusy ? 'Saving...' : 'Skip for now'}
+                      </button>
                       <button
                         type="button"
                         onClick={() => void copyChecklist([group])}
@@ -557,18 +610,20 @@ export default function ProjectResultsPage({
                         type="button"
                         onClick={() =>
                           void updateReview(group.groupId, {
-                            keepMediaItemId: keepId,
                             state: 'DONE'
                           })
                         }
-                        disabled={busyGroupId === group.groupId}
+                        disabled={isBusy || !selectedRepresentativeId}
                         className="rounded-md bg-[#173057] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#21416f] disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        {busyGroupId === group.groupId
-                          ? 'Saving...'
-                          : 'Mark done'}
+                        {isBusy ? 'Saving...' : 'Mark done'}
                       </button>
                     </div>
+                    {reviewErrors[group.groupId] ? (
+                      <p className="mt-4 rounded-xl bg-[rgba(127,41,39,0.45)] px-4 py-3 text-sm text-[#ffd1cd]">
+                        {reviewErrors[group.groupId]}
+                      </p>
+                    ) : null}
                   </article>
                 );
               })}
@@ -633,7 +688,7 @@ function DiffBadge({
   if (groupDiff?.category === 'CHANGED') {
     return (
       <span className="rounded-full bg-[rgba(255,207,112,0.16)] px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.16em] text-[#ffd982]">
-        Changed since last scan - review recommended
+        Changed since last scan - review needed
       </span>
     );
   }
@@ -656,14 +711,16 @@ function DiffBadge({
 function KeepChoiceCard({
   groupId,
   item,
-  isRecommended,
+  isRepresentative,
   isSelected,
+  disabled,
   onSelect
 }: {
   groupId: string;
   item: Item;
-  isRecommended: boolean;
+  isRepresentative: boolean;
   isSelected: boolean;
+  disabled: boolean;
   onSelect: () => void;
 }) {
   return (
@@ -672,8 +729,9 @@ function KeepChoiceCard({
         <input
           type="radio"
           name={`keep-choice-${groupId}`}
-          aria-label={`Keep ${item.filename}`}
+          aria-label={`Choose ${item.filename} as representative`}
           checked={isSelected}
+          disabled={disabled}
           onChange={onSelect}
           className="mt-1 h-4 w-4 border-[#d4dce9]"
         />
@@ -682,14 +740,14 @@ function KeepChoiceCard({
             <p className="truncate text-base font-bold text-[var(--pp-on-background)]">
               {item.filename}
             </p>
-            {isRecommended ? (
+            {isRepresentative ? (
               <span className="rounded-full bg-[rgba(90,218,206,0.12)] px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.16em] text-[var(--pp-primary)]">
-                Recommended
+                Representative
               </span>
             ) : null}
           </div>
           <p className="mt-2 text-sm leading-7 text-[var(--pp-on-surface-muted)]">
-            Keep item: {item.itemId}
+            Item ID: {item.itemId}
           </p>
           <div className="mt-4">
             <OpenInGooglePhotosButton item={item} />
@@ -703,19 +761,45 @@ function KeepChoiceCard({
 function buildChecklistText(groups: Group[], reviews: Record<string, Review>) {
   return groups
     .map((group, index) => {
-      const keepId =
-        reviews[group.groupId]?.keep_media_item_id ??
-        group.representativeItemIds[0];
-      const removeIds = group.items
-        .map((item) => item.itemId)
-        .filter((itemId) => itemId !== keepId);
+      const representativeId =
+        reviews[group.groupId]?.keep_media_item_id ?? null;
+      const reviewCandidateIds = representativeId
+        ? group.items
+            .map((item) => item.itemId)
+            .filter((itemId) => itemId !== representativeId)
+        : group.items.map((item) => item.itemId);
       return [
         `Group ${String(index + 1).padStart(2, '0')}`,
-        `Keep: ${keepId}`,
-        `Remove candidates: ${removeIds.join(', ') || 'None'}`
+        `Representative: ${representativeId ?? 'Not selected'}`,
+        `Review candidates: ${reviewCandidateIds.join(', ') || 'None'}`
       ].join('\n');
     })
     .join('\n\n');
+}
+
+function normalizeReviewResponse(value: unknown): Review | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const payload = value as Record<string, unknown>;
+  const state = payload.state;
+  if (
+    state !== 'UNREVIEWED' &&
+    state !== 'IN_PROGRESS' &&
+    state !== 'DONE' &&
+    state !== 'SNOOZED'
+  ) {
+    return null;
+  }
+  const keepMediaItemId =
+    payload.keepMediaItemId ?? payload.keep_media_item_id ?? null;
+  const notes = payload.notes ?? null;
+  return {
+    state,
+    keep_media_item_id:
+      typeof keepMediaItemId === 'string' ? keepMediaItemId : null,
+    notes: typeof notes === 'string' ? notes : null
+  };
 }
 
 function formatDate(value: string) {
