@@ -695,14 +695,20 @@ def _parse_target(url: str, *, allow_fixture_http: bool) -> AuthorizedTarget:
     )
 
 
+def _normalize_host_token(host: str) -> str:
+    return host.lower().rstrip(".")
+
+
 def _is_allowed_host(hostname: str, allowed_hosts: list[str]) -> bool:
-    normalized_hostname = hostname.lower().rstrip(".")
-    normalized_allowed_hosts = {allowed_host.lower().rstrip(".") for allowed_host in allowed_hosts}
+    normalized_hostname = _normalize_host_token(hostname)
+    normalized_allowed_hosts = {_normalize_host_token(allowed_host) for allowed_host in allowed_hosts}
 
     if normalized_hostname in normalized_allowed_hosts:
         return True
 
-    allows_googleusercontent = "googleusercontent.com" in normalized_allowed_hosts
+    allows_googleusercontent = (
+        _normalize_host_token("googleusercontent.com") in normalized_allowed_hosts
+    )
     return allows_googleusercontent and bool(
         GOOGLEUSERCONTENT_MEDIA_HOST_RE.fullmatch(normalized_hostname)
     )
