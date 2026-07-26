@@ -701,7 +701,9 @@ def _normalize_host_token(host: str) -> str:
 
 def _is_allowed_host(hostname: str, allowed_hosts: list[str]) -> bool:
     normalized_hostname = _normalize_host_token(hostname)
-    normalized_allowed_hosts = {_normalize_host_token(allowed_host) for allowed_host in allowed_hosts}
+    normalized_allowed_hosts = {
+        _normalize_host_token(allowed_host) for allowed_host in allowed_hosts
+    }
 
     if normalized_hostname in normalized_allowed_hosts:
         return True
