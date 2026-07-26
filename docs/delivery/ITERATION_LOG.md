@@ -19,6 +19,29 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-26 - PP-006 Make review actions, representative language, and trust copy truthful
+
+- Role: Builder
+- Status: Verifying
+- Goal: Make ephemeral and saved-project review behavior truthful, remove unsupported claims and dead destinations, and use Representative language consistently.
+- Acceptance criteria checked:
+  - Inert ephemeral review decisions were removed and replaced with explicit temporary-session guidance.
+  - Saved-project Representative selection, skip, and done actions persist through the existing PATCH route; failed saves restore the previous state.
+  - Session and saved-project scope copy is distinct, selection-scoped, and free of keeper/recommended, whole-library, theatrical, and unsupported trust claims.
+  - Privacy, Terms, Security, and Support placeholders were removed while working Settings and Account destinations remain.
+- Commands run:
+  - Focused Vitest passed: 34 tests.
+  - Web lint, typecheck, and the final 91-test web suite passed with 85.17% line coverage.
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, and `make build` passed.
+  - `node scripts/check-deployment-boundary.mjs`, `pnpm check:docs`, targeted forbidden-claim scans, and `git diff --check` passed.
+  - `pnpm smoke:mvp` ran twice (initial plus CI retry) and failed before results because the fixture run remained at 0% with a generic interruption.
+- Manual verification: Playwright exercised home and seeded session results with mouse/touch at 1440×900 and 390×844; Representative labels and temporary guidance were visible, inert decisions were absent, and neither viewport had horizontal overflow.
+- Review verification: Independent Blind Hunter and Edge Case Hunter reviews found implicit algorithmic choices, stale keeper accessibility/checklist wording, and concurrent-save hazards; all PP-006 patch findings were corrected and reverified.
+- Artifacts/screenshots: `docs/delivery/artifacts/PP-006/pp-006-evidence.md` plus four desktop/mobile PNGs in the same folder; failed smoke traces remain under `test-results`.
+- Backlog updates: PP-006 moved from `Ready` to `Verifying` with passing acceptance evidence and the PP-020-owned smoke blocker recorded.
+- Follow-up tasks created: None; PP-020 already owns deterministic MVP smoke repair, and PP-023 owns the real-account Chrome demonstration.
+- Residual risk: PP-006 cannot be marked Done until the required MVP smoke reaches and verifies results. Real-account evidence remains separately blocked behind PP-020/PP-023.
+
 ### 2026-07-24 - PP-028 Picker API schema review repair
 
 - Role: Builder

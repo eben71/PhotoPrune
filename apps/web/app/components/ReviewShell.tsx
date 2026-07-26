@@ -42,7 +42,7 @@ export function ReviewShell({
             >
               PhotoPrune
             </Link>
-            <p className="sr-only">Digital Curator</p>
+            <p className="sr-only">Similar photo review</p>
           </div>
 
           <nav className="top-nav-desktop">
@@ -79,7 +79,7 @@ export function ReviewShell({
                 PhotoPrune
               </Link>
               <p className="mt-1 text-[0.6rem] font-semibold uppercase tracking-[0.28em] text-[#5f6f92]">
-                Digital Curator
+                Photo Review
               </p>
             </div>
 
@@ -98,13 +98,6 @@ export function ReviewShell({
                 );
               })}
             </nav>
-
-            <div className="mt-auto px-5">
-              <div className="rail-item px-0 text-[0.72rem] text-[#7383a6] hover:bg-transparent hover:text-[#b6c4e3]">
-                <AppIcon name="support" className="h-[15px] w-[15px]" />
-                <span>Support</span>
-              </div>
-            </div>
           </div>
         </aside>
 

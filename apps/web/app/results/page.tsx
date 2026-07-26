@@ -145,7 +145,7 @@ export default function ResultsPage() {
                 router.push('/');
               }}
             >
-              Search Library
+              Select another set
             </button>
           </div>
         </section>
@@ -172,7 +172,7 @@ export default function ResultsPage() {
                 <div className="mt-6 flex items-center gap-3 text-[var(--pp-secondary)]">
                   <AppIcon name="check" className="h-[16px] w-[16px]" />
                   <p className="text-[0.68rem] font-bold uppercase tracking-[0.18em]">
-                    Curation Protocol Active
+                    Manual review required
                   </p>
                 </div>
               </div>

@@ -153,7 +153,7 @@ export default function RunPage() {
         <header className="mb-14">
           <span className="label-chip">Processing Analysis</span>
           <h1 className="run-title mt-6 max-w-[720px] font-extrabold leading-[0.97] tracking-[-0.05em] text-[var(--pp-on-background)]">
-            Curating your moments.
+            Reviewing your selected photos.
           </h1>
           <p className="mt-5 max-w-[560px] text-lg font-light leading-8 text-[var(--pp-on-surface-muted)]">
             {trustCopy.run.subtext[0]} You&apos;ll review every suggestion
@@ -332,7 +332,7 @@ export default function RunPage() {
         <footer className="run-footer mt-16">
           <div className="max-w-[320px]">
             <p className="text-[0.62rem] font-bold uppercase tracking-[0.18em] text-[#96a8cf]">
-              Privacy &amp; Security
+              Session boundaries
             </p>
             <p className="mt-4 text-sm leading-7 text-[var(--pp-on-surface-muted)]">
               All processing occurs within the current session. No photos are

@@ -546,7 +546,7 @@ describe('phase 3 projects pages', () => {
 
     await waitFor(() =>
       expect(
-        screen.getByText('Changed since last scan - review recommended')
+        screen.getByText('Changed since last scan - review needed')
       ).toBeInTheDocument()
     );
   });
@@ -800,25 +800,152 @@ describe('phase 3 projects pages', () => {
     ).not.toHaveProperty('mediaItems');
   });
 
-  it('results page loads saved state and marks a group done', async () => {
+  it('persists representative selection, skip, and done review states', async () => {
     const fetchSpy = vi.spyOn(global, 'fetch');
 
     renderProjectResults();
 
     await waitFor(() =>
       expect(
-        screen.getByText('Keep one photo. Review the rest manually.')
+        screen.getByText('Choose a representative. Review the rest manually.')
       ).toBeInTheDocument()
     );
+    expect(screen.getByText('Representative')).toBeInTheDocument();
+    expect(
+      screen.getByText(/your review decisions are saved to this project/i)
+    ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Mark done'));
+    expect(screen.getByText(/Remove candidates:/i)).toHaveTextContent(
+      'Choose a representative first'
+    );
+    expect(screen.getByText('Mark done')).toBeDisabled();
+
+    fireEvent.click(
+      screen.getByRole('radio', {
+        name: 'Choose b.jpg as representative'
+      })
+    );
 
     await waitFor(() =>
       expect(fetchSpy).toHaveBeenCalledWith(
         '/api/projects/p1/groups/g1/review',
-        expect.objectContaining({ method: 'PATCH' })
+        expect.objectContaining({
+          method: 'PATCH',
+          body: JSON.stringify({
+            keepMediaItemId: 'i2',
+            state: 'IN_PROGRESS'
+          })
+        })
       )
     );
+
+    fireEvent.click(screen.getByText('Skip for now'));
+
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        '/api/projects/p1/groups/g1/review',
+        expect.objectContaining({
+          method: 'PATCH',
+          body: JSON.stringify({ state: 'SNOOZED' })
+        })
+      );
+      expect(screen.getByText('Skipped for now')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Mark done'));
+
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        '/api/projects/p1/groups/g1/review',
+        expect.objectContaining({
+          method: 'PATCH',
+          body: JSON.stringify({ state: 'DONE' })
+        })
+      );
+      expect(screen.getAllByText('Done').length).toBeGreaterThan(0);
+    });
+  });
+
+  it('restores the prior review state when persistence fails', async () => {
+    const defaultFetch = global.fetch;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string, init?: RequestInit) => {
+        if (
+          input === '/api/projects/p1/groups/g1/review' &&
+          init?.method === 'PATCH'
+        ) {
+          return Promise.resolve(new Response(null, { status: 500 }));
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    renderProjectResults();
+
+    await screen.findByText(
+      'Choose a representative. Review the rest manually.'
+    );
+    fireEvent.click(screen.getByText('Skip for now'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('Unable to save that review change right now.')
+      ).toBeInTheDocument();
+      expect(screen.getByText('Unreviewed')).toBeInTheDocument();
+      expect(screen.queryByText('Skipped for now')).toBeNull();
+    });
+  });
+
+  it('prevents overlapping review changes for the same group', async () => {
+    const defaultFetch = global.fetch;
+    let resolveReview: (response: Response) => void = () => undefined;
+    const pendingReview = new Promise<Response>((resolve) => {
+      resolveReview = resolve;
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string, init?: RequestInit) => {
+        if (
+          input === '/api/projects/p1/groups/g1/review' &&
+          init?.method === 'PATCH'
+        ) {
+          return pendingReview;
+        }
+        return defaultFetch(input, init);
+      })
+    );
+
+    renderProjectResults();
+
+    const choice = await screen.findByRole('radio', {
+      name: 'Choose b.jpg as representative'
+    });
+    const skipButton = screen.getByText('Skip for now');
+    const doneButton = screen.getByText('Mark done');
+    fireEvent.click(choice);
+
+    await waitFor(() => {
+      expect(choice).toBeDisabled();
+      expect(skipButton).toBeDisabled();
+      expect(doneButton).toBeDisabled();
+    });
+
+    resolveReview(
+      new Response(
+        JSON.stringify({
+          state: 'IN_PROGRESS',
+          keepMediaItemId: 'i2',
+          notes: null
+        })
+      )
+    );
+
+    await waitFor(() => {
+      expect(choice).toBeEnabled();
+      expect(choice).toBeChecked();
+      expect(screen.getByText('In progress')).toBeInTheDocument();
+    });
   });
 
   it('uses the matching immediate envelope for ephemeral links and failures', async () => {

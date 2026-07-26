@@ -5,7 +5,7 @@ PhotoPrune helps people review duplicate or near-duplicate photos selected from 
 It is a **trust-first, review-only** product:
 
 - it groups similar photos for review
-- it recommends likely keeper images
+- it surfaces representative images as review starting points
 - it never deletes photos automatically
 
 ## Current Product Status

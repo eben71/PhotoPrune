@@ -159,7 +159,7 @@ test("MVP golden path smoke covers scan, review, trust, settings, and account", 
   await page.getByRole("button", { name: "Select from Google Photos" }).click();
   await expect(page).toHaveURL(/\/run$/);
   await expect(
-    page.getByRole("heading", { name: "Curating your moments." }),
+    page.getByRole("heading", { name: "Reviewing your selected photos." }),
   ).toBeVisible();
   await expect(page.getByText("Selected items", { exact: true })).toBeVisible();
   await expect(

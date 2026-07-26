@@ -97,6 +97,17 @@ describe('GroupCard', () => {
         'Reason: Strong visual match across structure and content'
       )
     ).toBeInTheDocument();
+    expect(screen.getByText('Representative Photo')).toBeInTheDocument();
+    expect(
+      screen.getByText(/this temporary review does not save group decisions/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /keep recommended/i })
+    ).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: /mark externally/i })
+    ).toBeNull();
+    expect(screen.queryByRole('button', { name: /skip for now/i })).toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: /show all items/i }));
 

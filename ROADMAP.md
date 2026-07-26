@@ -44,7 +44,7 @@ PP-024 narrowed MVP pass evidence to real Picker-selected Google Photos content 
 - [x] Create projects from the web app and route directly into saved scans.
 - [x] Reuse the Phase 2 review shell and group UI for project-based results.
 - [x] Reopen saved scans and continue review work later.
-- [x] Persist per-group `DONE` state and keeper selection across sessions.
+- [x] Persist per-group `DONE` state and representative selection across sessions.
 - [x] Run multiple scans in the same project without overwriting prior scan snapshots.
 - [x] Compare a saved scan with the previous scan.
 - [x] Surface `NEW`, `CHANGED`, and `UNCHANGED` groups in project results.
