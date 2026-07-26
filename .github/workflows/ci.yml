@@ -110,6 +110,9 @@ jobs:
       - name: Tests
         run: make test
 
+      - name: Prepare Compose environment
+        run: cp .env.example .env
+
       - name: Check localhost deployment boundary
         run: pnpm check:deployment-boundary
 

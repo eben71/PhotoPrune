@@ -190,6 +190,18 @@ function discoverComposeFiles(directory, relativeDirectory = '') {
   return discovered;
 }
 
+export function composeInspectionFailure(result) {
+  const details = [
+    result.error?.message,
+    typeof result.stderr === 'string' ? result.stderr.trim() : ''
+  ].filter(Boolean);
+  const suffix =
+    details.length > 0
+      ? ` Docker Compose reported: ${details.join(' ')}`
+      : '';
+  return `Unable to inspect effective Compose configuration.${suffix}`;
+}
+
 function loadEffectiveComposeConfig(files) {
   const fileArgs = files.flatMap((fileName) => ['-f', fileName]);
   const result = spawnSync(
@@ -204,9 +216,7 @@ function loadEffectiveComposeConfig(files) {
     { cwd: process.cwd(), encoding: 'utf8' }
   );
   if (result.status !== 0) {
-    throw new Error(
-      'Unable to inspect effective Compose configuration. Run Docker Compose config locally.'
-    );
+    throw new Error(composeInspectionFailure(result));
   }
   return JSON.parse(result.stdout);
 }

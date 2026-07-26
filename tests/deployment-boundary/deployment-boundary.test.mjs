@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  composeInspectionFailure,
   validateComposeFileSet,
   validateDeploymentBoundary
 } from '../../scripts/check-deployment-boundary.mjs';
@@ -113,6 +114,17 @@ test('rejects undocumented Compose overrides', () => {
         'infra/docker/compose.remote.yml'
       ]),
     /Undocumented shipped Compose override/
+  );
+});
+
+test('reports Docker Compose diagnostics when effective config inspection fails', () => {
+  assert.equal(
+    composeInspectionFailure({
+      status: 1,
+      stderr: 'env file /workspace/.env not found: no such file or directory\n'
+    }),
+    'Unable to inspect effective Compose configuration. Docker Compose reported: ' +
+      'env file /workspace/.env not found: no such file or directory'
   );
 });
 

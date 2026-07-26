@@ -643,3 +643,21 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Required verification:
   - Run the `maintain-agent-system` audit/review workflow and record its evidence.
   - `pnpm check:docs`, targeted ignore/tracked-artifact checks, link validation, and full repo gate pass.
+
+### PP-035 Repair deployment-boundary CI environment
+
+- Status: Verifying
+- Priority: P1
+- Type: Build / CI
+- Finding coverage: CI deployment-boundary failure
+- Dependencies: None.
+- Links: `.github/workflows/ci.yml`, `scripts/check-deployment-boundary.mjs`, `tests/deployment-boundary/deployment-boundary.test.mjs`
+- Goal: Ensure CI can inspect the effective Compose configuration and reports the underlying Docker Compose diagnostic when inspection fails.
+- Acceptance criteria:
+  - CI creates its ignored `.env` from the committed example before running the deployment-boundary check.
+  - Compose inspection failures include the available Docker Compose stderr or process error.
+  - Focused deployment-boundary tests and the effective Compose boundary check pass.
+- Required verification:
+  - `pnpm test:deployment-boundary`
+  - `pnpm check:deployment-boundary`
+  - `pnpm check:docs`

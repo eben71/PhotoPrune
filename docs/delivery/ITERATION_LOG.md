@@ -658,3 +658,23 @@ Record every implementation or verification iteration here. The log is repo trut
 - Backlog updates: Updated PP-004 for the Chrome real-Google manual demo checklist, added PP-012 through PP-016.
 - Follow-up tasks created: PP-013, PP-014, PP-015, PP-016.
 - Residual risk: MVP usability remains unverified until PP-014 and the manual demo checklist pass. Markdown formatting was not fully verified because the local `node_modules` tree has a Prettier permission/install issue.
+
+### 2026-07-26 - PP-035 Repair deployment-boundary CI environment
+
+- Role: Builder
+- Status: Verifying
+- Goal: Restore the CI deployment-boundary check by preparing its ignored Compose environment file and expose actionable Compose diagnostics on future failures.
+- Acceptance criteria checked:
+  - CI copies `.env.example` to `.env` before inspecting effective Compose configuration.
+  - Compose inspection failures retain available stderr or process errors.
+  - Focused regression coverage verifies diagnostic propagation.
+- Commands run:
+  - `node --test tests/deployment-boundary/*.test.mjs` passed: 19 tests.
+  - `node scripts/check-deployment-boundary.mjs` passed.
+  - `node scripts/check-docs.js` passed.
+  - Prettier could not run because the existing pnpm package store denied access to `prettier/package.json` (`EPERM`).
+- Manual verification: Reviewed the workflow ordering and confirmed `docker-compose.yml` requires the gitignored `.env` file through `env_file`.
+- Artifacts/screenshots: Not applicable; CI-only change.
+- Backlog updates: Added PP-035 as Verifying.
+- Follow-up tasks created: None.
+- Residual risk: GitHub Actions rerun remains required to prove the hosted runner path.
