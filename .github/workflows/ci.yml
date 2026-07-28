@@ -11,8 +11,8 @@ permissions:
 
 env:
   UV_PROJECT_ENV: .venv
-  UV_VERSION: '0.7.22'
-  NEXT_TELEMETRY_DISABLED: '1'
+  UV_VERSION: "0.7.22"
+  NEXT_TELEMETRY_DISABLED: "1"
 
 jobs:
   dependency-preflight:
@@ -31,12 +31,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install uv
         run: python -m pip install --upgrade pip "uv==${UV_VERSION}"
@@ -70,7 +70,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install Node dependencies
         run: pnpm install --frozen-lockfile
@@ -78,7 +78,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install uv
         run: python -m pip install --upgrade pip "uv==${UV_VERSION}"
@@ -109,6 +109,23 @@ jobs:
 
       - name: Tests
         run: make test
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Deterministic MVP browser regression
+        run: pnpm smoke:mvp
+
+      - name: Preserve Playwright failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-mvp-failure
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Prepare Compose environment
         run: cp .env.example .env

@@ -748,3 +748,30 @@ Record every implementation or verification iteration here. The log is repo trut
 - Backlog updates: Added PP-036 as Verifying.
 - Follow-up tasks created: None.
 - Residual risk: GitHub Actions rerun remains required to confirm the hosted audit gate.
+
+### 2026-07-28 - PP-020 Expand deterministic Playwright MVP regression coverage
+
+- Role: Builder / Verifier / Reviewer
+- Status: Done
+- Goal: Repair and expand deterministic Playwright coverage for the MVP golden path and PP-006/PP-016 trust-critical browser behavior.
+- Acceptance criteria checked:
+  - Reusable helpers own the Google Photos Picker REST fixture, session seeding, and forbidden-claim scan without hiding product assertions.
+  - Focused specs cover route/session guards, ephemeral and saved-project review decisions, exact-link available/unavailable states, and narrow Settings/Account navigation.
+  - CI runs the deterministic Chromium suite and retains failure artifacts.
+- Commands run:
+  - `pnpm smoke:mvp` passed: 6 Playwright Chromium tests.
+  - `pnpm --filter web test` passed: 14 files, 94 tests, and 85.14% line coverage.
+  - `make lint`, `make format-check`, and `make typecheck` passed; Turbo replayed cached package results while Python lint, format, and mypy checks ran live.
+  - `pnpm check:docs` passed.
+  - A direct touched-file Prettier check was blocked by an existing `EPERM` reading the pnpm store's Prettier package. A direct uncached web typecheck also reported the incomplete local install could not resolve `tailwindcss`; the canonical cached typecheck passed and the Playwright TypeScript compiled during the green browser run.
+- Final verification after adversarial review:
+  - Final `pnpm smoke:mvp` rerun passed 6 Chromium tests in 15.5 seconds.
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, `make build`, and `pnpm check:docs` passed.
+  - Full tests passed: 94 web, 157 API, 2 worker, 19 deployment-boundary, and 6 dependency-preflight tests.
+  - Coverage passed at 85.14% web, 92.37% API, and 100% worker; `git diff --check` passed.
+- Manual verification: Reviewed that exact links require `https://photos.google.com/photo/...`, use a new tab with `noopener noreferrer`, and coexist with the honest unavailable state.
+- Artifacts/screenshots: No screenshots committed. Playwright reports, traces, and test results remain ignored and are uploaded by CI only on failure.
+- Review verification: Independent Blind Hunter and Edge Case Hunter reviews led to stronger percentage-claim detection, actual exact-link activation, clickable narrow Account navigation, corrected port documentation, and explicit PP-015 lifecycle ownership.
+- Backlog updates: PP-020 and its PP-006 smoke prerequisite moved to Done with focused and full-gate evidence.
+- Follow-up tasks created: None; PP-015 already owns cancellation, timeout/restart, retry, and durable partial-result lifecycle behavior.
+- Residual risk: Deterministic fixtures and API mocks do not prove a real Google account or real Picker content; PP-023 remains the separate manual Chrome gate.
