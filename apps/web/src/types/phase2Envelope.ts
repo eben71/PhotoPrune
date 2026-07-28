@@ -25,6 +25,18 @@ export const GroupTypeSchema = z.enum([
   'EDIT_VARIANT'
 ]);
 
+const ExactGooglePhotosUrlSchema = z.url().refine((value) => {
+  const url = new URL(value);
+  const pathSegments = url.pathname.split('/').filter(Boolean);
+  const photoIndex = pathSegments.indexOf('photo');
+  return (
+    url.protocol === 'https:' &&
+    url.hostname === 'photos.google.com' &&
+    photoIndex >= 0 &&
+    pathSegments.length > photoIndex + 1
+  );
+}, 'Expected an exact Google Photos item URL');
+
 export const PickerItemSchema = z.object({
   id: z.string(),
   baseUrl: z.string().min(1),
@@ -33,7 +45,7 @@ export const PickerItemSchema = z.object({
   createTime: z.string(),
   width: z.number().nonnegative(),
   height: z.number().nonnegative(),
-  productUrl: z.string().url().optional(),
+  productUrl: ExactGooglePhotosUrlSchema.optional(),
   type: z.enum(['PHOTO', 'VIDEO'])
 });
 
@@ -55,9 +67,7 @@ export const ItemSchema = z.object({
   }),
   links: z.object({
     googlePhotos: z.object({
-      url: z.string().nullable(),
-      fallbackQuery: z.string(),
-      fallbackUrl: z.string().optional()
+      url: ExactGooglePhotosUrlSchema.nullable()
     })
   }),
   debug: z.record(z.string(), z.unknown()).optional()

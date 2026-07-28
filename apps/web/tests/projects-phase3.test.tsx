@@ -91,8 +91,7 @@ function immediateProjectEnvelope(): RunEnvelope {
               },
               links: {
                 googlePhotos: {
-                  url: 'https://photos.google.com/photo/current-i1',
-                  fallbackQuery: 'current.jpg i1'
+                  url: 'https://photos.google.com/photo/current-i1'
                 }
               }
             }
@@ -294,9 +293,7 @@ describe('phase 3 projects pages', () => {
                             },
                             links: {
                               googlePhotos: {
-                                url: null,
-                                fallbackQuery: 'i1',
-                                fallbackUrl: 'https://photos.google.com'
+                                url: null
                               }
                             }
                           },
@@ -312,9 +309,7 @@ describe('phase 3 projects pages', () => {
                             },
                             links: {
                               googlePhotos: {
-                                url: null,
-                                fallbackQuery: 'i2',
-                                fallbackUrl: 'https://photos.google.com'
+                                url: null
                               }
                             }
                           }
@@ -949,7 +944,6 @@ describe('phase 3 projects pages', () => {
   });
 
   it('uses the matching immediate envelope for ephemeral links and failures', async () => {
-    const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
     const envelope = immediateProjectEnvelope();
 
     render(
@@ -965,14 +959,15 @@ describe('phase 3 projects pages', () => {
     );
     expect(screen.getByText('current.jpg')).toBeInTheDocument();
 
-    fireEvent.click(
-      screen.getAllByRole('button', { name: 'Open in Google Photos' })[0]
+    const exactLink = screen.getAllByRole('link', {
+      name: 'Open exact photo in Google Photos'
+    })[0];
+    expect(exactLink).toHaveAttribute(
+      'href',
+      'https://photos.google.com/photo/current-i1'
     );
-    expect(openSpy).toHaveBeenCalledWith(
-      'https://photos.google.com/photo/current-i1',
-      '_blank',
-      'noopener,noreferrer'
-    );
+    expect(exactLink).toHaveAttribute('target', '_blank');
+    expect(exactLink).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
   it('results page exports csv for the active scan', async () => {

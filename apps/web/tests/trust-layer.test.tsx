@@ -57,9 +57,7 @@ const createSession = (): RunSessionContextValue => ({
               },
               links: {
                 googlePhotos: {
-                  url: null,
-                  fallbackQuery: 'a',
-                  fallbackUrl: 'https://photos.google.com/'
+                  url: null
                 }
               }
             },
@@ -75,9 +73,7 @@ const createSession = (): RunSessionContextValue => ({
               },
               links: {
                 googlePhotos: {
-                  url: null,
-                  fallbackQuery: 'b',
-                  fallbackUrl: 'https://photos.google.com/'
+                  url: null
                 }
               }
             }

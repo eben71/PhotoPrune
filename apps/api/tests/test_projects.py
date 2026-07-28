@@ -425,12 +425,30 @@ def test_picker_product_url_is_not_persisted(monkeypatch, tmp_path):
     )
 
     assert response.status_code == 200
+    immediate_links = [
+        item["links"]["googlePhotos"]
+        for group in response.json()["envelope"]["results"]["groups"]
+        for item in group["items"]
+    ]
+    assert immediate_links == [
+        {"url": "https://photos.google.com/photo/item-a"},
+        {"url": "https://photos.google.com/photo/item-b"},
+    ]
     with sqlite3.connect(tmp_path / "projects.db") as conn:
         rows = conn.execute(
             "SELECT product_url, deep_link FROM project_items WHERE project_id = ?",
             (project_id,),
         ).fetchall()
     assert rows == [(None, None), (None, None)]
+
+    scan_id = response.json()["projectScanId"]
+    saved_results = client.get(f"/api/projects/{project_id}/scans/{scan_id}/results").json()
+    saved_links = [
+        item["links"]["googlePhotos"]
+        for group in saved_results["envelope"]["results"]["groups"]
+        for item in group["items"]
+    ]
+    assert saved_links == [{"url": None}, {"url": None}]
 
 
 def test_project_scan_results_are_scoped_to_requested_scan(monkeypatch, tmp_path):

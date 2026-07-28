@@ -10,7 +10,7 @@ Run from the repo root:
 pnpm smoke:mvp
 ```
 
-This starts the Next.js web app on `127.0.0.1:3022` with `NEXT_PUBLIC_PHASE2_RUN_MODE=fixture`, stubs the Google Picker browser scripts, and runs the Playwright Chromium smoke spec in `tests/e2e/mvp-smoke.spec.ts`.
+This starts the Next.js web app on `127.0.0.1:3000` with `NEXT_PUBLIC_PHASE2_RUN_MODE=fixture`, stubs the Google Picker browser scripts, and runs the Playwright Chromium smoke spec in `tests/e2e/mvp-smoke.spec.ts`.
 
 The automated smoke is deterministic and does not use real Google credentials or real Google Photos content. The Chrome manual demo with a real Google account remains a separate MVP exit gate and must be run with `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`.
 

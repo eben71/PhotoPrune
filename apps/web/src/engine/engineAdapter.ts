@@ -258,9 +258,7 @@ function mapScanResults(record: RunRecord, scan: ScanResult): RunEnvelope {
         thumbnail: { baseUrl: item.baseUrl, suggestedSizePx: 300 },
         links: {
           googlePhotos: {
-            url: item.productUrl ?? null,
-            fallbackQuery: `${item.filename} ${item.id}`,
-            fallbackUrl: 'https://photos.google.com/'
+            url: item.productUrl ?? null
           }
         }
       }));

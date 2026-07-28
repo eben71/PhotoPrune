@@ -15,7 +15,6 @@ type PickerMediaItem = {
   width: number;
   height: number;
   baseUrl: string;
-  productUrl?: string;
 };
 
 type UseGooglePhotosPickerResult = {
@@ -50,10 +49,8 @@ type PickedMediaItem = {
   id?: string;
   createTime?: string;
   type?: string;
-  productUrl?: string;
   mediaFile?: {
     baseUrl?: string;
-    productUrl?: string;
     mimeType?: string;
     filename?: string;
     mediaFileMetadata?: {
@@ -379,10 +376,7 @@ function normalizePickedMediaItem(
     mimeType: mediaFile.mimeType ?? 'image/jpeg',
     width: width as number,
     height: height as number,
-    baseUrl: appendPhotoDownloadParams(mediaFile.baseUrl),
-    ...(mediaFile.productUrl || item.productUrl
-      ? { productUrl: mediaFile.productUrl ?? item.productUrl }
-      : {})
+    baseUrl: appendPhotoDownloadParams(mediaFile.baseUrl)
   };
 }
 
@@ -592,7 +586,6 @@ export function normalizePickerSelection(
     baseUrl: item.baseUrl,
     width: item.width,
     height: item.height,
-    ...(item.productUrl ? { productUrl: item.productUrl } : {}),
     type: 'PHOTO'
   }));
 }

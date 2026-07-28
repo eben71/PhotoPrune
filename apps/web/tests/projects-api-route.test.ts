@@ -132,6 +132,28 @@ describe('projects API route', () => {
     expect(response.headers.get('X-Correlation-ID')).toBe('gateway-test');
   });
 
+  it('accepts the documented loopback alias when Next canonicalizes the URL', async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(Response.json({ id: 'project-1' }, { status: 200 }))
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const response = await POST(
+      new Request('http://localhost:3000/api/projects', {
+        method: 'POST',
+        body: JSON.stringify({ name: 'Trip cleanup' }),
+        headers: {
+          Host: '127.0.0.1:3000',
+          Origin: 'http://127.0.0.1:3000',
+          'Sec-Fetch-Site': 'same-origin'
+        }
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
   it('rejects a declared oversized body before reading or forwarding it', async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);

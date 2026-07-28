@@ -1,4 +1,8 @@
 const ALLOWED_LOCAL_HOSTS = new Set(['localhost:3000', '127.0.0.1:3000']);
+const ALLOWED_LOCAL_ORIGINS = new Set([
+  'http://localhost:3000',
+  'http://127.0.0.1:3000'
+]);
 const ALLOWED_LOOPBACK_API_URLS = new Set([
   'http://localhost:8000',
   'http://127.0.0.1:8000'
@@ -79,10 +83,9 @@ export function enforceLocalGateway(request: Request): Response | null {
   }
   const origin = request.headers.get('origin');
   const fetchSite = request.headers.get('sec-fetch-site');
-  if (
-    (origin !== null && origin !== requestUrl.origin) ||
-    (fetchSite !== null && fetchSite !== 'same-origin')
-  ) {
+  const allowedOrigin =
+    origin === null || ALLOWED_LOCAL_ORIGINS.has(origin.toLowerCase());
+  if (!allowedOrigin || (fetchSite !== null && fetchSite !== 'same-origin')) {
     return gatewayError(
       request,
       403,

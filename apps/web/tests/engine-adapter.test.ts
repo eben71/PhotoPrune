@@ -94,6 +94,39 @@ describe('engineAdapter', () => {
     expect(completed.results.groups.length).toBe(1);
     expect(completed.results.groups[0].confidence).toBe('HIGH');
     expect(completed.results.groups[0].reasonCodes.length).toBeGreaterThan(0);
+    expect(completed.results.groups[0].items[0].links.googlePhotos).toEqual({
+      url: null
+    });
+  });
+
+  it('preserves a source-provided exact Google Photos URL', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(buildScanResult())
+        })
+      )
+    );
+    const adapter = await loadAdapter({
+      NODE_ENV: 'development'
+    });
+    const exactSelection: PickerItem[] = [
+      {
+        ...selection[0],
+        productUrl: 'https://photos.google.com/photo/test-1'
+      }
+    ];
+
+    const { runId } = adapter.startRun(exactSelection);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const completed = adapter.pollRun(runId);
+
+    expect(completed.results.groups[0].items[0].links.googlePhotos).toEqual({
+      url: 'https://photos.google.com/photo/test-1'
+    });
   });
 
   it('flags hard caps while preserving results', async () => {

@@ -19,6 +19,26 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-27 - PP-016 Implement honest Google Photos exact-photo link-out
+
+- Role: Builder / Verifier / Reviewer
+- Status: Done
+- Goal: Open only a supported exact Google Photos item in a new tab and represent the current Picker API's missing exact-item destination honestly.
+- Acceptance criteria checked:
+  - Source-provided exact item URLs are validated as HTTPS `photos.google.com` photo paths and rendered as semantic new-tab links with `noopener noreferrer`.
+  - Missing URLs remain absent across direct and saved-project results; homepage, filename, and media-ID search fallbacks are no longer generated or offered as exact.
+  - Documented Picker media-item responses produce an explicit “Exact Google Photos link unavailable” state with manual, non-destructive guidance.
+  - Mixed groups keep exact and unavailable states independent; no in-app delete, automatic cleanup, write scope, recovery claim, or similarity percentage was introduced.
+- Commands run:
+  - Focused web suite passed with 94 tests and 85.14% line coverage; focused API link/project coverage passed with 35 tests.
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, `make build`, `pnpm check:deployment-boundary`, and `pnpm check:docs` passed.
+  - `pnpm smoke:mvp` passed in Chromium after repairing the stale port-3022 smoke configuration and adding loopback-alias regression coverage for the localhost-only gateway.
+- Manual verification: Trust UI review passed for group-first hierarchy, band-only confidence, explicit external action separation, accessible exact/unavailable states, centralized copy, keyboard semantics, and absence of unsupported destructive or fallback claims. Playwright visual QA at 1440×900 and 390×844 found no horizontal overflow; mixed-state inspection confirmed one exact link did not enable links for unavailable siblings.
+- Artifacts/screenshots: `docs/delivery/artifacts/PP-016/pp-016-evidence.md`, `pp-016-unavailable-desktop.png`, `pp-016-unavailable-desktop-focus.png`, `pp-016-unavailable-mobile.png`, and `pp-016-mixed-link-desktop.png`.
+- Backlog updates: PP-016 moved from Ready to Done with acceptance, automated, trust-review, and visual evidence recorded.
+- Follow-up tasks created: None.
+- Residual risk: The current Google Photos Picker API does not document an exact-item URL. PP-023 remains responsible for real-account Chrome validation and must record a follow-up defect if real Picker output differs from the documented and automated unavailable state.
+
 ### 2026-07-26 - PP-006 Make review actions, representative language, and trust copy truthful
 
 - Role: Builder
