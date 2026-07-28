@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import fixture from './fixtures/phase2_2_sample_results.json';
-import { RunEnvelopeSchema } from '../src/types/phase2Envelope';
+import {
+  PickerItemSchema,
+  RunEnvelopeSchema
+} from '../src/types/phase2Envelope';
 
 describe('Phase 2.1 sanity fixtures', () => {
   it('matches the run envelope schema contract snapshot', () => {
@@ -65,6 +68,35 @@ describe('Phase 2.1 sanity fixtures', () => {
       expect(issue.itemId.length).toBeGreaterThan(0);
       expect(issue.reasonCode.length).toBeGreaterThan(0);
       expect(issue.message.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('accepts exact Google Photos item URLs and rejects fallback destinations', () => {
+    const pickerItem = {
+      id: 'item-1',
+      baseUrl: 'https://example.com/image',
+      filename: 'photo.jpg',
+      mimeType: 'image/jpeg',
+      createTime: '2025-01-01T00:00:00Z',
+      width: 100,
+      height: 100,
+      type: 'PHOTO' as const
+    };
+
+    expect(
+      PickerItemSchema.safeParse({
+        ...pickerItem,
+        productUrl: 'https://photos.google.com/photo/item-1'
+      }).success
+    ).toBe(true);
+    for (const productUrl of [
+      'https://photos.google.com/',
+      'https://photos.google.com/search/item-1',
+      'https://example.com/photo/item-1'
+    ]) {
+      expect(
+        PickerItemSchema.safeParse({ ...pickerItem, productUrl }).success
+      ).toBe(false);
     }
   });
 });

@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+from app.engine.deeplinks import build_google_photos_deep_link_from_parts
 from app.engine.models import PhotoItem
 from app.engine.schemas import ScanResult
 from app.projects.schemas import ProjectGroupReviewPatch
@@ -510,9 +511,9 @@ class ProjectRepository:
                         },
                         "links": {
                             "googlePhotos": {
-                                "url": item.get("deep_link"),
-                                "fallbackQuery": member_id,
-                                "fallbackUrl": f"https://photos.google.com/search/{member_id}",
+                                "url": build_google_photos_deep_link_from_parts(
+                                    member_id, item.get("deep_link")
+                                ),
                             }
                         },
                     }

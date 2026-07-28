@@ -393,7 +393,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-016 Implement or verify Google Photos exact-photo link-out for manual cleanup
 
-- Status: Ready
+- Status: Done
 - Priority: P0
 - Type: Product / Trust
 - Finding coverage: RR-007
@@ -410,6 +410,10 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Unit and Playwright tests distinguish an exact supported destination from unavailable/fallback states.
   - `make lint`, `make format-check`, `make typecheck`, `make test`, and `pnpm smoke:mvp`.
   - Automated evidence can complete PP-016 before PP-023. PP-023 then validates the implemented exact-link or honest unavailable state with real Picker output and records any newly discovered defect as a follow-up task.
+- Evidence:
+  - Google’s documented Picker `PickedMediaItem` response has no exact-item `productUrl`, so current Picker results now show a clear unavailable state instead of opening the Google Photos homepage or an unproven search.
+  - Compatible source-provided exact item URLs are restricted to HTTPS `photos.google.com` item paths and open as `target="_blank"` links with `noopener noreferrer`.
+  - Unit, API, saved-project, mixed-state, and Playwright smoke coverage passed; the trust UI review and desktop/mobile screenshots are recorded in `docs/delivery/artifacts/PP-016/pp-016-evidence.md`.
 
 ### PP-022 Implement real Google Photos album source selection and fetch
 

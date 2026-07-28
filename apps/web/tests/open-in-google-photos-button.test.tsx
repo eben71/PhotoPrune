@@ -1,14 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { act } from 'react';
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  type MockInstance,
-  vi
-} from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 
 import { OpenInGooglePhotosButton } from '../app/components/OpenInGooglePhotosButton';
 import type { Item } from '../src/types/phase2Envelope';
@@ -25,104 +16,76 @@ const baseItem: Item = {
   },
   links: {
     googlePhotos: {
-      url: null,
-      fallbackQuery: 'IMG_0001 item-1',
-      fallbackUrl: 'https://photos.google.com/'
+      url: null
     }
   }
 };
 
 describe('OpenInGooglePhotosButton', () => {
-  let openSpy: MockInstance<Window['open']>;
-  const originalClipboard = Object.getOwnPropertyDescriptor(
-    navigator,
-    'clipboard'
-  );
-
-  beforeEach(() => {
-    openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-    if (originalClipboard) {
-      Object.defineProperty(navigator, 'clipboard', originalClipboard);
-    } else {
-      delete (navigator as { clipboard?: Clipboard }).clipboard;
-    }
-  });
-
-  it('opens the direct Google Photos URL when available', () => {
+  it('renders the exact Google Photos URL as a safe new-tab link', () => {
     const item = {
       ...baseItem,
       links: {
         googlePhotos: {
-          ...baseItem.links.googlePhotos,
-          url: 'https://photos.google.com/direct/123'
+          url: 'https://photos.google.com/photo/123'
         }
       }
     };
 
     render(<OpenInGooglePhotosButton item={item} />);
 
-    fireEvent.click(
-      screen.getByRole('button', { name: /open in google photos/i })
-    );
-
-    expect(openSpy).toHaveBeenCalledWith(
-      'https://photos.google.com/direct/123',
-      '_blank',
-      'noopener,noreferrer'
-    );
-    expect(screen.queryByText(/fallback search/i)).not.toBeInTheDocument();
-  });
-
-  it('shows and copies the fallback query when no direct URL is available', async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, 'clipboard', {
-      value: { writeText },
-      configurable: true
+    const link = screen.getByRole('link', {
+      name: /open exact photo in google photos/i
     });
-    vi.useFakeTimers();
-
-    render(<OpenInGooglePhotosButton item={baseItem} />);
-
-    expect(screen.getByText(/fallback search:/i)).toHaveTextContent(
-      `Fallback search: ${baseItem.links.googlePhotos.fallbackQuery}`
-    );
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /copy query/i }));
-      await Promise.resolve();
-    });
-
-    expect(writeText).toHaveBeenCalledWith(
-      baseItem.links.googlePhotos.fallbackQuery
-    );
-    expect(screen.getByRole('button', { name: /copied/i })).toBeInTheDocument();
-
-    act(() => {
-      vi.advanceTimersByTime(1500);
-    });
-
+    expect(link).toHaveAttribute('href', 'https://photos.google.com/photo/123');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     expect(
-      screen.getByRole('button', { name: /copy query/i })
-    ).toBeInTheDocument();
-  });
-
-  it('does not attempt to copy when the clipboard API is unavailable', () => {
-    delete (navigator as { clipboard?: Clipboard }).clipboard;
-
-    render(<OpenInGooglePhotosButton item={baseItem} />);
-
-    fireEvent.click(screen.getByRole('button', { name: /copy query/i }));
-
-    expect(
-      screen.getByRole('button', { name: /copy query/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /copied/i })
+      screen.queryByText(/exact google photos link unavailable/i)
     ).not.toBeInTheDocument();
+  });
+
+  it('shows manual guidance without any fallback action when no exact URL exists', () => {
+    render(<OpenInGooglePhotosButton item={baseItem} />);
+
+    expect(
+      screen.getByText(/exact google photos link unavailable/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/find it manually in google photos/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /google photos/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /google photos|copy/i })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/fallback|query/i)).not.toBeInTheDocument();
+  });
+
+  it('keeps exact and unavailable item states independent', () => {
+    const exactItem = {
+      ...baseItem,
+      itemId: 'item-2',
+      links: {
+        googlePhotos: {
+          url: 'https://photos.google.com/photo/item-2'
+        }
+      }
+    };
+
+    const { rerender } = render(<OpenInGooglePhotosButton item={exactItem} />);
+    expect(
+      screen.getByRole('link', { name: /open exact photo/i })
+    ).toBeInTheDocument();
+
+    rerender(<OpenInGooglePhotosButton item={baseItem} />);
+
+    expect(
+      screen.queryByRole('link', { name: /open exact photo/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/exact google photos link unavailable/i)
+    ).toBeInTheDocument();
   });
 });

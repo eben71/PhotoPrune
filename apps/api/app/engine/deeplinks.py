@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Protocol
-from urllib.parse import quote
+from urllib.parse import urlparse
 
 
 class _DeepLinkItem(Protocol):
@@ -21,14 +21,7 @@ class _DeepLinkParts:
 
 
 def build_google_photos_deep_link(item: _DeepLinkItem) -> str | None:
-    deep_link = _extract_deep_link(item)
-    if deep_link:
-        return deep_link
-    item_id = getattr(item, "id", None)
-    if not item_id:
-        return None
-    safe_id = quote(str(item_id))
-    return f"https://photos.google.com/search/{safe_id}"
+    return _extract_deep_link(item)
 
 
 def build_google_photos_deep_link_from_parts(
@@ -41,6 +34,20 @@ def build_google_photos_deep_link_from_parts(
 def _extract_deep_link(item: _DeepLinkItem) -> str | None:
     for attr in ("deep_link", "google_photos_deep_link"):
         value = getattr(item, attr, None)
-        if value:
-            return str(value)
+        if value and _is_exact_google_photos_item_url(str(value)):
+            return str(value).strip()
     return None
+
+
+def _is_exact_google_photos_item_url(value: str) -> bool:
+    parsed = urlparse(value.strip())
+    path_segments = [segment for segment in parsed.path.split("/") if segment]
+    try:
+        photo_index = path_segments.index("photo")
+    except ValueError:
+        return False
+    return (
+        parsed.scheme == "https"
+        and parsed.hostname == "photos.google.com"
+        and len(path_segments) > photo_index + 1
+    )

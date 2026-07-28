@@ -23,9 +23,7 @@ const group: Group = {
       },
       links: {
         googlePhotos: {
-          url: null,
-          fallbackQuery: 'IMG_0001 item-1',
-          fallbackUrl: 'https://photos.google.com/'
+          url: null
         }
       }
     },
@@ -41,9 +39,7 @@ const group: Group = {
       },
       links: {
         googlePhotos: {
-          url: null,
-          fallbackQuery: 'IMG_0001_COPY item-2',
-          fallbackUrl: 'https://photos.google.com/'
+          url: null
         }
       }
     },
@@ -59,9 +55,7 @@ const group: Group = {
       },
       links: {
         googlePhotos: {
-          url: null,
-          fallbackQuery: 'IMG_0001_EDIT item-3',
-          fallbackUrl: 'https://photos.google.com/'
+          url: null
         }
       }
     },
@@ -77,9 +71,7 @@ const group: Group = {
       },
       links: {
         googlePhotos: {
-          url: null,
-          fallbackQuery: 'IMG_0001_ALT item-4',
-          fallbackUrl: 'https://photos.google.com/'
+          url: null
         }
       }
     }
@@ -113,8 +105,11 @@ describe('GroupCard', () => {
 
     expect(screen.getByText('IMG_0001_ALT.JPG')).toBeInTheDocument();
     expect(
-      screen.getAllByRole('button', { name: /open in google photos/i }).length
+      screen.getAllByText(/exact google photos link unavailable/i).length
     ).toBeGreaterThan(0);
+    expect(
+      screen.queryByRole('link', { name: /open exact photo/i })
+    ).not.toBeInTheDocument();
     expect(
       screen.getAllByText(/mark for potential removal \(review externally\)/i)
         .length

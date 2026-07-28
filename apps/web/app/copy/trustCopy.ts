@@ -107,7 +107,11 @@ export const trustCopy = {
       'Review each image carefully.',
       'Visual similarity does not always mean duplication.'
     ],
-    neutralSelection: 'Mark for potential removal (review externally)'
+    neutralSelection: 'Mark for potential removal (review externally)',
+    exactPhotoAction: 'Open exact photo in Google Photos',
+    exactPhotoUnavailable: 'Exact Google Photos link unavailable',
+    exactPhotoUnavailableGuidance:
+      'Review this filename and photo carefully, then find it manually in Google Photos before making any changes.'
   },
   cancelModal: {
     title: 'Are you sure you want to end this session?',

@@ -28,8 +28,6 @@ exports[`Phase 2.1 sanity fixtures > matches the run envelope schema contract sn
             "itemId": "item-1",
             "links": {
               "googlePhotos": {
-                "fallbackQuery": "IMG_0001 item-1",
-                "fallbackUrl": "https://photos.google.com/",
                 "url": null,
               },
             },
@@ -50,8 +48,6 @@ exports[`Phase 2.1 sanity fixtures > matches the run envelope schema contract sn
             "itemId": "item-2",
             "links": {
               "googlePhotos": {
-                "fallbackQuery": "IMG_0001_COPY item-2",
-                "fallbackUrl": "https://photos.google.com/",
                 "url": null,
               },
             },
@@ -72,8 +68,6 @@ exports[`Phase 2.1 sanity fixtures > matches the run envelope schema contract sn
             "itemId": "item-3",
             "links": {
               "googlePhotos": {
-                "fallbackQuery": "IMG_0001_EDIT item-3",
-                "fallbackUrl": "https://photos.google.com/",
                 "url": null,
               },
             },
@@ -109,8 +103,6 @@ exports[`Phase 2.1 sanity fixtures > matches the run envelope schema contract sn
             "itemId": "item-4",
             "links": {
               "googlePhotos": {
-                "fallbackQuery": "IMG_1021 item-4",
-                "fallbackUrl": "https://photos.google.com/",
                 "url": null,
               },
             },
@@ -131,8 +123,6 @@ exports[`Phase 2.1 sanity fixtures > matches the run envelope schema contract sn
             "itemId": "item-5",
             "links": {
               "googlePhotos": {
-                "fallbackQuery": "IMG_1022 item-5",
-                "fallbackUrl": "https://photos.google.com/",
                 "url": null,
               },
             },

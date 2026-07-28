@@ -58,7 +58,6 @@ async function installGooglePickerStub(page: Page) {
             id: "smoke-photo-1",
             createTime: "2026-01-01T00:00:00Z",
             type: "PHOTO",
-            productUrl: "https://photos.google.com/photo/smoke-photo-1",
             mediaFile: {
               baseUrl: "https://placehold.co/600x400",
               filename: "smoke-photo-1.jpg",
@@ -70,7 +69,6 @@ async function installGooglePickerStub(page: Page) {
             id: "smoke-photo-2",
             createTime: "2026-01-01T00:00:01Z",
             type: "PHOTO",
-            productUrl: "https://photos.google.com/photo/smoke-photo-2",
             mediaFile: {
               baseUrl: "https://placehold.co/600x400",
               filename: "smoke-photo-2.jpg",
@@ -186,8 +184,11 @@ test("MVP golden path smoke covers scan, review, trust, settings, and account", 
   ).toBeVisible();
   await page.getByRole("button", { name: "Show all items" }).first().click();
   await expect(
-    page.getByRole("button", { name: "Open in Google Photos" }).first(),
+    page.getByText("Exact Google Photos link unavailable").first(),
   ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Open exact photo in Google Photos" }),
+  ).toHaveCount(0);
   await expectNoUnsupportedClaims(page);
 
   await page.goto("/settings");

@@ -65,9 +65,7 @@
             },
             "links": {
               "googlePhotos": {
-                "url": null,
-                "fallbackQuery": "IMG_0001 item-1",
-                "fallbackUrl": "https://photos.google.com/"
+                "url": null
               }
             }
           },
@@ -84,9 +82,7 @@
             },
             "links": {
               "googlePhotos": {
-                "url": null,
-                "fallbackQuery": "IMG_0001_COPY item-2",
-                "fallbackUrl": "https://photos.google.com/"
+                "url": null
               }
             }
           },
@@ -103,9 +99,7 @@
             },
             "links": {
               "googlePhotos": {
-                "url": null,
-                "fallbackQuery": "IMG_0001_EDIT item-3",
-                "fallbackUrl": "https://photos.google.com/"
+                "url": null
               }
             }
           }
@@ -132,9 +126,7 @@
             },
             "links": {
               "googlePhotos": {
-                "url": null,
-                "fallbackQuery": "IMG_1021 item-4",
-                "fallbackUrl": "https://photos.google.com/"
+                "url": null
               }
             }
           },
@@ -151,9 +143,7 @@
             },
             "links": {
               "googlePhotos": {
-                "url": null,
-                "fallbackQuery": "IMG_1022 item-5",
-                "fallbackUrl": "https://photos.google.com/"
+                "url": null
               }
             }
           }

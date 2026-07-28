@@ -372,8 +372,6 @@ def _to_envelope(scan_result: ScanResult) -> dict[str, Any]:
                         "links": {
                             "googlePhotos": {
                                 "url": item.google_photos_deep_link,
-                                "fallbackQuery": item.id,
-                                "fallbackUrl": f"https://photos.google.com/search/{item.id}",
                             }
                         },
                     }

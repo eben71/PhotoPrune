@@ -13,8 +13,7 @@ describe('normalizePickerSelection', () => {
           mimeType: 'image/jpeg',
           width: 100,
           height: 80,
-          baseUrl: 'https://example.com/base',
-          productUrl: 'https://photos.google.com/photo/abc'
+          baseUrl: 'https://example.com/base'
         }
       ])
     ).toEqual([
@@ -26,7 +25,6 @@ describe('normalizePickerSelection', () => {
         baseUrl: 'https://example.com/base',
         width: 100,
         height: 80,
-        productUrl: 'https://photos.google.com/photo/abc',
         type: 'PHOTO'
       }
     ]);
