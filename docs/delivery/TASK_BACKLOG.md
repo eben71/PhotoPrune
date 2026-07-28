@@ -699,3 +699,50 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - `pnpm dependency:preflight`
   - `pnpm audit --prod --audit-level=high`
   - Full repository handoff gate.
+
+### PP-037 Narrow task routing to capability compatibility
+
+- Status: Verifying
+- Priority: P1
+- Type: Docs / Delivery / Agent Guidance
+- Dependencies: PP-026.
+- Links: `AGENTS.md`, `docs/ai/TASK_ROUTING.md`, `docs/ai/TASK_ROUTING_RUNTIME_ADAPTERS.md`, `tests/agent-system/task-routing-policy.test.mjs`
+- Goal: Limit task routing to complexity, required provider-neutral capability, reasoning effort, runtime detection, and compatibility enforcement.
+- Acceptance criteria:
+  - The compact block contains only complexity, capability tier, reasoning effort, runtime, and status.
+  - Workflow, workspace, BMAD, Baton, and agent-count decisions remain outside the routing gate.
+  - Provider-neutral Economical, Primary, and Frontier tiers remain canonical; runtime-specific mappings are separate.
+  - Detected insufficient capability or reasoning pauses before implementation.
+  - Unknown or incompletely mapped runtimes report `Unable to verify` and continue under `Enforce when detectable`.
+  - Eight dry runs cover documentation, normal feature, security, forbidden deletion, migration, mismatch, unknown runtime, and another provider.
+  - Agent-system tests and the full repository handoff gate pass, or gaps are recorded.
+- Required verification:
+  - `pnpm test:agent-system`
+  - `make lint`
+  - `make format-check`
+  - `make typecheck`
+  - `make test`
+  - `node scripts/check-coverage.mjs`
+  - `make build`
+  - `pnpm check:docs`
+
+### PP-038 Reposition Baton as optional advanced orchestration
+
+- Status: Verifying
+- Priority: P1
+- Type: Docs / Delivery / Agent Guidance
+- Dependencies: PP-037.
+- Links: `AGENTS.md`, `docs/CONTRIBUTING.md`, `docs/delivery/WORKFLOW.md`, `docs/delivery/BATON_WORKTREE_GUIDE.md`
+- Goal: Keep Baton documentation useful for advanced workspace orchestration without placing Baton in the standard PhotoPrune development path.
+- Acceptance criteria:
+  - The standard path is story → ChatGPT Desktop → Codex → selected BMAD workflow → implementation.
+  - Baton is explicitly optional and not required for Codex, BMAD, or single-task development.
+  - Baton is documented as complementary workspace orchestration, not a replacement for Codex or BMAD.
+  - The guide preserves worktree, branch, pause/resume, parallel-development, isolation, and cleanup guidance.
+  - Root and onboarding guidance link to the Baton guide only for relevant advanced use.
+  - Task routing never recommends Baton based on complexity.
+- Required verification:
+  - `pnpm test:agent-system`
+  - `make format-check`
+  - `make test`
+  - `pnpm check:docs`

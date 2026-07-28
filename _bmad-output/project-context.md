@@ -103,7 +103,8 @@ _This file contains critical rules and patterns that AI agents must follow when 
 
 ### Development Workflow Rules
 
-- Before meaningful planning or implementation, run the advisory gate in `docs/ai/TASK_ROUTING.md` once. Classify before selecting a BMAD workflow or starting Baton implementation; never switch the active model or reasoning level automatically.
+- Before meaningful planning or implementation, run the capability gate in `docs/ai/TASK_ROUTING.md` once. It verifies task complexity, required capability, reasoning effort, runtime, and compatibility without selecting BMAD, Baton, workspace, or agent orchestration.
+- Follow the standard story → ChatGPT Desktop → Codex → selected BMAD workflow → implementation path in `docs/delivery/WORKFLOW.md`. Consult the Baton guide only when the user opts into advanced parallel or resumable workspace orchestration.
 - Start delivery work from `docs/delivery/TASK_BACKLOG.md`; select one `Ready` task and keep implementation scoped to that task's acceptance criteria.
 - Every task must have acceptance criteria before implementation. If acceptance criteria are missing or vague, clarify or create the criteria before changing code.
 - Use one isolated branch or worktree per task where practical; keep branch/worktree scope mapped to the task ID.
