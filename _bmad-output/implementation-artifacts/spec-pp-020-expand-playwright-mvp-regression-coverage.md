@@ -2,8 +2,8 @@
 title: 'PP-020 Expand Playwright MVP regression coverage'
 type: 'test'
 created: '2026-07-01'
-status: 'ready-for-dev'
-baseline_commit: 'c4f7ecee792308278adf49a27ab6ce3028848dff'
+status: 'done'
+baseline_commit: '4734fcb8723a57ea3acb98cded4bb14dd079ea4a'
 context:
   - `AGENT_RULES.md`
   - `apps/web/AGENTS.md`
@@ -67,12 +67,12 @@ context:
 
 **Execution:**
 
-- [ ] Inspect PP-002 Playwright files and identify duplication or brittle assertions that should be helperized before adding more specs.
-- [ ] Extract reusable helpers for Google Picker stubbing, forbidden-claim assertions, common fixture-mode navigation, and any session seeding or result navigation needed by multiple specs.
-- [ ] Add focused Playwright regression specs for at least three MVP risk areas beyond the basic golden path. Prioritize route/session guard behavior, trust forbidden-claim coverage across key pages, Google Photos link-out/manual cleanup behavior, Settings/Account scope, and one desktop/narrow viewport navigation check.
-- [ ] Keep `pnpm smoke:mvp` passing. If additional focused specs would make smoke too slow or conceptually broad, add a separate documented command such as `pnpm test:e2e` or `pnpm test:e2e:mvp`.
-- [ ] Update docs to distinguish smoke, broader deterministic Playwright regression tests, and manual/PP-014 real Google verification.
-- [ ] Update `docs/delivery/TASK_BACKLOG.md` and `docs/delivery/ITERATION_LOG.md` with exact evidence, skipped checks, follow-ups, and residual risk.
+- [x] Inspect PP-002 Playwright files and identify duplication or brittle assertions that should be helperized before adding more specs.
+- [x] Extract reusable helpers for Google Picker stubbing, forbidden-claim assertions, common fixture-mode navigation, and any session seeding or result navigation needed by multiple specs.
+- [x] Add focused Playwright regression specs for at least three MVP risk areas beyond the basic golden path. Prioritize route/session guard behavior, trust forbidden-claim coverage across key pages, Google Photos link-out/manual cleanup behavior, Settings/Account scope, and one desktop/narrow viewport navigation check.
+- [x] Keep `pnpm smoke:mvp` passing. If additional focused specs would make smoke too slow or conceptually broad, add a separate documented command such as `pnpm test:e2e` or `pnpm test:e2e:mvp`.
+- [x] Update docs to distinguish smoke, broader deterministic Playwright regression tests, and manual/PP-014 real Google verification.
+- [x] Update `docs/delivery/TASK_BACKLOG.md` and `docs/delivery/ITERATION_LOG.md` with exact evidence, skipped checks, follow-ups, and residual risk.
 
 **Acceptance Criteria:**
 
@@ -86,7 +86,7 @@ context:
 
 - PP-002 currently uses a single `tests/e2e/mvp-smoke.spec.ts` with an inline Google Picker/browser script stub and inline forbidden-copy patterns. PP-020 should avoid duplicating those blocks across new specs.
 - Prefer small helper modules under `tests/e2e/` such as `helpers/googlePicker.ts`, `helpers/trustAssertions.ts`, or `helpers/session.ts` if that keeps tests readable. Do not build an elaborate custom framework.
-- The current Playwright config starts Next.js on `127.0.0.1:3022` with `NEXT_PUBLIC_PHASE2_RUN_MODE=fixture`. Preserve that deterministic setup unless a clear reason emerges.
+- The current Playwright config starts Next.js on `127.0.0.1:3000` with `NEXT_PUBLIC_PHASE2_RUN_MODE=fixture`. Preserve that deterministic setup unless a clear reason emerges.
 - Automated Playwright coverage may use fixture content and browser stubs. It must not claim real Google account coverage; PP-014/manual demo owns that.
 - If checking `window.open` behavior for `OpenInGooglePhotosButton`, prefer Playwright page/context event assertions or a controlled browser stub. Keep the test focused on visible manual link-out behavior and non-destructive copy.
 - Route/session guard tests should verify the current product truth: session-only behavior is acceptable for MVP, and browser close/restart may require starting again. Do not introduce previous scan history.
@@ -112,6 +112,9 @@ context:
 - Prior implementation story: `_bmad-output/implementation-artifacts/spec-pp-002-add-or-confirm-mvp-playwright-smoke-test.md`
 
 ## Spec Change Log
+
+- 2026-07-28: Extracted reusable Playwright helpers, added PP-006/PP-016 and focused MVP browser regressions, wired the deterministic suite into CI with failure artifacts, and updated delivery evidence.
+- 2026-07-28: Adversarial review strengthened percentage-claim matching, malformed exact-link rejection, actual link activation, and narrow Account navigation; it also reconciled stale PP-015 lifecycle ownership in the backlog and corrected the documented Playwright port.
 
 ## Verification
 
@@ -167,14 +170,67 @@ GPT-5 Codex
 - Current branch had uncommitted PP-002 implementation changes at story creation time; PP-020 was created as planning/backlog/story work only.
 - BMad sprint status was not updated because this repo currently has no `_bmad-output/implementation-artifacts/sprint-status.yaml`.
 - BMad create-story customization fallback found no repo/user overrides; base customization applies.
+- `pnpm smoke:mvp` passed with six Chromium tests after extracting the Picker REST stub and adding focused regression coverage.
+- `pnpm --filter web test` passed with 14 files, 94 tests, and 85.14% line coverage.
+- `make lint`, `make format-check`, and `make typecheck` passed; Turbo replayed cached package results while the Python checks ran live.
+- A direct touched-file Prettier invocation was blocked by an existing `EPERM` reading the pnpm store's Prettier package.
+- A direct uncached `pnpm --filter web typecheck` was blocked by the incomplete local install (`tailwindcss` could not be resolved); the canonical cached typecheck passed and the browser suite compiled and ran the new TypeScript helpers/specs successfully.
+- `pnpm check:docs` passed.
 
 ### Completion Notes List
 
 - Added PP-020 backlog task with acceptance criteria.
 - Created ready-for-dev PP-020 story artifact.
-- No implementation of PP-020 Playwright expansion was started.
+- Extracted reusable Google Photos Picker REST, session-seeding, and forbidden-claim helpers.
+- Added focused route-guard, PP-006 review-decision, PP-016 exact-link, trust-copy, and narrow-navigation browser coverage.
+- Kept `pnpm smoke:mvp` deterministic and green with six Chromium tests.
+- Added the deterministic browser suite to CI and retained ignored failure artifacts for seven days.
+- Kept PP-015 lifecycle behavior outside PP-020 and recorded it as the existing owner of cancellation, timeout/restart, retry, and durable partial-result evidence.
+- Completed independent Blind Hunter and Edge Case Hunter review and repaired all accepted current-story findings.
+- Passed the full repository handoff gate plus the final six-test Chromium smoke rerun.
 
 ### File List
 
 - `docs/delivery/TASK_BACKLOG.md`
 - `_bmad-output/implementation-artifacts/spec-pp-020-expand-playwright-mvp-regression-coverage.md`
+- `.github/workflows/ci.yml`
+- `tests/e2e/helpers/googlePhotosPicker.ts`
+- `tests/e2e/helpers/session.ts`
+- `tests/e2e/helpers/trustAssertions.ts`
+- `tests/e2e/mvp-smoke.spec.ts`
+- `tests/e2e/mvp-regression.spec.ts`
+- `docs/testing/MVP_SMOKE_TEST_PLAN.md`
+- `docs/product/MVP_EXIT_CRITERIA.md`
+- `docs/delivery/ITERATION_LOG.md`
+
+## Suggested Review Order
+
+**Deterministic browser contract**
+
+- Start with the focused PP-006, PP-016, guard, and narrow-navigation behaviors.
+  [`mvp-regression.spec.ts:6`](../../tests/e2e/mvp-regression.spec.ts#L6)
+
+- Preserve the readable golden path while sharing only mechanical setup.
+  [`mvp-smoke.spec.ts:6`](../../tests/e2e/mvp-smoke.spec.ts#L6)
+
+**Reusable trust fixtures**
+
+- Stub the supported Picker REST session/media-items lifecycle without real credentials.
+  [`googlePhotosPicker.ts:3`](../../tests/e2e/helpers/googlePhotosPicker.ts#L3)
+
+- Seed deterministic completed sessions for explicit results-state tests.
+  [`session.ts:7`](../../tests/e2e/helpers/session.ts#L7)
+
+- Reject unsupported numeric confidence and destructive product claims centrally.
+  [`trustAssertions.ts:3`](../../tests/e2e/helpers/trustAssertions.ts#L3)
+
+**Automation and evidence**
+
+- Run the deterministic Chromium gate in CI and retain failure artifacts.
+  [`ci.yml:116`](../../.github/workflows/ci.yml#L116)
+
+- Distinguish fixture regressions from the real-account Chrome demonstration.
+  [`MVP_SMOKE_TEST_PLAN.md:34`](../../docs/testing/MVP_SMOKE_TEST_PLAN.md#L34)
+
+- Record completion, full-gate evidence, ownership boundaries, and residual risk.
+  [`TASK_BACKLOG.md:501`](../../docs/delivery/TASK_BACKLOG.md#L501)

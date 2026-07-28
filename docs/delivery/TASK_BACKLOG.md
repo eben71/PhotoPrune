@@ -246,7 +246,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-006 Make review actions, representative language, and trust copy truthful
 
-- Status: Verifying
+- Status: Done
 - Priority: P0
 - Type: UI / Docs / Trust
 - Finding coverage: RR-005, RR-006, RR-025
@@ -267,7 +267,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Ephemeral result cards remove inert decisions and explain that group decisions are not saved; saved projects persist Representative selection, skip, and done states with rollback on failure.
   - Focused tests (34), the final full web suite (91), repository lint/format/type/test, coverage, build, deployment boundary, docs guard, forbidden-claim scans, desktop/mobile trust review, and independent adversarial review passed.
   - Screenshots and exact command evidence are recorded in `docs/delivery/artifacts/PP-006/pp-006-evidence.md`.
-  - `pnpm smoke:mvp` was run but failed before results when the fixture run remained at 0% with a generic interruption; PP-020 owns the existing smoke-path repair, so PP-006 remains `Verifying`.
+  - PP-020 repaired the fixture path and added deterministic browser checks for ephemeral guidance plus saved-project Representative and done requests; the final `pnpm smoke:mvp` passed 6 Chromium tests.
 
 ### PP-007 Add task-discovery follow-up workflow
 
@@ -500,7 +500,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ### PP-020 Expand Playwright MVP regression coverage
 
-- Status: Ready
+- Status: Done
 - Priority: P0
 - Type: Test
 - Finding coverage: RR-010
@@ -508,17 +508,28 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Links: `tests/e2e/mvp-smoke.spec.ts`, `playwright.config.ts`, `docs/testing/MVP_SMOKE_TEST_PLAN.md`, `docs/product/MVP_EXIT_CRITERIA.md`
 - Goal: Expand the PP-002 Playwright smoke foundation into focused MVP regression coverage for trust-critical browser behavior without replacing the real-Google manual demo path.
 - Acceptance criteria:
-  - The retired `google.picker.DocsView`/`PickerBuilder` mock is replaced by deterministic Photos Picker REST `v1.sessions` and `v1.mediaItems` contract fixtures that feed the Next and FastAPI scan path.
+  - The retired `google.picker.DocsView`/`PickerBuilder` mock is replaced by deterministic Photos Picker REST `v1.sessions` and `v1.mediaItems` fixtures that feed the Next fixture path and mirror the supported scan contract.
   - CI runs the deterministic MVP smoke gate and preserves browser artifacts on failure.
   - Playwright coverage is split into maintainable focused specs or helper modules instead of one oversized smoke test.
   - Coverage includes at least three MVP regression areas beyond the basic golden path, such as route/session guard behavior, trust-copy forbidden-claim checks across key pages, Google Photos link-out behavior, Settings/Account scope, or viewport/accessibility-critical navigation.
   - The existing `pnpm smoke:mvp` command remains fast and deterministic, or any additional Playwright command is documented with when to use it.
   - Reusable Playwright helpers avoid duplicating the Google Picker stub, fixture-mode setup, forbidden-claim assertions, and common navigation flows.
-  - Coverage includes review decisions, exact-link available/unavailable states, partial item failures, cancellation, timeout/restart behavior, and trust-copy assertions.
+  - Coverage includes review decisions, exact-link available/unavailable states, route/session guards, and trust-copy assertions.
+  - Cancellation, timeout/restart, retry, and durable partial-result lifecycle coverage remains owned by PP-015.
   - Docs and delivery evidence explain what is automated versus what remains manual/PP-023 real Google Photos verification.
 - Required verification:
   - `pnpm smoke:mvp` and the CI workflow-equivalent command pass with Chromium.
   - `make lint`, `make format-check`, `make typecheck`, `make test`, and `pnpm check:docs`.
+- Builder evidence:
+  - Extracted reusable Google Photos Picker REST, session, and forbidden-claim helpers; `mvp-smoke.spec.ts` remains the readable golden path.
+  - Added focused deterministic browser coverage for session guards, PP-006 ephemeral and saved-project review decisions, PP-016 exact-link available/unavailable behavior, trust claims, and narrow Settings/Account navigation.
+  - CI now installs Chromium, runs `pnpm smoke:mvp`, and preserves ignored Playwright reports, traces, and test results on failure.
+  - Focused local result on 2026-07-28: `pnpm smoke:mvp` passed with 6 Chromium tests.
+  - Adversarial review strengthened numeric trust-claim matching, exact-link activation, narrow Account navigation, and PP-015 lifecycle ownership.
+  - Full handoff gate passed: lint, format, typecheck, 94 web tests, 157 API tests, 2 worker tests, dependency/deployment tests, coverage, build, docs guard, and `git diff --check`.
+- Residual risk:
+  - Fixture and mocked browser coverage cannot prove the real-account Picker flow; PP-023 remains the required manual Chrome gate.
+  - Cancellation, timeout/restart, retry, and durable partial-result product behavior remain PP-015 scope and are not claimed by PP-020.
 
 ### PP-035 Patch Next.js and Sharp production vulnerabilities
 
