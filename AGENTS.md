@@ -13,11 +13,11 @@ Open [AGENT_RULES.md](AGENT_RULES.md) before making meaningful changes. It is th
 - `docs/ai/skills.md`: repo skill standard and template rules.
 - `_bmad-output/project-context.md`: contains important project context and conventions
 
-## Advisory task routing
+## Task capability routing
 
-- Before meaningful planning, implementation, configuration or documentation changes, or repository-wide analysis, run the gate in [docs/ai/TASK_ROUTING.md](docs/ai/TASK_ROUTING.md) once and print its compact `TASK ROUTING` block.
-- Route before selecting a BMAD workflow or beginning Baton implementation. Reassess only when scope or newly discovered risk materially changes the original classification.
-- The gate is advisory: never change the active model or reasoning level automatically, and never treat a stronger model as permission to override repository policy.
+- Before meaningful planning, implementation, configuration or documentation changes, or repository-wide analysis, run [docs/ai/TASK_ROUTING.md](docs/ai/TASK_ROUTING.md) once and print its compact `TASK ROUTING` block.
+- The gate classifies only complexity, required capability, reasoning effort, detected runtime, and compatibility. It never selects a workflow, workspace, orchestration tool, or number of agents.
+- A detected mismatch pauses before implementation. Unavailable verification continues under the repository's `Enforce when detectable` policy. Reassess only when scope or risk materially changes.
 
 ## Commands
 
@@ -40,6 +40,7 @@ Open [AGENT_RULES.md](AGENT_RULES.md) before making meaningful changes. It is th
 - Prefer small, isolated changes. Do not add dependencies unless the task clearly needs them.
 - For implementation or story work, if the current branch is `main`, create and switch to a scoped `codex/<task-or-story-slug>` branch before editing files.
 - When asked to audit, repair, standardize, or future-proof this repository's agent guidance or repo-local skills, use the `maintain-agent-system` skill.
+- Consult [docs/delivery/BATON_WORKTREE_GUIDE.md](docs/delivery/BATON_WORKTREE_GUIDE.md) only when using Baton for parallel workspaces, resumable long-running work, or multiple concurrent implementation tasks.
 
 ## Verification
 

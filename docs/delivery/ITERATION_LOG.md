@@ -19,6 +19,57 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-07-28 - PP-038 Reposition Baton as optional advanced orchestration
+
+- Role: Builder
+- Status: Verifying
+- Goal: Remove Baton from the standard development path while preserving its advanced worktree and workspace-orchestration guidance.
+- Acceptance criteria checked:
+  - Standard workflow now documents story → ChatGPT Desktop → Codex → selected BMAD workflow → implementation.
+  - Baton is explicitly optional, unnecessary for Codex/BMAD/single-task work, and does not replace Codex or BMAD.
+  - Advanced use cases cover concurrent Codex sessions, multiple worktrees, long-running and resumable work, parallel features, and workspace management.
+  - Worktree setup, task isolation, pause/resume, parallel-development, handoff, branch cleanup, and safety guidance remain documented.
+  - Current routing guidance contains no complexity-based Baton recommendation.
+- Commands run:
+  - `node --test tests/agent-system/*.test.mjs` passed with 7 tests, including the optional-Baton consistency check.
+  - `make lint`, `make format-check`, `make typecheck`, and `make test` passed; the test gate included 94 web tests, 157 API tests, 2 worker tests, 6 dependency-preflight tests, 19 deployment-boundary tests, and 7 agent-system tests.
+  - `node scripts/check-coverage.mjs` passed: web 85.14%, API 92.37%, worker 100%.
+  - `make build` passed for shared, Next.js, API compileall, and worker compileall.
+  - `node scripts/check-docs.js`, explicit current-guidance Baton-reference review, link-target checks, and `git diff --check` passed.
+- Manual verification:
+  - Used `maintain-agent-system` to audit root and nested agent instructions, canonical policy, current delivery/onboarding guidance, BMAD integration points, repo-local skills, and all Baton references.
+  - Preserved historical backlog, iteration-log, and repository-review references as historical evidence rather than rewriting prior records.
+- Artifacts/screenshots: Documentation-only change; screenshots are not applicable.
+- Backlog updates: Added PP-038 with acceptance criteria and moved it to Verifying for builder checks.
+- Follow-up tasks created: None.
+- Residual risk: Baton-specific launcher commands are not documented because the repository contains no verified Baton CLI integration; the guide covers repository-owned workspace policy.
+
+### 2026-07-28 - PP-037 Narrow task routing to capability compatibility
+
+- Role: Builder
+- Status: Verifying
+- Goal: Remove workflow and workspace decisions from task routing and enforce honest provider-neutral capability and reasoning compatibility checks.
+- Acceptance criteria checked:
+  - Canonical output now contains only complexity, capability tier, reasoning effort, runtime, and status.
+  - Workflow, BMAD, Baton, workspace, and agent-count choices are explicitly outside the gate.
+  - Runtime-specific evidence and mappings live in a separate adapter document.
+  - Detected mismatches return `Change required` and pause; unknown, unregistered, or incomplete runtime evidence returns `Unable to verify` and continues under `Enforce when detectable`.
+  - Review feedback aligned the risk-aware rubric and dry run so small authentication or authorization changes remain High, and added an explicit registered-runtime check before tier comparison.
+  - Eight policy dry runs cover the required classification, safety, mismatch, unknown-runtime, and alternate-provider scenarios.
+- Commands run:
+  - `node --test tests/agent-system/*.test.mjs` passed with 7 tests.
+  - `make lint`, `make format-check`, `make typecheck`, and `make test` passed; the full test gate included 94 web tests, 157 API tests, 2 worker tests, 6 dependency-preflight tests, 19 deployment-boundary tests, and 7 agent-system tests.
+  - `node scripts/check-coverage.mjs` passed: web 85.14%, API 92.37%, worker 100%.
+  - `make build` passed for shared, Next.js, API compileall, and worker compileall.
+  - `pnpm check:docs` could not start from PowerShell because `pnpm` was not on that shell's PATH. The exact underlying command, `node scripts/check-docs.js`, passed.
+- Manual verification:
+  - Used the required `maintain-agent-system` skill to audit root and nested instructions, canonical rules, repo-local skills, agent prompts, BMAD references, Baton guidance, delivery workflow, testing guidance, and the existing PP-026 artifacts.
+  - Confirmed no installer-managed BMAD files require modification.
+- Artifacts/screenshots: `docs/delivery/artifacts/PP-026/task-routing-dry-runs.md`; screenshots are not applicable.
+- Backlog updates: Added PP-037 with acceptance criteria before implementation and moved it to Verifying for builder checks.
+- Follow-up tasks created: None.
+- Residual risk: Live Codex and Claude Code capability/reasoning verification remains unavailable until trustworthy metadata and maintained provider adapters exist.
+
 ### 2026-07-27 - PP-016 Implement honest Google Photos exact-photo link-out
 
 - Role: Builder / Verifier / Reviewer

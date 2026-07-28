@@ -1,12 +1,20 @@
 # Contributing
 
 ## Working agreement
+
 - Treat [AGENT_RULES.md](../AGENT_RULES.md) as the canonical engineering and product guardrail file.
 - Treat [docs/ai/testing.md](ai/testing.md) as the canonical verification guide.
 - Keep changes small, typed, testable, and aligned with the trust-first product scope.
 - Update documentation whenever behavior, APIs, commands, configs, or workflows change.
 
+## Development workflow
+
+The standard path is story → ChatGPT Desktop → Codex → selected BMAD workflow → implementation. Baton is not required for Codex, BMAD, or a single development task.
+
+Use [the Baton and Git Worktree Guide](delivery/BATON_WORKTREE_GUIDE.md) only when opting into advanced workspace orchestration such as multiple Codex sessions, parallel worktrees, or resumable long-running feature work.
+
 ## Setup
+
 1. Copy `.env.example` to `.env` and adjust values for your environment.
 2. Install toolchains and dependencies:
    ```bash
@@ -17,6 +25,7 @@
    - Keep the committed `pnpm-lock.yaml` aligned with workspace manifests.
 
 ## Development commands
+
 - Lint: `make lint`
 - Format (write): `make format`
 - Format (check): `make format-check`
@@ -39,7 +48,9 @@ unauthenticated, so do not add a LAN bind, proxy, tunnel, port-forward, or
 remote ingress. Use `docker compose exec` for private service diagnostics.
 
 ## CI gates
+
 The GitHub Actions workflow runs on PRs and `main` updates. It performs:
+
 - Dependency installation (pnpm + uv)
 - Python lock-file consistency (`make python-locks-check`, including the offline exact-pin guard in `scripts/check-python-lock-pins.py`)
 - Lint (web + shared via ESLint, Python via Ruff)

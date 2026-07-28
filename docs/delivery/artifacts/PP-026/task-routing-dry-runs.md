@@ -1,109 +1,139 @@
-# PP-026 Task-routing dry runs
+# Task-routing validation scenarios
 
-These are policy dry runs only. None of the scenario work was implemented. Session suitability is `Unable to determine` because the repository and active environment do not expose a reliable model-and-reasoning configuration pair.
+These are policy dry runs only. None of the scenario work was implemented. Simulated runtime metadata validates comparison behavior but does not prove live runtime detection.
 
-## 1. Light: spelling correction
+## 1. Documentation typo
 
 ```text
 TASK ROUTING
 
 Complexity: Light
-Recommended workflow: Direct Codex
-Recommended model tier: Economical
-Recommended reasoning: Light/Low
-Current session suitability: Unable to determine
+Capability tier: Economical
+Reasoning effort: Low
+Runtime: Unknown
+Status: Unable to verify
 
-Why:
-- One mechanical documentation correction with an obvious result.
-- Validation is limited and low risk.
-
-Key risks:
-- No material elevated risks identified
-
-Action:
-- Compare with `/status` or `/model`; continue with the current session because unavailable metadata does not block Light work.
+Continuing because the current verification policy only blocks detected mismatches.
 ```
 
-Expected behavior: continue once; do not print the gate again for formatting or verification steps.
+Expected: a detected sufficient configuration would return `Compatible`. No BMAD, Baton, workflow, or workspace recommendation appears.
 
-## 2. Medium: reusable web empty state
+## 2. Normal scoped PhotoPrune feature
 
 ```text
 TASK ROUTING
 
 Complexity: Medium
-Recommended workflow: Baton
-Recommended model tier: Primary
-Recommended reasoning: Medium
-Current session suitability: Unable to determine
+Capability tier: Primary
+Reasoning effort: Medium
+Runtime: Codex
+Status: Unable to verify
 
-Why:
-- The component spans related UI and test files but should follow existing web patterns.
-- Implementation judgment and ordinary regression checks are required.
-
-Key risks:
-- Accessibility and trust-copy drift
-
-Action:
-- Compare with `/status` or `/model`; continue with the current session because unavailable metadata alone does not block normal Medium work.
+Continuing because the current verification policy only blocks detected mismatches.
 ```
 
-Expected behavior: read `apps/web/AGENTS.md`, use an actionable backlog task, preserve builder/verifier separation, and do not add duplicate BMAD analysis.
+Expected: established patterns, several related files, and normal test updates classify as Medium. Codex runtime identity alone cannot establish capability or reasoning.
 
-## 3. High and forbidden: automatic persisted deletion
+## 3. Security-sensitive small change
 
 ```text
 TASK ROUTING
 
 Complexity: High
-Recommended workflow: BMAD first
-Recommended model tier: Strongest suitable
-Recommended reasoning: High
-Current session suitability: Unable to determine
+Capability tier: Frontier
+Reasoning effort: High
+Runtime: Unknown
+Status: Unable to verify
 
-Why:
-- Deletion and persisted state carry high product, privacy, and data risk.
-- The request conflicts with PhotoPrune's no-auto-delete rules.
-
-Key risks:
-- Forbidden automatic deletion and destructive persisted behavior
-
-Action:
-- Stop. Do not implement this request; a stronger model or workflow cannot override `AGENT_RULES.md`.
+Continuing because the current verification policy only blocks detected mismatches.
 ```
 
-Expected behavior: stop on the policy conflict. `/model` is not a path around the product guardrail.
+Expected: authentication or authorization risk keeps the task High complexity regardless of its small scope.
 
-## 4. Ambiguous: improve scan performance
+## 4. Destructive automatic deletion
 
 ```text
 TASK ROUTING
 
 Complexity: High
-Recommended workflow: BMAD first
-Recommended model tier: Strongest suitable
-Recommended reasoning: High
-Current session suitability: Unable to determine
-
-Why:
-- The bottleneck, target, measurement, and affected system are unknown.
-- The solution could involve worker concurrency, infrastructure, persistence, or UI latency.
-
-Key risks:
-- Unbounded scope and unverifiable performance claims
-
-Action:
-- Before planning, compare with `/status` or `/model` and confirm Strongest suitable / High, then resume: clarify and measure scan performance before implementation.
+Capability tier: Frontier
+Reasoning effort: High
+Runtime: Unknown
+Status: Unable to verify
 ```
 
-Expected behavior: stop before substantial analysis until session suitability is confirmed, then use BMAD analysis to resolve scope and acceptance criteria.
+Expected: `AGENT_RULES.md` independently rejects automatic deletion. Routing status never authorizes prohibited work, so the workflow stops on the product guardrail.
 
-## 5. Escalation: bug fix reveals a schema migration
+## 5. Schema migration
 
-Initial result: Medium / Baton / Primary / Medium. Continue because the apparent bug follows an established implementation pattern and existing tests can verify it.
+```text
+TASK ROUTING
 
-Discovery: diagnosis shows that the fix requires a persisted schema migration.
+Complexity: High
+Capability tier: Frontier
+Reasoning effort: High
+Runtime: Unknown
+Status: Unable to verify
 
-Reassessment result: High / BMAD first / Strongest suitable / High. Report persistence and migration risk, stop at a safe point, and require session confirmation when suitability remains unknown. Resume instruction: `Resume the bug-fix migration analysis after confirming Strongest suitable / High.`
+Continuing because the current verification policy only blocks detected mismatches.
+```
 
-Expected behavior: one initial gate and one justified reassessment after material risk changes; no gate before every later step.
+Expected: persistence, compatibility, rollback, and verification risks require High/Frontier/High.
+
+## 6. Detected mismatch
+
+Simulated current configuration:
+
+```text
+TASK ROUTING
+
+Complexity: Medium
+Capability tier: Primary
+Reasoning effort: Medium
+Runtime: Codex
+Status: Change required
+
+Current configuration:
+Capability tier: Economical
+Reasoning effort: Low
+
+Required configuration:
+Capability tier: Primary
+Reasoning effort: Medium
+
+PAUSED
+```
+
+Expected: stop before implementation, patches, tests, architectural work, or implementation-related delivery updates.
+
+## 7. Unknown runtime
+
+```text
+TASK ROUTING
+
+Complexity: Medium
+Capability tier: Primary
+Reasoning effort: Medium
+Runtime: Unknown
+Status: Unable to verify
+
+Continuing because the current verification policy only blocks detected mismatches.
+```
+
+Expected: do not guess or repeatedly request manual verification.
+
+## 8. Claude Code or another provider
+
+```text
+TASK ROUTING
+
+Complexity: Medium
+Capability tier: Primary
+Reasoning effort: Medium
+Runtime: Claude Code
+Status: Unable to verify
+
+Continuing because the current verification policy only blocks detected mismatches.
+```
+
+Expected: simulated reliable runtime identity does not fabricate model capability or reasoning equivalence. A future adapter may return another status only after maintained mappings exist.
