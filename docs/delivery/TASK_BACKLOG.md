@@ -713,7 +713,8 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Workflow, workspace, BMAD, Baton, and agent-count decisions remain outside the routing gate.
   - Provider-neutral Economical, Primary, and Frontier tiers remain canonical; runtime-specific mappings are separate.
   - Detected insufficient capability or reasoning pauses before implementation.
-  - Unknown or incompletely mapped runtimes report `Unable to verify` and continue under `Enforce when detectable`.
+  - Unknown, unregistered, or incompletely mapped runtimes report `Unable to verify` and continue under `Enforce when detectable`.
+  - Security- or privacy-sensitive work remains High complexity even when its implementation scope is small.
   - Eight dry runs cover documentation, normal feature, security, forbidden deletion, migration, mismatch, unknown runtime, and another provider.
   - Agent-system tests and the full repository handoff gate pass, or gaps are recorded.
 - Required verification:

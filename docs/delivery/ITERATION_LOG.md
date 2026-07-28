@@ -53,11 +53,12 @@ Record every implementation or verification iteration here. The log is repo trut
   - Canonical output now contains only complexity, capability tier, reasoning effort, runtime, and status.
   - Workflow, BMAD, Baton, workspace, and agent-count choices are explicitly outside the gate.
   - Runtime-specific evidence and mappings live in a separate adapter document.
-  - Detected mismatches return `Change required` and pause; incomplete evidence returns `Unable to verify` and continues under `Enforce when detectable`.
+  - Detected mismatches return `Change required` and pause; unknown, unregistered, or incomplete runtime evidence returns `Unable to verify` and continues under `Enforce when detectable`.
+  - Review feedback aligned the risk-aware rubric and dry run so small authentication or authorization changes remain High, and added an explicit registered-runtime check before tier comparison.
   - Eight policy dry runs cover the required classification, safety, mismatch, unknown-runtime, and alternate-provider scenarios.
 - Commands run:
-  - `node --test tests/agent-system/*.test.mjs` passed with 6 tests.
-  - `make lint`, `make format-check`, `make typecheck`, and `make test` passed; the full test gate included 94 web tests, 157 API tests, 2 worker tests, 6 dependency-preflight tests, 19 deployment-boundary tests, and 6 agent-system tests.
+  - `node --test tests/agent-system/*.test.mjs` passed with 7 tests.
+  - `make lint`, `make format-check`, `make typecheck`, and `make test` passed; the full test gate included 94 web tests, 157 API tests, 2 worker tests, 6 dependency-preflight tests, 19 deployment-boundary tests, and 7 agent-system tests.
   - `node scripts/check-coverage.mjs` passed: web 85.14%, API 92.37%, worker 100%.
   - `make build` passed for shared, Next.js, API compileall, and worker compileall.
   - `pnpm check:docs` could not start from PowerShell because `pnpm` was not on that shell's PATH. The exact underlying command, `node scripts/check-docs.js`, passed.

@@ -1,5 +1,6 @@
 const capabilityOrder = ["Economical", "Primary", "Frontier"];
 const reasoningOrder = ["Low", "Medium", "High"];
+const registeredRuntimes = new Set(["Codex", "Claude Code"]);
 
 function meetsOrExceeds(current, required, order) {
   return order.indexOf(current) >= order.indexOf(required);
@@ -7,7 +8,7 @@ function meetsOrExceeds(current, required, order) {
 
 export function assessCompatibility(current, required) {
   if (
-    !current?.runtime ||
+    !registeredRuntimes.has(current?.runtime) ||
     !capabilityOrder.includes(current.capability) ||
     !reasoningOrder.includes(current.reasoning)
   ) {

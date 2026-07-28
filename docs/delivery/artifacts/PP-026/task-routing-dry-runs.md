@@ -39,7 +39,7 @@ Expected: established patterns, several related files, and normal test updates c
 ```text
 TASK ROUTING
 
-Complexity: Light
+Complexity: High
 Capability tier: Frontier
 Reasoning effort: High
 Runtime: Unknown
@@ -48,7 +48,7 @@ Status: Unable to verify
 Continuing because the current verification policy only blocks detected mismatches.
 ```
 
-Expected: small scope does not lower the capability or reasoning required for authentication or authorization risk.
+Expected: authentication or authorization risk keeps the task High complexity regardless of its small scope.
 
 ## 4. Destructive automatic deletion
 

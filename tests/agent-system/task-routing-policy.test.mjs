@@ -72,7 +72,10 @@ test("classification defaults map to provider-neutral capability and reasoning",
     assert.ok(policy.includes(row));
   }
 
-  assert.match(policy, /small authentication change[\s\S]*High reasoning/);
+  assert.match(
+    policy,
+    /small authentication or authorization changes[\s\S]*remains High[\s\S]*High reasoning/,
+  );
 });
 
 test("known sufficient configuration is compatible", () => {
@@ -98,13 +101,23 @@ test("a detected mismatch pauses before implementation", () => {
 });
 
 test("unknown or incompletely mapped runtime cannot claim compatibility", () => {
-  assert.deepEqual(
-    assessCompatibility(
-      { runtime: undefined, capability: undefined, reasoning: undefined },
-      { capability: "Primary", reasoning: "Medium" },
-    ),
-    { status: "Unable to verify", pause: false },
-  );
+  for (const current of [
+    { runtime: undefined, capability: undefined, reasoning: undefined },
+    { runtime: "Unknown", capability: "Frontier", reasoning: "High" },
+    {
+      runtime: "Unregistered Runtime",
+      capability: "Frontier",
+      reasoning: "High",
+    },
+  ]) {
+    assert.deepEqual(
+      assessCompatibility(current, {
+        capability: "Primary",
+        reasoning: "Medium",
+      }),
+      { status: "Unable to verify", pause: false },
+    );
+  }
   assert.match(policy, /Enforce when detectable/);
 });
 

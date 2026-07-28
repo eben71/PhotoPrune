@@ -80,7 +80,7 @@ Use `Low`, `Medium`, or `High` to describe the reasoning the task requires. Thes
 | Medium     | Primary                 | Medium                   |
 | High       | Frontier                | High                     |
 
-Deviate when risk and scope differ. A small authentication change may be Light in scope while requiring Primary or Frontier capability and High reasoning. A large repetitive change may be Medium with Primary capability and Low or Medium reasoning.
+Complexity is risk-aware, not scope-only. Security- or privacy-sensitive work, including small authentication or authorization changes, remains High and requires Frontier capability with High reasoning. A large repetitive change may be Medium with Primary capability and Low or Medium reasoning.
 
 ## Runtime and configuration verification
 
