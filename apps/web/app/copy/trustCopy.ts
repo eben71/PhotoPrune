@@ -32,6 +32,36 @@ export const trustCopy = {
     primaryButton: 'Start Review Session',
     secondaryButton: 'Cancel and Return'
   },
+  googlePhotos: {
+    preparingAction: 'Preparing Google Photos...',
+    retrySetupAction: 'Retry Google Photos setup',
+    unavailableAction: 'Google Photos unavailable',
+    connectAction: 'Connect Google Photos',
+    connectingAction: 'Connecting Google Photos...',
+    connectedStatus:
+      'Google Photos is connected for this session. Select photos when you are ready.',
+    selectAction: 'Select from Google Photos',
+    openingAction: 'Opening Google Photos...',
+    cancelledStatus: 'Google Photos was closed. Nothing was selected.',
+    errors: {
+      unavailable: 'Google Photos selection is not available right now.',
+      setupFailed:
+        'Google Photos could not load. Check your connection and try setup again.',
+      authorizationIncomplete:
+        'Google authorization was not completed. Please try again.',
+      authorizationBlocked:
+        'Your browser blocked Google authorization. Allow popups for PhotoPrune and try again.',
+      authorizationCancelled: 'Google authorization was cancelled.',
+      authorizationFailed:
+        'Google authorization could not start. Please try again.',
+      authorizationTimeout:
+        'Google authorization took too long. Please try again.',
+      connectRequired: 'Connect Google Photos before selecting photos.',
+      accessExpired: 'Google Photos access expired. Connect again to continue.',
+      pickerBlocked:
+        'Your browser blocked the Google Photos window. Allow popups for PhotoPrune and try again.'
+    }
+  },
   run: {
     header: 'Scanning for visually similar photos...',
     subtext: ['Analyzing the photos you selected.', 'This may take a moment.'],

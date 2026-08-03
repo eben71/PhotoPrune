@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import {
   afterEach,
   beforeEach,
@@ -148,6 +148,7 @@ describe('useGooglePhotosPicker hook', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     process.env = env;
     fetchCalls.length = 0;
     requestedScope = '';
@@ -156,10 +157,176 @@ describe('useGooglePhotosPicker hook', () => {
     delete window.google;
   });
 
+  async function renderAuthorizedPickerHook() {
+    const rendered = renderHook(() => useGooglePhotosPicker());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(rendered.result.current.isReady).toBe(true);
+
+    await act(async () => {
+      expect(await rendered.result.current.authorize()).toBe(true);
+    });
+
+    return rendered;
+  }
+
+  it('preloads GIS and exposes readiness before authorization', async () => {
+    document.head.innerHTML = '';
+    delete window.google;
+
+    const { result } = renderHook(() => useGooglePhotosPicker());
+
+    expect(result.current.isReady).toBe(false);
+    expect(result.current.isAuthorized).toBe(false);
+    await act(async () => {
+      expect(await result.current.authorize()).toBe(false);
+    });
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(
+      document.querySelector(
+        'script[src="https://accounts.google.com/gsi/client"]'
+      )
+    ).not.toBeNull();
+  });
+
+  it('surfaces a GIS script failure and lets the user retry setup', async () => {
+    document.head.innerHTML = '';
+    delete window.google;
+
+    const { result } = renderHook(() => useGooglePhotosPicker());
+    const firstScript = document.querySelector<HTMLScriptElement>(
+      'script[src="https://accounts.google.com/gsi/client"]'
+    );
+    expect(firstScript).not.toBeNull();
+
+    await act(async () => {
+      firstScript?.dispatchEvent(new Event('error'));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toMatch(/could not load/i);
+    });
+    expect(result.current.isReady).toBe(false);
+    expect(firstScript?.isConnected).toBe(false);
+
+    let retryPromise: Promise<boolean> | undefined;
+    act(() => {
+      retryPromise = result.current.prepare();
+    });
+    const retryScript = document.querySelector<HTMLScriptElement>(
+      'script[src="https://accounts.google.com/gsi/client"]'
+    );
+    expect(retryScript).not.toBeNull();
+    window.google = {
+      accounts: {
+        oauth2: {
+          initTokenClient: ({ callback }) => ({
+            requestAccessToken: () => callback({ access_token: 'token' })
+          })
+        }
+      }
+    };
+
+    await act(async () => {
+      retryScript?.dispatchEvent(new Event('load'));
+      expect(await retryPromise).toBe(true);
+    });
+
+    expect(result.current.isReady).toBe(true);
+    expect(result.current.error).toBeNull();
+  });
+
+  it('times out GIS setup instead of remaining in a preparing state', async () => {
+    vi.useFakeTimers();
+    document.head.innerHTML = '';
+    delete window.google;
+
+    const { result } = renderHook(() => useGooglePhotosPicker());
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(15001);
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isReady).toBe(false);
+    expect(result.current.error).toMatch(/could not load/i);
+    expect(
+      document.querySelector(
+        'script[src="https://accounts.google.com/gsi/client"]'
+      )
+    ).toBeNull();
+  });
+
+  it('authorizes without opening the Picker placeholder', async () => {
+    const { result } = renderHook(() => useGooglePhotosPicker());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(result.current.isReady).toBe(true);
+
+    await act(async () => {
+      expect(await result.current.authorize()).toBe(true);
+    });
+
+    expect(result.current.isAuthorized).toBe(true);
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('reports a blocked OAuth popup without opening the Picker', async () => {
+    window.google = {
+      accounts: {
+        oauth2: {
+          initTokenClient: ({ error_callback }) => ({
+            requestAccessToken: () =>
+              error_callback?.({ type: 'popup_failed_to_open' })
+          })
+        }
+      }
+    };
+    const { result } = renderHook(() => useGooglePhotosPicker());
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+
+    await act(async () => {
+      expect(await result.current.authorize()).toBe(false);
+    });
+
+    expect(result.current.lastOutcome).toBe('popup-blocked');
+    expect(result.current.error).toMatch(/blocked/i);
+    expect(result.current.isAuthorized).toBe(false);
+    expect(openSpy).not.toHaveBeenCalled();
+  });
+
+  it('reports a closed OAuth popup as cancellation', async () => {
+    window.google = {
+      accounts: {
+        oauth2: {
+          initTokenClient: ({ error_callback }) => ({
+            requestAccessToken: () => error_callback?.({ type: 'popup_closed' })
+          })
+        }
+      }
+    };
+    const { result } = renderHook(() => useGooglePhotosPicker());
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+
+    await act(async () => {
+      expect(await result.current.authorize()).toBe(false);
+    });
+
+    expect(result.current.lastOutcome).toBe('cancelled');
+    expect(result.current.error).toBeNull();
+    expect(openSpy).not.toHaveBeenCalled();
+  });
+
   it('creates a Photos Picker API session and returns selected media items', async () => {
     const openedWindow = pickerWindowMock();
     openSpy.mockReturnValue(openedWindow);
-    const { result } = renderHook(() => useGooglePhotosPicker());
+    const { result } = await renderAuthorizedPickerHook();
 
     let output: Awaited<ReturnType<typeof result.current.openPicker>> = null;
     await act(async () => {
@@ -203,6 +370,63 @@ describe('useGooglePhotosPicker hook', () => {
     expect(JSON.parse(createBody as string) as unknown).toEqual({
       pickingConfig: { maxItemCount: '2000' }
     });
+  });
+
+  it('clears authorization when Picker session cleanup returns 401', async () => {
+    const defaultFetch = vi.mocked(fetch).getMockImplementation();
+    vi.mocked(fetch).mockImplementation((input, init) => {
+      if (init?.method === 'DELETE') {
+        fetchCalls.push({ input, init });
+        return Promise.resolve(jsonResponse({}, { status: 401 }));
+      }
+      return defaultFetch!(input, init);
+    });
+    const { result } = await renderAuthorizedPickerHook();
+
+    await act(async () => {
+      expect(await result.current.openPicker()).not.toBeNull();
+    });
+
+    expect(result.current.isAuthorized).toBe(false);
+  });
+
+  it('attempts session cleanup after a polling 401 clears authorization', async () => {
+    vi.mocked(fetch).mockImplementation((input, init) => {
+      fetchCalls.push({ input, init });
+      const url = requestUrl(input);
+      if (url.endsWith('/sessions') && init?.method === 'POST') {
+        return Promise.resolve(
+          jsonResponse({
+            id: 'session-1',
+            pickerUri: 'https://photos.google.com/picker/session-1',
+            pollingConfig: { pollInterval: '0.001s', timeoutIn: '1s' },
+            mediaItemsSet: false
+          })
+        );
+      }
+      if (init?.method === 'DELETE') {
+        return Promise.resolve(jsonResponse({}));
+      }
+      if (url.endsWith('/sessions/session-1')) {
+        return Promise.resolve(jsonResponse({}, { status: 401 }));
+      }
+      return Promise.resolve(jsonResponse({}, { status: 404 }));
+    });
+    const { result } = await renderAuthorizedPickerHook();
+
+    await act(async () => {
+      expect(await result.current.openPicker()).toBeNull();
+    });
+
+    expect(result.current.isAuthorized).toBe(false);
+    expect(result.current.error).toMatch(/access expired/i);
+    expect(
+      fetchCalls.some(
+        ({ input, init }) =>
+          requestUrl(input).endsWith('/sessions/session-1') &&
+          init?.method === 'DELETE'
+      )
+    ).toBe(true);
   });
 
   it('keeps polling a closed picker window until selected media is available', async () => {
@@ -281,7 +505,7 @@ describe('useGooglePhotosPicker hook', () => {
       }
     );
 
-    const { result } = renderHook(() => useGooglePhotosPicker());
+    const { result } = await renderAuthorizedPickerHook();
 
     let output: Awaited<ReturnType<typeof result.current.openPicker>> = null;
     await act(async () => {
@@ -337,7 +561,7 @@ describe('useGooglePhotosPicker hook', () => {
       }
     );
 
-    const { result } = renderHook(() => useGooglePhotosPicker());
+    const { result } = await renderAuthorizedPickerHook();
 
     let output: Awaited<ReturnType<typeof result.current.openPicker>> = null;
     await act(async () => {
@@ -356,20 +580,19 @@ describe('useGooglePhotosPicker hook', () => {
 
     const { result } = renderHook(() => useGooglePhotosPicker());
 
-    let output: Awaited<ReturnType<typeof result.current.openPicker>> = null;
     await act(async () => {
-      output = await result.current.openPicker();
+      expect(await result.current.authorize()).toBe(false);
     });
 
-    expect(output).toBeNull();
     expect(result.current.error).toMatch(/not available/i);
+    expect(openSpy).not.toHaveBeenCalled();
     expect(fetch).not.toHaveBeenCalled();
   });
 
   it('reports an error when the Photos Picker API fails', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({}, { status: 500 }));
 
-    const { result } = renderHook(() => useGooglePhotosPicker());
+    const { result } = await renderAuthorizedPickerHook();
 
     let output: Awaited<ReturnType<typeof result.current.openPicker>> = null;
     await act(async () => {
@@ -415,7 +638,7 @@ describe('useGooglePhotosPicker hook', () => {
       }
     );
 
-    const { result } = renderHook(() => useGooglePhotosPicker());
+    const { result } = await renderAuthorizedPickerHook();
 
     let output: Awaited<ReturnType<typeof result.current.openPicker>> = null;
     await act(async () => {
@@ -450,7 +673,7 @@ describe('useGooglePhotosPicker hook', () => {
       return defaultFetch!(input, init);
     });
 
-    const { result } = renderHook(() => useGooglePhotosPicker());
+    const { result } = await renderAuthorizedPickerHook();
     await act(async () => {
       await result.current.openPicker();
     });
@@ -487,7 +710,7 @@ describe('useGooglePhotosPicker hook', () => {
       return defaultFetch!(input, init);
     });
 
-    const { result } = renderHook(() => useGooglePhotosPicker());
+    const { result } = await renderAuthorizedPickerHook();
     await act(async () => {
       await result.current.openPicker();
     });
@@ -507,7 +730,7 @@ describe('useGooglePhotosPicker hook', () => {
       return Promise.resolve(jsonResponse({}));
     });
 
-    const { result } = renderHook(() => useGooglePhotosPicker());
+    const { result } = await renderAuthorizedPickerHook();
     await act(async () => {
       await result.current.openPicker();
     });
@@ -517,57 +740,7 @@ describe('useGooglePhotosPicker hook', () => {
     expect(requestUrl(cleanup!.input)).toContain('/sessions/malformed-session');
   });
 
-  it('refreshes once and replays a Picker request after a 401', async () => {
-    let tokenRequests = 0;
-    window.google = {
-      accounts: {
-        oauth2: {
-          initTokenClient: ({ callback }) => ({
-            requestAccessToken: () => {
-              tokenRequests += 1;
-              callback({ access_token: `token-${tokenRequests}` });
-            }
-          })
-        }
-      }
-    };
-    const defaultFetch = vi.mocked(fetch).getMockImplementation();
-    let sessionCreates = 0;
-    vi.mocked(fetch).mockImplementation((input, init) => {
-      if (
-        requestUrl(input) ===
-          'https://photospicker.googleapis.com/v1/sessions' &&
-        init?.method === 'POST'
-      ) {
-        sessionCreates += 1;
-        if (sessionCreates === 1) {
-          fetchCalls.push({ input, init });
-          return Promise.resolve(jsonResponse({}, { status: 401 }));
-        }
-      }
-      return defaultFetch!(input, init);
-    });
-
-    const { result } = renderHook(() => useGooglePhotosPicker());
-    await act(async () => {
-      await result.current.openPicker();
-    });
-
-    expect(result.current.lastOutcome).toBe('selected');
-    expect(tokenRequests).toBe(2);
-    const createCalls = fetchCalls.filter(
-      (call) =>
-        requestUrl(call.input) ===
-          'https://photospicker.googleapis.com/v1/sessions' &&
-        call.init?.method === 'POST'
-    );
-    expect(createCalls).toHaveLength(2);
-    expect(createCalls[1]?.init?.headers).toMatchObject({
-      Authorization: 'Bearer token-2'
-    });
-  });
-
-  it('stops after one replay when a Picker request returns 401 twice', async () => {
+  it('clears session access after a 401 and waits for a fresh authorization gesture', async () => {
     let tokenRequests = 0;
     window.google = {
       accounts: {
@@ -586,15 +759,59 @@ describe('useGooglePhotosPicker hook', () => {
       return Promise.resolve(jsonResponse({}, { status: 401 }));
     });
 
-    const { result } = renderHook(() => useGooglePhotosPicker());
+    const { result } = await renderAuthorizedPickerHook();
     await act(async () => {
       await result.current.openPicker();
     });
 
     expect(result.current.lastOutcome).toBe('failed');
-    expect(result.current.error).toMatch(/could not complete/i);
+    expect(result.current.error).toMatch(/connect again/i);
+    expect(result.current.isAuthorized).toBe(false);
+    expect(tokenRequests).toBe(1);
+    const createCalls = fetchCalls.filter(
+      (call) =>
+        requestUrl(call.input) ===
+          'https://photospicker.googleapis.com/v1/sessions' &&
+        call.init?.method === 'POST'
+    );
+    expect(createCalls).toHaveLength(1);
+
+    await act(async () => {
+      expect(await result.current.authorize()).toBe(true);
+    });
+    expect(result.current.isAuthorized).toBe(true);
     expect(tokenRequests).toBe(2);
-    expect(fetchCalls).toHaveLength(2);
+    expect(createCalls).toHaveLength(1);
+  });
+
+  it('prevents concurrent authorization flows', async () => {
+    let completeAuthorization: (() => void) | null = null;
+    window.google = {
+      accounts: {
+        oauth2: {
+          initTokenClient: ({ callback }) => ({
+            requestAccessToken: () => {
+              completeAuthorization = () => callback({ access_token: 'token' });
+            }
+          })
+        }
+      }
+    };
+    const { result } = renderHook(() => useGooglePhotosPicker());
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+
+    let firstAuthorization: Promise<boolean> | undefined;
+    await act(async () => {
+      firstAuthorization = result.current.authorize();
+      expect(await result.current.authorize()).toBe(false);
+    });
+
+    await act(async () => {
+      completeAuthorization?.();
+      expect(await firstAuthorization).toBe(true);
+    });
+    expect(result.current.isAuthorized).toBe(true);
+    expect(openSpy).not.toHaveBeenCalled();
   });
 
   it('rejects a completed selection above the 2,000-item limit', async () => {
@@ -621,7 +838,7 @@ describe('useGooglePhotosPicker hook', () => {
       return defaultFetch!(input, init);
     });
 
-    const { result } = renderHook(() => useGooglePhotosPicker());
+    const { result } = await renderAuthorizedPickerHook();
     await act(async () => {
       await result.current.openPicker();
     });
@@ -630,10 +847,10 @@ describe('useGooglePhotosPicker hook', () => {
     expect(result.current.error).toMatch(/more than 2000 selected items/i);
   });
 
-  it('reports a blocked placeholder before authorization or session creation', async () => {
+  it('reports a blocked placeholder after authorization without creating a session', async () => {
     openSpy.mockReturnValue(null);
 
-    const { result } = renderHook(() => useGooglePhotosPicker());
+    const { result } = await renderAuthorizedPickerHook();
 
     let output: Awaited<ReturnType<typeof result.current.openPicker>> = null;
     await act(async () => {
@@ -671,7 +888,7 @@ describe('useGooglePhotosPicker hook', () => {
         jsonResponse({ id: 'session-timeout', mediaItemsSet: false })
       );
     });
-    const { result } = renderHook(() => useGooglePhotosPicker());
+    const { result } = await renderAuthorizedPickerHook();
 
     await act(async () => {
       const openPromise = result.current.openPicker();
@@ -694,22 +911,23 @@ describe('useGooglePhotosPicker hook', () => {
         }
       }
     };
-    const openedWindow = pickerWindowMock();
-    openSpy.mockReturnValue(openedWindow);
     const { result } = renderHook(() => useGooglePhotosPicker());
 
     await act(async () => {
-      const openPromise = result.current.openPicker();
+      await Promise.resolve();
+    });
+    expect(result.current.isReady).toBe(true);
+
+    await act(async () => {
+      const authorizationPromise = result.current.authorize();
       await Promise.resolve();
       await vi.advanceTimersByTimeAsync(60001);
-      await openPromise;
+      expect(await authorizationPromise).toBe(false);
     });
 
     expect(result.current.lastOutcome).toBe('failed');
     expect(result.current.error).toMatch(/authorization took too long/i);
-    expect(
-      (openedWindow as unknown as { close: ReturnType<typeof vi.fn> }).close
-    ).toHaveBeenCalled();
+    expect(openSpy).not.toHaveBeenCalled();
   });
 
   it('does not hang when the cleanup request never settles', async () => {
@@ -752,7 +970,7 @@ describe('useGooglePhotosPicker hook', () => {
       }
       return Promise.resolve(jsonResponse({}));
     });
-    const { result } = renderHook(() => useGooglePhotosPicker());
+    const { result } = await renderAuthorizedPickerHook();
 
     const capture: {
       output: Awaited<ReturnType<typeof result.current.openPicker>>;

@@ -31,7 +31,16 @@ export default function ProjectRunPage({
   const [albumIdsInput, setAlbumIdsInput] = useState('');
   const [mediaIdsInput, setMediaIdsInput] = useState('');
   const { state, setSelection, applyProjectEnvelope } = useRunSession();
-  const { openPicker, isLoading, error: pickerError } = useGooglePhotosPicker();
+  const {
+    openPicker,
+    prepare,
+    authorize,
+    isLoading,
+    isReady,
+    isAuthorized,
+    error: pickerError,
+    lastOutcome
+  } = useGooglePhotosPicker();
 
   useEffect(() => {
     let cancelled = false;
@@ -142,6 +151,39 @@ export default function ProjectRunPage({
     setError(null);
   };
 
+  const handleGooglePhotosAction = async () => {
+    if (!isReady) {
+      await prepare();
+      return;
+    }
+    if (!isAuthorized) {
+      await authorize();
+      return;
+    }
+    await handleSelect();
+  };
+
+  const googlePhotosActionLabel = !isAuthorized
+    ? !isReady
+      ? isLoading
+        ? trustCopy.googlePhotos.preparingAction
+        : pickerError === trustCopy.googlePhotos.errors.setupFailed
+          ? trustCopy.googlePhotos.retrySetupAction
+          : pickerError
+            ? trustCopy.googlePhotos.unavailableAction
+            : trustCopy.googlePhotos.preparingAction
+      : isLoading
+        ? trustCopy.googlePhotos.connectingAction
+        : trustCopy.googlePhotos.connectAction
+    : isLoading
+      ? trustCopy.googlePhotos.openingAction
+      : trustCopy.googlePhotos.selectAction;
+  const googlePhotosActionDisabled =
+    isLoading ||
+    (!isAuthorized &&
+      !isReady &&
+      pickerError !== trustCopy.googlePhotos.errors.setupFailed);
+
   return (
     <ReviewShell activeStage="SCANNING">
       <div className="mx-auto max-w-[1040px] pb-16 pt-12">
@@ -180,16 +222,23 @@ export default function ProjectRunPage({
               stored here.
             </p>
 
+            {isAuthorized ? (
+              <p
+                className="mt-5 text-sm text-[var(--pp-paper-muted)]"
+                aria-live="polite"
+              >
+                {trustCopy.googlePhotos.connectedStatus}
+              </p>
+            ) : null}
+
             <div className="mt-8 flex flex-wrap gap-3">
               <button
                 type="button"
-                onClick={() => void handleSelect()}
-                disabled={isLoading}
+                onClick={() => void handleGooglePhotosAction()}
+                disabled={googlePhotosActionDisabled}
                 className="action-button-primary px-8 py-3.5 text-sm"
               >
-                {isLoading
-                  ? 'Opening Google Photos...'
-                  : 'Select from Google Photos'}
+                {googlePhotosActionLabel}
               </button>
               <button
                 type="button"
@@ -236,12 +285,26 @@ export default function ProjectRunPage({
         </section>
 
         {pickerError ? (
-          <p className="mt-6 rounded-xl bg-[rgba(127,41,39,0.45)] px-4 py-3 text-sm text-[#ffd1cd]">
+          <p
+            className="mt-6 rounded-xl bg-[rgba(127,41,39,0.45)] px-4 py-3 text-sm text-[#ffd1cd]"
+            role="alert"
+          >
             {pickerError}
           </p>
         ) : null}
+        {lastOutcome === 'cancelled' ? (
+          <p
+            className="mt-6 text-sm text-[var(--pp-on-surface-muted)]"
+            aria-live="polite"
+          >
+            {trustCopy.googlePhotos.cancelledStatus}
+          </p>
+        ) : null}
         {error ? (
-          <p className="mt-6 rounded-xl bg-[rgba(127,41,39,0.45)] px-4 py-3 text-sm text-[#ffd1cd]">
+          <p
+            className="mt-6 rounded-xl bg-[rgba(127,41,39,0.45)] px-4 py-3 text-sm text-[#ffd1cd]"
+            role="alert"
+          >
             {error}
           </p>
         ) : null}

@@ -10,7 +10,7 @@ test("MVP golden path smoke covers scan, review, trust, settings, and account", 
 
   await page.goto("/");
   await expect(
-    page.getByRole("button", { name: "Select from Google Photos" }),
+    page.getByRole("button", { name: "Connect Google Photos" }).first(),
   ).toBeVisible();
   await expect(page.getByRole("link", { name: "Settings" })).toHaveAttribute(
     "href",
@@ -21,7 +21,17 @@ test("MVP golden path smoke covers scan, review, trust, settings, and account", 
   ).toHaveAttribute("href", "/account");
   await expectNoUnsupportedClaims(page);
 
-  await page.getByRole("button", { name: "Select from Google Photos" }).click();
+  await page
+    .getByRole("button", { name: "Connect Google Photos" })
+    .first()
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Select from Google Photos" }).first(),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Select from Google Photos" })
+    .first()
+    .click();
   await expect(page).toHaveURL(/\/run$/);
   await expect(
     page.getByRole("heading", { name: "Reviewing your selected photos." }),

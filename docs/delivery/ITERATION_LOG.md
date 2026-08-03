@@ -826,3 +826,30 @@ Record every implementation or verification iteration here. The log is repo trut
 - Backlog updates: PP-020 and its PP-006 smoke prerequisite moved to Done with focused and full-gate evidence.
 - Follow-up tasks created: None; PP-015 already owns cancellation, timeout/restart, retry, and durable partial-result lifecycle behavior.
 - Residual risk: Deterministic fixtures and API mocks do not prove a real Google account or real Picker content; PP-023 remains the separate manual Chrome gate.
+
+### 2026-08-04 - PP-039 Preserve user activation for Google Photos authorization
+
+- Role: Builder / Verifier
+- Status: Verifying
+- Goal: Replace the unreliable two-popup gesture with explicit Connect and Select actions for the MVP.
+- Acceptance criteria checked:
+  - Authorization opens without a Picker placeholder and stores the read-only access token in browser memory only.
+  - Authorized users receive a separate Select action that synchronously opens the named Picker placeholder.
+  - Blocked and cancelled Google popup outcomes are surfaced accessibly without reporting a successful connection.
+  - A Picker API `401` clears authorization and requires a fresh Connect gesture without asynchronous OAuth retry.
+  - Shared trust copy drives preparing, connecting, connected, selecting, and cancelled states on both entry paths.
+- Commands run:
+  - `pnpm --filter web test -- use-google-photos-picker-hook.test.tsx home.test.tsx projects-phase3.test.tsx` passed: 14 files, 108 tests, 84.83% line coverage.
+  - `pnpm smoke:mvp` passed with pnpm version enforcement bypassed only for the Playwright child server: 6 Chromium tests, including the explicit Connect then Select path.
+  - `make lint`, `make format-check`, and `make typecheck` passed across web, shared, API, and worker packages.
+  - `make test` passed: 108 web tests, 157 API tests, 2 worker tests, 26 deployment-boundary/agent-system tests, and 6 dependency-preflight tests.
+  - `node scripts/check-coverage.mjs` passed at 84.83% web, 92.37% API, and 100% worker line coverage.
+  - `make build` passed for the Next.js app, shared package, API, and worker.
+  - `pnpm check:deployment-boundary` passed; only `127.0.0.1:3000` is published.
+  - `pnpm check:docs` passed.
+- Manual verification: Pending product-owner Chrome retry with the configured OAuth client and real Google account.
+- Artifacts/screenshots: None committed; the reported `popup_failed_to_open` container log is the real-browser failure evidence.
+- Backlog updates: Added PP-039 as the P0 RR-008 follow-up and PP-040 as the requested post-MVP seamless-flow research story.
+- Follow-up tasks created: PP-040.
+- Review verification: Independent review led to retryable bounded GIS setup, explicit script load/error coverage, authorization cleanup on Picker `401`, realistic Connect-to-Select rerender assertions, corrected accessibility states, and updated browser/manual two-step checks.
+- Residual risk: Automated GIS stubs cannot prove real browser popup behavior; PP-023 remains the required real-account Chrome gate.
