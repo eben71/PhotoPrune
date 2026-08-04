@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { trustCopy } from '../copy/trustCopy';
 import { PICKER_MAX_ITEMS } from '../../src/constants/scanLimits';
 import type { PickerItem } from '../../src/types/phase2Envelope';
 
@@ -19,8 +20,12 @@ type PickerMediaItem = {
 
 type UseGooglePhotosPickerResult = {
   isLoading: boolean;
+  isReady: boolean;
+  isAuthorized: boolean;
   error: string | null;
   lastOutcome: PickerOutcome | null;
+  prepare: () => Promise<boolean>;
+  authorize: () => Promise<boolean>;
   openPicker: () => Promise<PickerMediaItem[] | null>;
 };
 
@@ -31,6 +36,10 @@ type GoogleTokenResponse = {
 
 type GoogleTokenClient = {
   requestAccessToken: (options?: { prompt?: string }) => void;
+};
+
+type GoogleOAuthPopupError = {
+  type?: string;
 };
 
 type PickerPollingConfig = {
@@ -74,6 +83,7 @@ declare global {
             client_id: string;
             scope: string;
             callback: (response: GoogleTokenResponse) => void;
+            error_callback?: (error: GoogleOAuthPopupError) => void;
           }) => GoogleTokenClient;
         };
       };
@@ -92,8 +102,18 @@ const PICKER_WINDOW_NAME = 'photoprune-google-photos-picker';
 const PICKER_WINDOW_FEATURES = 'popup,width=960,height=720';
 const PICKER_OPERATION_TIMEOUT_MS = 15000;
 const OAUTH_CALLBACK_TIMEOUT_MS = 60000;
+const GIS_LOAD_TIMEOUT_MS = 15000;
 
 class PickerFlowError extends Error {}
+
+class PickerAuthorizationError extends PickerFlowError {
+  constructor(
+    message: string,
+    readonly outcome: Exclude<PickerOutcome, 'selected'>
+  ) {
+    super(message);
+  }
+}
 
 type PickerFetch = (
   input: RequestInfo | URL,
@@ -107,9 +127,30 @@ function loadScript(src: string): Promise<void> {
     );
   }
 
-  const existing = document.querySelector(`script[src="${src}"]`);
-  if (existing) {
+  if (window.google?.accounts?.oauth2) {
     return Promise.resolve();
+  }
+
+  const existing = document.querySelector<HTMLScriptElement>(
+    `script[src="${src}"]`
+  );
+  if (existing) {
+    if (existing.dataset.photopruneLoaded === 'true') {
+      existing.remove();
+      return loadScript(src);
+    }
+    return new Promise((resolve, reject) => {
+      const handleLoad = () => {
+        existing.dataset.photopruneLoaded = 'true';
+        resolve();
+      };
+      const handleError = () => {
+        existing.remove();
+        reject(new Error(`Unable to load ${src}`));
+      };
+      existing.addEventListener('load', handleLoad, { once: true });
+      existing.addEventListener('error', handleError, { once: true });
+    });
   }
 
   return new Promise((resolve, reject) => {
@@ -117,10 +158,23 @@ function loadScript(src: string): Promise<void> {
     script.src = src;
     script.async = true;
     script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error(`Unable to load ${src}`));
+    script.dataset.photopruneLoaded = 'false';
+    script.onload = () => {
+      script.dataset.photopruneLoaded = 'true';
+      resolve();
+    };
+    script.onerror = () => {
+      script.remove();
+      reject(new Error(`Unable to load ${src}`));
+    };
     document.head.appendChild(script);
   });
+}
+
+function removeGisScript(): void {
+  document
+    .querySelector<HTMLScriptElement>(`script[src="${GIS_SRC}"]`)
+    ?.remove();
 }
 
 function parseDurationMs(
@@ -224,10 +278,11 @@ async function getPickerSession(
 
 async function deletePickerSession(
   token: string,
-  sessionId: string
+  sessionId: string,
+  onUnauthorized: () => void
 ): Promise<void> {
   try {
-    await withTimeout(
+    const response = await withTimeout(
       fetch(
         `${PHOTOS_PICKER_API_BASE_URL}/sessions/${encodeURIComponent(sessionId)}`,
         {
@@ -238,6 +293,9 @@ async function deletePickerSession(
       PICKER_OPERATION_TIMEOUT_MS,
       'Google Photos cleanup took too long.'
     );
+    if (response.status === 401) {
+      onUnauthorized();
+    }
   } catch {
     // Session cleanup is recommended by Google, but a cleanup failure should not hide a valid selection.
   }
@@ -382,9 +440,12 @@ function normalizePickedMediaItem(
 
 export function useGooglePhotosPicker(): UseGooglePhotosPickerResult {
   const [isLoading, setIsLoading] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastOutcome, setLastOutcome] = useState<PickerOutcome | null>(null);
   const accessTokenRef = useRef<string | null>(null);
+  const flowInFlightRef = useRef(false);
 
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
@@ -396,19 +457,75 @@ export function useGooglePhotosPicker(): UseGooglePhotosPickerResult {
     []
   );
 
-  const getToken = useCallback(
-    async (forceRefresh = false) => {
-      if (accessTokenRef.current && !forceRefresh) {
-        return accessTokenRef.current;
-      }
+  const prepare = useCallback(async () => {
+    if (flowInFlightRef.current) {
+      return false;
+    }
+    if (window.google?.accounts?.oauth2) {
+      setIsReady(true);
+      setError(null);
+      return true;
+    }
+    if (!clientId) {
+      setIsReady(false);
+      setLastOutcome('failed');
+      setError(trustCopy.googlePhotos.errors.unavailable);
+      return false;
+    }
 
-      const oauth2 = window.google?.accounts?.oauth2;
-      if (!oauth2 || !clientId) {
-        throw new PickerFlowError(
-          'Google Photos selection is not available right now.'
-        );
-      }
+    flowInFlightRef.current = true;
+    setIsLoading(true);
+    setError(null);
 
+    try {
+      await withTimeout(
+        loadScript(GIS_SRC),
+        GIS_LOAD_TIMEOUT_MS,
+        trustCopy.googlePhotos.errors.setupFailed
+      );
+      if (!window.google?.accounts?.oauth2) {
+        throw new PickerFlowError(trustCopy.googlePhotos.errors.setupFailed);
+      }
+      setIsReady(true);
+      return true;
+    } catch {
+      removeGisScript();
+      setIsReady(false);
+      setLastOutcome('failed');
+      setError(trustCopy.googlePhotos.errors.setupFailed);
+      return false;
+    } finally {
+      flowInFlightRef.current = false;
+      setIsLoading(false);
+    }
+  }, [clientId]);
+
+  useEffect(() => {
+    void prepare();
+  }, [prepare]);
+
+  const authorize = useCallback(async () => {
+    if (flowInFlightRef.current) {
+      return false;
+    }
+    if (accessTokenRef.current) {
+      setIsAuthorized(true);
+      return true;
+    }
+
+    const oauth2 = window.google?.accounts?.oauth2;
+    if (!isReady || !oauth2 || !clientId) {
+      setLastOutcome('failed');
+      setError(trustCopy.googlePhotos.errors.unavailable);
+      return false;
+    }
+
+    flowInFlightRef.current = true;
+    setIsLoading(true);
+    setError(null);
+    setLastOutcome(null);
+
+    try {
       const token = await withTimeout(
         new Promise<string>((resolve, reject) => {
           const tokenClient = oauth2.initTokenClient({
@@ -417,33 +534,87 @@ export function useGooglePhotosPicker(): UseGooglePhotosPickerResult {
             callback: (response) => {
               if (!response.access_token || response.error) {
                 reject(
-                  new PickerFlowError(
-                    'Google authorization was not completed. Please try again.'
+                  new PickerAuthorizationError(
+                    trustCopy.googlePhotos.errors.authorizationIncomplete,
+                    'failed'
                   )
                 );
                 return;
               }
               resolve(response.access_token);
+            },
+            error_callback: (popupError) => {
+              if (popupError.type === 'popup_failed_to_open') {
+                reject(
+                  new PickerAuthorizationError(
+                    trustCopy.googlePhotos.errors.authorizationBlocked,
+                    'popup-blocked'
+                  )
+                );
+                return;
+              }
+              if (popupError.type === 'popup_closed') {
+                reject(
+                  new PickerAuthorizationError(
+                    trustCopy.googlePhotos.errors.authorizationCancelled,
+                    'cancelled'
+                  )
+                );
+                return;
+              }
+              reject(
+                new PickerAuthorizationError(
+                  trustCopy.googlePhotos.errors.authorizationFailed,
+                  'failed'
+                )
+              );
             }
           });
-          tokenClient.requestAccessToken({
-            prompt: forceRefresh ? '' : 'consent'
-          });
+          tokenClient.requestAccessToken({ prompt: 'consent' });
         }),
         OAUTH_CALLBACK_TIMEOUT_MS,
-        'Google authorization took too long. Please try again.'
+        trustCopy.googlePhotos.errors.authorizationTimeout
       );
 
       accessTokenRef.current = token;
-      return token;
-    },
-    [clientId, scopes]
-  );
+      setIsAuthorized(true);
+      return true;
+    } catch (authorizationError) {
+      accessTokenRef.current = null;
+      setIsAuthorized(false);
+      if (authorizationError instanceof PickerAuthorizationError) {
+        setLastOutcome(authorizationError.outcome);
+        setError(
+          authorizationError.outcome === 'cancelled'
+            ? null
+            : authorizationError.message
+        );
+      } else {
+        setLastOutcome('failed');
+        setError(
+          authorizationError instanceof PickerFlowError
+            ? authorizationError.message
+            : trustCopy.googlePhotos.errors.authorizationFailed
+        );
+      }
+      return false;
+    } finally {
+      flowInFlightRef.current = false;
+      setIsLoading(false);
+    }
+  }, [clientId, isReady, scopes]);
 
   const pickerFetch = useCallback(
     async (input: RequestInfo | URL, init: RequestInit = {}) => {
-      let token = await getToken();
-      let response = await withTimeout(
+      const token = accessTokenRef.current;
+      if (!token) {
+        setIsAuthorized(false);
+        throw new PickerFlowError(
+          trustCopy.googlePhotos.errors.connectRequired
+        );
+      }
+
+      const response = await withTimeout(
         fetch(input, {
           ...init,
           headers: { ...authHeaders(token), ...init.headers }
@@ -456,21 +627,24 @@ export function useGooglePhotosPicker(): UseGooglePhotosPickerResult {
       }
 
       accessTokenRef.current = null;
-      token = await getToken(true);
-      response = await withTimeout(
-        fetch(input, {
-          ...init,
-          headers: { ...authHeaders(token), ...init.headers }
-        }),
-        PICKER_OPERATION_TIMEOUT_MS,
-        'Google Photos took too long to respond. Check your connection and try again.'
-      );
-      return response;
+      setIsAuthorized(false);
+      throw new PickerFlowError(trustCopy.googlePhotos.errors.accessExpired);
     },
-    [getToken]
+    []
   );
 
   const openPicker = useCallback(async () => {
+    if (flowInFlightRef.current) {
+      return null;
+    }
+    if (!accessTokenRef.current) {
+      setIsAuthorized(false);
+      setLastOutcome('failed');
+      setError(trustCopy.googlePhotos.errors.connectRequired);
+      return null;
+    }
+
+    flowInFlightRef.current = true;
     const pickerWindow = window.open(
       '',
       PICKER_WINDOW_NAME,
@@ -478,41 +652,31 @@ export function useGooglePhotosPicker(): UseGooglePhotosPickerResult {
     );
     if (!pickerWindow) {
       setLastOutcome('popup-blocked');
-      setError(
-        'Your browser blocked the Google Photos window. Allow popups for PhotoPrune and try again.'
-      );
-      return null;
-    }
-
-    if (!clientId) {
-      closePickerWindow(pickerWindow);
-      setLastOutcome('failed');
-      setError('Google Photos selection is not available right now.');
+      setError(trustCopy.googlePhotos.errors.pickerBlocked);
+      flowInFlightRef.current = false;
       return null;
     }
 
     setIsLoading(true);
     setError(null);
+    setLastOutcome(null);
 
     let cleanupSession: (() => Promise<void>) | null = null;
     let pickerNavigated = false;
     try {
-      await loadScript(GIS_SRC);
-      if (pickerWindow.closed) {
-        setLastOutcome('cancelled');
-        return null;
-      }
-      await getToken();
       if (pickerWindow.closed) {
         setLastOutcome('cancelled');
         return null;
       }
       const session = await createPickerSession(pickerFetch);
       if (session.id) {
+        const cleanupToken = accessTokenRef.current;
         cleanupSession = () => {
-          const token = accessTokenRef.current;
-          return token
-            ? deletePickerSession(token, session.id as string)
+          return cleanupToken
+            ? deletePickerSession(cleanupToken, session.id as string, () => {
+                accessTokenRef.current = null;
+                setIsAuthorized(false);
+              })
             : Promise.resolve();
         };
       }
@@ -563,14 +727,19 @@ export function useGooglePhotosPicker(): UseGooglePhotosPickerResult {
       return null;
     } finally {
       await cleanupSession?.();
+      flowInFlightRef.current = false;
       setIsLoading(false);
     }
-  }, [clientId, getToken, pickerFetch]);
+  }, [pickerFetch]);
 
   return {
     isLoading,
+    isReady,
+    isAuthorized,
     error,
     lastOutcome,
+    prepare,
+    authorize,
     openPicker
   };
 }

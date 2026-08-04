@@ -747,3 +747,42 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - `make format-check`
   - `make test`
   - `pnpm check:docs`
+
+### PP-039 Preserve user activation for Google Photos authorization
+
+- Status: Verifying
+- Priority: P0
+- Type: Product / Integration / Reliability
+- Finding coverage: RR-008 follow-up discovered by real Chrome OAuth execution after PP-027.
+- Dependencies: PP-027 (Done); blocks PP-023 real-account Chrome proof.
+- Links: `apps/web/app/hooks/useGooglePhotosPicker.ts`, `apps/web/app/page.tsx`, `apps/web/app/projects/[id]/run/page.tsx`
+- Goal: Give OAuth authorization and Photos Picker launch separate user gestures so browsers can open each required window reliably.
+- Acceptance criteria:
+  - The first action opens only Google authorization and requests only the read-only Picker media-items scope.
+  - Successful authorization is held in browser memory for the current session and exposes a separate photo-selection action.
+  - The second action opens only the named Photos Picker placeholder and preserves existing session, pagination, selection, and cleanup behavior.
+  - A Picker API `401` clears browser authorization and requires another explicit Connect action instead of launching OAuth asynchronously.
+  - Preparing, connected, blocked, cancelled, expired-access, and failed states use plain English and accessible announcements on temporary and saved-project entry paths.
+- Required verification:
+  - Focused hook, home, and saved-project tests.
+  - Full repository handoff gate.
+  - Product-owner Chrome retry with the configured OAuth client and a real Google account for PP-023 evidence.
+
+### PP-040 Evaluate a seamless post-MVP Google Photos connection flow
+
+- Status: Backlog
+- Priority: P2
+- Type: Research / Product / Security
+- Finding coverage: PP-039 deliberate two-step MVP trade-off.
+- Dependencies: PP-039 and PP-023.
+- Links: `apps/web/app/hooks/useGooglePhotosPicker.ts`, `docs/testing/MANUAL_MVP_DEMO_CHECKLIST.md`, Google Identity Services authorization guidance.
+- Goal: Evaluate whether PhotoPrune can reduce the MVP's two explicit actions without reintroducing popup blocking or weakening its privacy and authorization boundaries.
+- Acceptance criteria:
+  - Research compares supported GIS token and authorization-code flows, redirect options, browser user-activation rules, and Picker window requirements.
+  - At least one real-Chrome prototype is tested under normal and blocked-popup settings with the read-only Picker scope.
+  - Security and privacy review covers backend token exchange, refresh-token storage, CSRF, revocation, retention, and localhost-only deployment implications before any architecture is selected.
+  - The recommendation records user-experience trade-offs and either proposes a separately approved implementation story or retains the two-step flow with evidence.
+  - No token persistence, backend OAuth expansion, new scope, or production behavior is introduced by this research story.
+- Required verification:
+  - Redacted research notes and real-browser evidence.
+  - Architecture and product review before any implementation task is approved.

@@ -20,7 +20,16 @@ export default function HomePage() {
   const router = useRouter();
   const { setSelection } = useRunSession();
   const [selectionWarning, setSelectionWarning] = useState<string | null>(null);
-  const { isLoading, error, lastOutcome, openPicker } = useGooglePhotosPicker();
+  const {
+    isLoading,
+    isReady,
+    isAuthorized,
+    error,
+    lastOutcome,
+    prepare,
+    authorize,
+    openPicker
+  } = useGooglePhotosPicker();
 
   const maxSelection = useMemo(() => {
     const raw = process.env.NEXT_PUBLIC_SCAN_MAX_PHOTOS;
@@ -49,6 +58,39 @@ export default function HomePage() {
     router.push('/run');
   };
 
+  const handleGooglePhotosAction = async () => {
+    if (!isReady) {
+      await prepare();
+      return;
+    }
+    if (!isAuthorized) {
+      await authorize();
+      return;
+    }
+    await handleSelectFromGoogle();
+  };
+
+  const googlePhotosActionLabel = !isAuthorized
+    ? !isReady
+      ? isLoading
+        ? trustCopy.googlePhotos.preparingAction
+        : error === trustCopy.googlePhotos.errors.setupFailed
+          ? trustCopy.googlePhotos.retrySetupAction
+          : error
+            ? trustCopy.googlePhotos.unavailableAction
+            : trustCopy.googlePhotos.preparingAction
+      : isLoading
+        ? trustCopy.googlePhotos.connectingAction
+        : trustCopy.googlePhotos.connectAction
+    : isLoading
+      ? trustCopy.googlePhotos.openingAction
+      : trustCopy.googlePhotos.selectAction;
+  const googlePhotosActionDisabled =
+    isLoading ||
+    (!isAuthorized &&
+      !isReady &&
+      error !== trustCopy.googlePhotos.errors.setupFailed);
+
   return (
     <div className="app-bg min-h-screen">
       <Header />
@@ -74,14 +116,12 @@ export default function HomePage() {
             <div className="home-cta-row">
               <button
                 type="button"
-                aria-label="Select from Google Photos"
+                aria-label={googlePhotosActionLabel}
                 className="action-button-primary home-primary-cta"
-                onClick={() => void handleSelectFromGoogle()}
-                disabled={isLoading}
+                onClick={() => void handleGooglePhotosAction()}
+                disabled={googlePhotosActionDisabled}
               >
-                {isLoading
-                  ? 'Opening Google Photos...'
-                  : 'Select from Google Photos'}
+                {googlePhotosActionLabel}
               </button>
 
               <a
@@ -105,18 +145,29 @@ export default function HomePage() {
           </div>
 
           {selectionWarning ? (
-            <p className="home-inline-message home-inline-message-error">
+            <p
+              className="home-inline-message home-inline-message-error"
+              role="alert"
+            >
               {selectionWarning}
             </p>
           ) : null}
+          {isAuthorized ? (
+            <p className="home-inline-message" aria-live="polite">
+              {trustCopy.googlePhotos.connectedStatus}
+            </p>
+          ) : null}
           {error ? (
-            <p className="home-inline-message home-inline-message-error">
+            <p
+              className="home-inline-message home-inline-message-error"
+              role="alert"
+            >
               {error}
             </p>
           ) : null}
           {lastOutcome === 'cancelled' ? (
             <p className="home-inline-message" aria-live="polite">
-              Selection cancelled.
+              {trustCopy.googlePhotos.cancelledStatus}
             </p>
           ) : null}
         </section>
@@ -223,10 +274,10 @@ export default function HomePage() {
           <button
             type="button"
             className="home-bottom-button"
-            onClick={() => void handleSelectFromGoogle()}
-            disabled={isLoading}
+            onClick={() => void handleGooglePhotosAction()}
+            disabled={googlePhotosActionDisabled}
           >
-            {isLoading ? 'Opening Google Photos...' : 'Get Started For Free'}
+            {googlePhotosActionLabel}
           </button>
           <p className="home-bottom-note">
             PhotoPrune cannot delete photos from this screen.

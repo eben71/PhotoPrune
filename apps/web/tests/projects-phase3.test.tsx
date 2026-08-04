@@ -14,7 +14,13 @@ import {
 import type { RunEnvelope } from '../src/types/phase2Envelope';
 
 const openPickerMock = vi.fn();
+const preparePickerMock = vi.fn();
+const authorizePickerMock = vi.fn();
 const routerPushMock = vi.fn();
+let pickerReadyMock = true;
+let pickerAuthorizedMock = true;
+let pickerErrorMock: string | null = null;
+let pickerOutcomeMock: 'cancelled' | 'popup-blocked' | 'failed' | null = null;
 let bodyAppendMock: ReturnType<
   typeof vi.fn<(...nodes: (Node | string)[]) => void>
 >;
@@ -113,9 +119,13 @@ function immediateProjectEnvelope(): RunEnvelope {
 vi.mock('../app/hooks/useGooglePhotosPicker', () => ({
   useGooglePhotosPicker: () => ({
     openPicker: openPickerMock,
+    prepare: preparePickerMock,
+    authorize: authorizePickerMock,
     isLoading: false,
-    error: null,
-    lastOutcome: null
+    isReady: pickerReadyMock,
+    isAuthorized: pickerAuthorizedMock,
+    error: pickerErrorMock,
+    lastOutcome: pickerOutcomeMock
   }),
   normalizePickerSelection: (items: Array<Record<string, string>>) =>
     items.map((item) => ({
@@ -145,8 +155,14 @@ describe('phase 3 projects pages', () => {
 
   beforeEach(() => {
     openPickerMock.mockReset();
+    preparePickerMock.mockReset();
+    authorizePickerMock.mockReset();
     routerPushMock.mockReset();
     searchParamsValue = 'scanId=scan-1';
+    pickerReadyMock = true;
+    pickerAuthorizedMock = true;
+    pickerErrorMock = null;
+    pickerOutcomeMock = null;
 
     vi.stubGlobal(
       'URL',
@@ -662,6 +678,62 @@ describe('phase 3 projects pages', () => {
       downloadUrl: 'https://placehold.co/300',
       googlePhotosDeepLink: 'https://photos.google.com/photo/i1'
     });
+  });
+
+  it('uses separate Google Photos connection and selection actions for projects', async () => {
+    pickerAuthorizedMock = false;
+    authorizePickerMock.mockResolvedValue(true);
+
+    const { rerender } = render(
+      <RunSessionProvider>
+        <ProjectRunPage params={Promise.resolve({ id: 'p1' })} />
+      </RunSessionProvider>
+    );
+
+    const connectButton = await screen.findByRole('button', {
+      name: /connect google photos/i
+    });
+    expect(
+      screen.queryByRole('button', { name: /select from google photos/i })
+    ).toBeNull();
+
+    fireEvent.click(connectButton);
+
+    expect(authorizePickerMock).toHaveBeenCalledTimes(1);
+    expect(openPickerMock).not.toHaveBeenCalled();
+
+    pickerAuthorizedMock = true;
+    rerender(
+      <RunSessionProvider>
+        <ProjectRunPage params={Promise.resolve({ id: 'p1' })} />
+      </RunSessionProvider>
+    );
+    expect(
+      await screen.findByRole('button', { name: /select from google photos/i })
+    ).toBeEnabled();
+  });
+
+  it('announces project connection state and picker errors accessibly', async () => {
+    const { rerender } = render(
+      <RunSessionProvider>
+        <ProjectRunPage params={Promise.resolve({ id: 'p1' })} />
+      </RunSessionProvider>
+    );
+
+    expect(
+      await screen.findByText(/connected for this session/i)
+    ).toHaveAttribute('aria-live', 'polite');
+
+    pickerAuthorizedMock = false;
+    pickerErrorMock =
+      'Google Photos access expired. Connect again to continue.';
+    rerender(
+      <RunSessionProvider>
+        <ProjectRunPage params={Promise.resolve({ id: 'p1' })} />
+      </RunSessionProvider>
+    );
+    expect(screen.queryByText(/connected for this session/i)).toBeNull();
+    expect(screen.getByRole('alert')).toHaveTextContent(/connect again/i);
   });
 
   it.each(['network', 'api', 'parse'] as const)(

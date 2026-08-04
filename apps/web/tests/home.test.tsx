@@ -14,8 +14,14 @@ import SettingsPage from '../app/settings/page';
 import { RunSessionProvider } from '../app/state/runSessionStore';
 
 const pushMock = vi.fn();
+const prepareMock = vi.fn();
+const authorizeMock = vi.fn();
 const openPickerMock = vi.fn();
 let pathnameMock = '/';
+let pickerReadyMock = true;
+let pickerAuthorizedMock = true;
+let pickerErrorMock: string | null = null;
+let pickerOutcomeMock: 'cancelled' | 'popup-blocked' | 'failed' | null = null;
 
 vi.mock('next/navigation', () => ({
   usePathname: () => pathnameMock,
@@ -28,8 +34,12 @@ vi.mock('next/navigation', () => ({
 vi.mock('../app/hooks/useGooglePhotosPicker', () => ({
   useGooglePhotosPicker: () => ({
     isLoading: false,
-    error: null,
-    lastOutcome: null,
+    isReady: pickerReadyMock,
+    isAuthorized: pickerAuthorizedMock,
+    error: pickerErrorMock,
+    lastOutcome: pickerOutcomeMock,
+    prepare: prepareMock,
+    authorize: authorizeMock,
     openPicker: openPickerMock
   }),
   normalizePickerSelection: (items: Array<Record<string, string>>) =>
@@ -47,6 +57,10 @@ describe('HomePage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     pathnameMock = '/';
+    pickerReadyMock = true;
+    pickerAuthorizedMock = true;
+    pickerErrorMock = null;
+    pickerOutcomeMock = null;
   });
 
   it('renders trust and scope copy', () => {
@@ -91,12 +105,106 @@ describe('HomePage', () => {
     );
 
     fireEvent.click(
-      screen.getByRole('button', { name: /select from google photos/i })
+      screen.getAllByRole('button', { name: /select from google photos/i })[0]
     );
 
     await waitFor(() => {
       expect(pushMock).toHaveBeenCalledWith('/run');
     });
+  });
+
+  it('uses separate Connect and Select actions for Google Photos', () => {
+    pickerAuthorizedMock = false;
+    authorizeMock.mockResolvedValue(true);
+
+    const { rerender } = render(
+      <RunSessionProvider>
+        <HomePage />
+      </RunSessionProvider>
+    );
+
+    const connectButtons = screen.getAllByRole('button', {
+      name: /connect google photos/i
+    });
+    expect(
+      screen.queryByRole('button', { name: /select from google photos/i })
+    ).toBeNull();
+
+    fireEvent.click(connectButtons[0]);
+
+    expect(authorizeMock).toHaveBeenCalledTimes(1);
+    expect(openPickerMock).not.toHaveBeenCalled();
+
+    pickerAuthorizedMock = true;
+    rerender(
+      <RunSessionProvider>
+        <HomePage />
+      </RunSessionProvider>
+    );
+    expect(
+      screen.getAllByRole('button', { name: /select from google photos/i })[0]
+    ).toBeEnabled();
+  });
+
+  it('disables authorization while Google Photos is preparing', () => {
+    pickerReadyMock = false;
+    pickerAuthorizedMock = false;
+
+    render(
+      <RunSessionProvider>
+        <HomePage />
+      </RunSessionProvider>
+    );
+
+    expect(
+      screen.getAllByRole('button', { name: /preparing google photos/i })[0]
+    ).toBeDisabled();
+  });
+
+  it('offers a retry when Google Photos setup fails', () => {
+    pickerReadyMock = false;
+    pickerAuthorizedMock = false;
+    pickerErrorMock =
+      'Google Photos could not load. Check your connection and try setup again.';
+    prepareMock.mockResolvedValue(true);
+
+    render(
+      <RunSessionProvider>
+        <HomePage />
+      </RunSessionProvider>
+    );
+
+    const retryButton = screen.getAllByRole('button', {
+      name: /retry google photos setup/i
+    })[0];
+    expect(retryButton).toBeEnabled();
+    fireEvent.click(retryButton);
+    expect(prepareMock).toHaveBeenCalledTimes(1);
+    expect(authorizeMock).not.toHaveBeenCalled();
+  });
+
+  it('announces session-only connection and picker errors', () => {
+    const { rerender } = render(
+      <RunSessionProvider>
+        <HomePage />
+      </RunSessionProvider>
+    );
+
+    expect(screen.getByText(/connected for this session/i)).toHaveAttribute(
+      'aria-live',
+      'polite'
+    );
+
+    pickerAuthorizedMock = false;
+    pickerErrorMock =
+      'Your browser blocked Google authorization. Allow popups and try again.';
+    rerender(
+      <RunSessionProvider>
+        <HomePage />
+      </RunSessionProvider>
+    );
+    expect(screen.queryByText(/connected for this session/i)).toBeNull();
+    expect(screen.getByRole('alert')).toHaveTextContent(/blocked/i);
   });
 
   it('renders non-ambiguous settings and account affordances', () => {

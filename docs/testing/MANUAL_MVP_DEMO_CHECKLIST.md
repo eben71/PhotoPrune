@@ -29,8 +29,9 @@ Record the completed checklist result in `docs/delivery/ITERATION_LOG.md`. Store
 ## Start And Authentication
 
 - [ ] Home screen loads without broken visible actions.
-- [ ] Primary scan/review action is visible and works.
-- [ ] Google login completes with a real account.
+- [ ] `Connect Google Photos` is visible before authorization and opens the Google consent popup directly from that click.
+- [ ] Google login completes with a real account, then the action changes to `Select from Google Photos`.
+- [ ] `Select from Google Photos` opens the Picker from a separate user click and the primary scan/review path works.
 - [ ] The consent or picker flow does not request Google Photos write scope.
 - [ ] Full-library scanning is not offered or implied.
 - [ ] Known limitations are visible before they can surprise the user.
@@ -105,7 +106,7 @@ Confirm each forbidden item is absent. Fail the demo and record the exact locati
 ## Evidence To Capture
 
 - [ ] Screenshot of home/start state.
-- [ ] Screenshot or note for Google login/consent showing read-only scope, with personal account identifiers, OAuth details, and unrelated account information redacted.
+- [ ] Screenshot or note showing the separate `Connect Google Photos` and `Select from Google Photos` states, plus Google login/consent showing read-only scope, with personal account identifiers, OAuth details, and unrelated account information redacted.
 - [ ] Screenshot or note for the Picker-selected photos source result.
 - [ ] Screenshot of scan progress.
 - [ ] Screenshot of grouped review results.
