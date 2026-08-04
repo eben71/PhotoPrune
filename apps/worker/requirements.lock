@@ -28,7 +28,7 @@ python-dateutil==2.9.0.post0
     # via celery
 python-dotenv==1.2.2
     # via photoprune-worker (pyproject.toml)
-redis==8.0.1
+redis==8.1.0
     # via photoprune-worker (pyproject.toml)
 six==1.17.0
     # via python-dateutil

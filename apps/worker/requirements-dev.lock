@@ -29,13 +29,13 @@ click-plugins==1.1.1.2
     # via celery
 click-repl==0.3.0
     # via celery
-coverage==7.15.2
+coverage==7.15.3
     # via pytest-cov
 cyclonedx-python-lib==11.11.0
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
-filelock==3.32.0
+filelock==3.32.2
     # via cachecontrol
 idna==3.18
     # via requests
@@ -72,7 +72,7 @@ pathspec==1.1.1
     # via
     #   black
     #   mypy
-pip==26.1.2
+pip==26.2
     # via
     #   photoprune-worker (pyproject.toml:dev)
     #   pip-api
@@ -110,7 +110,7 @@ python-dotenv==1.2.2
     # via photoprune-worker (pyproject.toml)
 pytokens==0.4.1
     # via black
-redis==8.0.1
+redis==8.1.0
     # via photoprune-worker (pyproject.toml)
 requests==2.34.2
     # via
