@@ -768,6 +768,27 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - Full repository handoff gate.
   - Product-owner Chrome retry with the configured OAuth client and a real Google account for PP-023 evidence.
 
+### PP-041 Remediate open npm Dependabot alerts
+
+- Status: Done
+- Priority: P0
+- Type: Build / CI / Supply Chain
+- Finding coverage: Open npm Dependabot alerts for form-data, Vite, ws, brace-expansion, js-yaml, PostCSS, launch-editor, @babel/core, and esbuild.
+- Dependencies: None.
+- Links: `pnpm-workspace.yaml`, `pnpm-lock.yaml`
+- Goal: Remove all currently open Dependabot npm alerts with the smallest compatible dependency-only lockfile update.
+- Acceptance criteria:
+  - The resolved dependency graph has no versions in the GitHub-reported affected ranges for every alert family.
+  - The manifest, workspace overrides, and lockfile agree without unrelated dependency churn.
+  - `pnpm install --frozen-lockfile`, both audits, the dependency preflight, and the full repository handoff gate pass.
+  - No product behavior or user-facing copy changes.
+- Required verification:
+  - `pnpm dependency:preflight`
+  - `pnpm install --frozen-lockfile`
+  - `pnpm audit`
+  - `pnpm audit --prod --audit-level=high`
+  - Full repository handoff gate.
+
 ### PP-040 Evaluate a seamless post-MVP Google Photos connection flow
 
 - Status: Backlog

@@ -827,6 +827,19 @@ Record every implementation or verification iteration here. The log is repo trut
 - Follow-up tasks created: None; PP-015 already owns cancellation, timeout/restart, retry, and durable partial-result lifecycle behavior.
 - Residual risk: Deterministic fixtures and API mocks do not prove a real Google account or real Picker content; PP-023 remains the separate manual Chrome gate.
 
+### 2026-08-11 - PP-041 Remediate open npm Dependabot alerts
+
+- Role: Builder
+- Status: Done
+- Goal: Resolve the current npm Dependabot alert families with the smallest dependency-only update.
+- Acceptance criteria checked: Pending lockfile regeneration and full verification. Required patched floors are form-data `4.0.6`, Vite `7.3.5`, ws `8.21.0`, brace-expansion v1 `1.1.18`/v5 `5.0.9`, js-yaml `4.3.1`, PostCSS `8.5.23`, @babel/core `7.29.1`, and esbuild `0.28.1`.
+- Commands run: `node --version` passed (`v24.14.0`); Corepack pnpm version check passed (`11.20.0`); all required `pnpm why` commands completed; initial `pnpm audit` found 16 vulnerabilities; `pnpm dependency:preflight`, `pnpm install`, `pnpm install --frozen-lockfile`, `pnpm audit`, and `pnpm audit --prod --audit-level=high` passed after remediation; `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, `make build`, `pnpm check:deployment-boundary`, `pnpm check:docs`, and `git diff --check` passed.
+- Manual verification: Current HEAD is `317e4da`, newer than screenshot commit `84f71fb`; `launch-editor` has no resolved package path, while its Vite-mediated alert remains represented by the vulnerable Vite resolution.
+- Artifacts/screenshots: None.
+- Backlog updates: Added PP-041 as In Progress.
+- Follow-up tasks created: None.
+- Residual risk: GitHub must rescan the pushed branch after remediation to close its alert records; no local audit findings remain.
+
 ### 2026-08-04 - PP-039 Preserve user activation for Google Photos authorization
 
 - Role: Builder / Verifier
