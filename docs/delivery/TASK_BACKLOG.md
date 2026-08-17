@@ -109,7 +109,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Status: Done
 - Type: Chore / Dev Environment
 - Links: `package.json`, `infra/docker/web.Dockerfile`, `apps/web/Dockerfile`, `Makefile`
-- Goal: Restore `make dev` after the repo package manager moved to `pnpm@11.20.0`.
+- Goal: Restore `make dev` after the repo package manager moved to `pnpm@11.9.0`.
 - Acceptance criteria:
   - Web Docker build uses a Node runtime compatible with the declared pnpm version.
   - pnpm override configuration is stored where pnpm 11 reads it so frozen installs match the lockfile.

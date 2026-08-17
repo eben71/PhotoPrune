@@ -28,7 +28,7 @@ Record every implementation or verification iteration here. The log is repo trut
 - Commands run: `pnpm check:docs` and `git diff --check` passed.
 - Manual verification: Reviewed the root `packageManager` SHA-pinned declaration and both `.github/workflows/ci.yml` setup steps.
 - Artifacts/screenshots: Review finding supplied in the task.
-- Backlog updates: Corrected PP-009 and PP-019 version evidence; refreshed PP-018's declared pnpm reference.
+- Backlog updates: Corrected PP-009 and PP-019 version evidence; preserved PP-018's historical pnpm version.
 - Follow-up tasks created: None.
 - Residual risk: GitHub Actions will provide final confirmation that the updated CI setup completes frozen installs.
 ### 2026-08-17 - PP-042 Repair local development service startup
