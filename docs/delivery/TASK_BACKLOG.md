@@ -8,6 +8,17 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ## P0
 
+### PP-042 Repair local development service startup
+
+- Status: Done
+- Type: Build / Developer Experience
+- Links: `docker-compose.dev.yml`
+- Goal: Restore the local web and worker services when their development startup commands fail.
+- Acceptance criteria:
+  - The web service starts through pnpm's workspace-aware Next launcher, independent of stale package-local executable links in its mounted dependency volume.
+  - The worker starts without Celery's unsupported `--autoreload` flag.
+  - The effective Compose configuration validates and `http://127.0.0.1:3000` responds after startup.
+
 ### PP-000 Agentic Delivery Reset
 
 - Status: Done

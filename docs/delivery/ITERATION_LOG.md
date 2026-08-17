@@ -31,6 +31,24 @@ Record every implementation or verification iteration here. The log is repo trut
 - Backlog updates: Corrected PP-009 and PP-019 version evidence; refreshed PP-018's declared pnpm reference.
 - Follow-up tasks created: None.
 - Residual risk: GitHub Actions will provide final confirmation that the updated CI setup completes frozen installs.
+### 2026-08-17 - PP-042 Repair local development service startup
+
+- Role: Builder / Verifier
+- Status: Done
+- Goal: Repair the failing local Compose web and worker startup paths.
+- Acceptance criteria checked:
+  - The web service launches through `pnpm --filter web exec next`, which resolves Next from the workspace store when its mounted package-local executable link is stale.
+  - The worker no longer runs the unsupported Celery `--autoreload` option.
+  - The effective development Compose configuration validates and the local web endpoint responds.
+- Commands run:
+  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml -p photoprune config --quiet` passed.
+  - Recreated `web` and `worker` services; the worker reached its Celery ready state and the web service reported `Ready`.
+  - `curl.exe --fail --silent --show-error http://127.0.0.1:3000` passed.
+- Manual verification: Confirmed the running development stack exposes the web app only at `127.0.0.1:3000`.
+- Artifacts/screenshots: None.
+- Backlog updates: Added PP-042 as Done.
+- Follow-up tasks created: None.
+- Residual risk: Next.js still reports the pre-existing non-standard `NODE_ENV` warning; it does not prevent startup.
 
 ### 2026-07-28 - PP-038 Reposition Baton as optional advanced orchestration
 
