@@ -98,7 +98,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Status: Done
 - Type: Chore / Dev Environment
 - Links: `package.json`, `infra/docker/web.Dockerfile`, `apps/web/Dockerfile`, `Makefile`
-- Goal: Restore `make dev` after the repo package manager moved to `pnpm@11.9.0`.
+- Goal: Restore `make dev` after the repo package manager moved to `pnpm@11.20.0`.
 - Acceptance criteria:
   - Web Docker build uses a Node runtime compatible with the declared pnpm version.
   - pnpm override configuration is stored where pnpm 11 reads it so frozen installs match the lockfile.
@@ -114,11 +114,11 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Links: `.github/workflows/ci.yml`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`
 - Goal: Restore frozen pnpm installs in CI by using the same pnpm major version that generated the current workspace override-aware lockfile on a Node runtime supported by pnpm 11.
 - Acceptance criteria:
-  - GitHub Actions installs `pnpm@11.9.0`, matching the package manager declared in `package.json`.
+  - GitHub Actions installs `pnpm@11.20.0`, matching the package manager declared in `package.json`.
   - GitHub Actions uses Node 24 so pnpm 11 can load required modern Node built-ins such as `node:sqlite`.
   - `pnpm-workspace.yaml` remains the canonical location for pnpm overrides.
   - Dependency versions and lockfile resolutions are not changed for this CI repair.
-  - Local verification records that `pnpm@11.9.0` could not be downloaded in this environment if registry access remains blocked.
+  - Local verification records any inability to provision `pnpm@11.20.0` in this environment if registry access remains blocked.
 
 ### PP-021 Harden dependency lock drift and supply-chain policy automation
 
@@ -294,12 +294,12 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Status: Done
 - Type: Chore / Docs
 - Links: `package.json`, `.github/workflows/ci.yml`, `docs/ai/testing.md`
-- Evidence: The repository and CI now use the package-manager version declared by `package.json`; the pnpm 10/9 mismatch described by the original task is stale.
+- Evidence: The repository and CI use `pnpm@11.20.0`, the package-manager version declared by `package.json`; the pnpm 10/9 mismatch described by the original task is stale.
 - Acceptance criteria:
   - Decision is made to align CI or explicitly document why mismatch is intentional.
   - Relevant install/CI docs are updated.
   - CI dependency installation remains reproducible.
-- Evidence: CI installs pnpm from the root `packageManager` declaration; PP-019 and PP-021 recorded the aligned/tooling-hardened implementation.
+- Evidence: CI installs `pnpm@11.20.0`, matching the root `packageManager` declaration; PP-019 and PP-021 record the aligned/tooling-hardened implementation.
 
 ### PP-011 Repair Python lock check and cleanup run pruning
 

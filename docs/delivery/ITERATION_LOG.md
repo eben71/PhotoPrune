@@ -19,6 +19,19 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-08-17 - Align CI pnpm setup with package metadata
+
+- Role: Builder
+- Status: Done
+- Goal: Keep frozen CI installs on the exact pnpm version declared in the root package metadata.
+- Acceptance criteria checked: Both CI setup steps provision `pnpm@11.20.0`; no dependency or lockfile resolutions changed; PP-009 and PP-019 delivery records state the same declared version.
+- Commands run: `pnpm check:docs` and `git diff --check` passed.
+- Manual verification: Reviewed the root `packageManager` SHA-pinned declaration and both `.github/workflows/ci.yml` setup steps.
+- Artifacts/screenshots: Review finding supplied in the task.
+- Backlog updates: Corrected PP-009 and PP-019 version evidence; refreshed PP-018's declared pnpm reference.
+- Follow-up tasks created: None.
+- Residual risk: GitHub Actions will provide final confirmation that the updated CI setup completes frozen installs.
+
 ### 2026-07-28 - PP-038 Reposition Baton as optional advanced orchestration
 
 - Role: Builder
