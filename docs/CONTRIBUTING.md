@@ -42,10 +42,14 @@ Use [the Baton and Git Worktree Guide](delivery/BATON_WORKTREE_GUIDE.md) only wh
 - Local stack: `make dev`
 - Install git hooks: `make hooks`
 
-`make dev` publishes only the web gateway at `127.0.0.1:3000`. The API,
+`make dev` uses Compose file watching and publishes only the web gateway at
+`127.0.0.1:3000`. The API,
 PostgreSQL, and Redis remain private to Compose. Project APIs are
 unauthenticated, so do not add a LAN bind, proxy, tunnel, port-forward, or
 remote ingress. Use `docker compose exec` for private service diagnostics.
+Web and API source changes reload in development; worker source changes restart
+the worker through Compose because Celery has no supported worker autoreload
+option.
 
 ## CI gates
 

@@ -19,4 +19,10 @@ COPY apps/worker/app ./app
 
 ENV PATH="/app/.venv/bin:$PATH"
 
+RUN groupadd --gid 10001 photoprune \
+    && useradd --uid 10001 --gid photoprune --create-home --shell /usr/sbin/nologin photoprune \
+    && chown -R photoprune:photoprune /app
+
+USER photoprune
+
 CMD ["uv", "run", "celery", "-A", "app.celery_app.app", "worker", "-l", "info"]

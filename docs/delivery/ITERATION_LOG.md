@@ -19,6 +19,28 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-08-17 - PP-042 Repair local Compose startup warnings and worker reload
+
+- Role: Builder
+- Status: Done
+- Goal: Remove avoidable local startup warnings while retaining live worker development feedback and dropping root worker execution.
+- Acceptance criteria checked:
+  - Removed the unsupported Celery `--autoreload` argument and added Compose `sync+restart` watch behavior for worker source changes.
+  - Set `NODE_ENV=development` for the local web `next dev` command.
+  - Rebuilt the worker image with the `photoprune` user and confirmed `uid=10001(photoprune)`.
+- Commands run:
+  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml config --quiet` passed.
+  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml build worker` passed.
+  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm --no-deps worker id` reported `uid=10001(photoprune)`.
+  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm --no-deps worker uv run celery --version` reported `5.6.3 (recovery)`.
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, and `make build` passed. The test suite passed 108 web tests, 157 API tests, 2 worker tests, 26 deployment-boundary/agent-system tests, and 6 dependency-preflight tests; coverage was web 84.83%, API 92.37%, worker 100%.
+  - `pnpm check:docs`, touched-document Prettier validation, and `git diff --check` passed.
+- Manual verification: A fresh `docker compose ... up --build --detach` run showed the worker ready as UID 10001 with no root warning or unsupported-option error, and Next.js started without the non-standard `NODE_ENV` warning. The expected first-run Corepack pnpm download notice and Next telemetry notice remained. The temporary verification stack was stopped with `docker compose ... down`, preserving the database volume.
+- Artifacts/screenshots: Not applicable.
+- Backlog updates: Added PP-042 as In Progress.
+- Follow-up tasks created: None.
+- Residual risk: Compose watch behavior depends on Docker Desktop's host file-event forwarding; its valid `sync+restart` configuration is covered by merged Compose validation.
+
 ### 2026-07-28 - PP-038 Reposition Baton as optional advanced orchestration
 
 - Role: Builder

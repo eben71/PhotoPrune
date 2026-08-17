@@ -81,7 +81,8 @@ pnpm check:docs
 
 `make setup` installs the JavaScript workspace and Python service dependencies.
 
-`make dev` starts the supported local development stack. Open
+`make dev` starts the supported local development stack with Compose file
+watching. Open
 `http://127.0.0.1:3000`; the effective Compose configuration publishes only
 that web port on IPv4 loopback. FastAPI, PostgreSQL, and Redis remain private
 to the Compose network. Verify the merged topology with:
@@ -89,6 +90,10 @@ to the Compose network. Verify the merged topology with:
 ```bash
 pnpm check:deployment-boundary
 ```
+
+Web and API source changes reload in development. Worker source changes cause
+Compose to restart the worker, because Celery does not provide a supported
+production worker autoreload option.
 
 PhotoPrune currently has no application accounts, sessions, or authorization.
 Project, scan, review, and export operations are unauthenticated and are safe

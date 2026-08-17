@@ -8,6 +8,24 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ## P0
 
+### PP-042 Repair local Compose startup warnings and worker reload
+
+- Status: Done
+- Type: Chore / Dev Environment
+- Links: `docker-compose.dev.yml`, `infra/docker/worker.Dockerfile`, `Makefile`, `README.md`, `docs/CONTRIBUTING.md`
+- Goal: Make the supported local stack start without invalid Celery reload or Next.js environment warnings, while keeping worker edits reloadable and running the worker without root privileges.
+- Acceptance criteria:
+  - The local worker command does not pass Celery's unsupported `--autoreload` option.
+  - `make dev` uses Compose watch mode and worker source changes restart only the worker.
+  - The local web service runs `next dev` with `NODE_ENV=development`.
+  - The worker image runs Celery as an unprivileged user.
+  - Compose configuration and relevant documentation checks pass.
+- Evidence:
+  - Merged development Compose configuration contains `NODE_ENV=development` and the worker's `sync+restart` watch rule, with no `--autoreload` argument.
+  - The rebuilt worker image reports `uid=10001(photoprune)` and Celery `5.6.3` starts from that image.
+  - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, `make build`, and `pnpm check:docs` passed.
+  - A fresh Compose startup produced no unsupported-Celery-option, root-worker, or Next.js `NODE_ENV` warning; the verification stack was then stopped without removing its database volume.
+
 ### PP-000 Agentic Delivery Reset
 
 - Status: Done

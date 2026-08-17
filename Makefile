@@ -61,7 +61,7 @@ dev:
 	@$(DOCKER_RUN) image inspect redis:7-alpine >/dev/null 2>&1 || $(DOCKER_RUN) pull redis:7-alpine
 	@$(DOCKER_RUN) image inspect python:3.12-slim >/dev/null 2>&1 || $(DOCKER_RUN) pull python:3.12-slim
 	@$(DOCKER_RUN) image inspect node:22-slim >/dev/null 2>&1 || $(DOCKER_RUN) pull node:22-slim
-	$(_dev_compose_dev) up --build --pull never
+	$(_dev_compose_dev) up --build --pull never --watch
 
 dev-web:
 	$(_dev_compose_dev) up --build --pull never --no-deps web
