@@ -25,6 +25,7 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
   - The rebuilt worker image reports `uid=10001(photoprune)` and Celery `5.6.3` starts from that image.
   - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, `make build`, and `pnpm check:docs` passed.
   - A fresh Compose startup produced no unsupported-Celery-option, root-worker, or Next.js `NODE_ENV` warning; the verification stack was then stopped without removing its database volume.
+  - Review follow-up removed the worker bind mount that overlapped `/app/app`, so Compose Watch owns worker source synchronization and can trigger the configured restart.
 
 ### PP-000 Agentic Delivery Reset
 
