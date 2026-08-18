@@ -8,24 +8,16 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 
 ## P0
 
-### PP-042 Repair local Compose startup warnings and worker reload
+### PP-042 Repair local development service startup
 
 - Status: Done
-- Type: Chore / Dev Environment
-- Links: `docker-compose.dev.yml`, `infra/docker/worker.Dockerfile`, `Makefile`, `README.md`, `docs/CONTRIBUTING.md`
-- Goal: Make the supported local stack start without invalid Celery reload or Next.js environment warnings, while keeping worker edits reloadable and running the worker without root privileges.
+- Type: Build / Developer Experience
+- Links: `docker-compose.dev.yml`
+- Goal: Restore the local web and worker services when their development startup commands fail.
 - Acceptance criteria:
-  - The local worker command does not pass Celery's unsupported `--autoreload` option.
-  - `make dev` uses Compose watch mode and worker source changes restart only the worker.
-  - The local web service runs `next dev` with `NODE_ENV=development`.
-  - The worker image runs Celery as an unprivileged user.
-  - Compose configuration and relevant documentation checks pass.
-- Evidence:
-  - Merged development Compose configuration contains `NODE_ENV=development` and the worker's `sync+restart` watch rule, with no `--autoreload` argument.
-  - The rebuilt worker image reports `uid=10001(photoprune)` and Celery `5.6.3` starts from that image.
-  - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, `make build`, and `pnpm check:docs` passed.
-  - A fresh Compose startup produced no unsupported-Celery-option, root-worker, or Next.js `NODE_ENV` warning; the verification stack was then stopped without removing its database volume.
-  - Review follow-up removed the worker bind mount that overlapped `/app/app`, so Compose Watch owns worker source synchronization and can trigger the configured restart.
+  - The web service starts through pnpm's workspace-aware Next launcher, independent of stale package-local executable links in its mounted dependency volume.
+  - The worker starts without Celery's unsupported `--autoreload` flag.
+  - The effective Compose configuration validates and `http://127.0.0.1:3000` responds after startup.
 
 ### PP-000 Agentic Delivery Reset
 
@@ -133,11 +125,11 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Links: `.github/workflows/ci.yml`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`
 - Goal: Restore frozen pnpm installs in CI by using the same pnpm major version that generated the current workspace override-aware lockfile on a Node runtime supported by pnpm 11.
 - Acceptance criteria:
-  - GitHub Actions installs `pnpm@11.9.0`, matching the package manager declared in `package.json`.
+  - GitHub Actions installs `pnpm@11.20.0`, matching the package manager declared in `package.json`.
   - GitHub Actions uses Node 24 so pnpm 11 can load required modern Node built-ins such as `node:sqlite`.
   - `pnpm-workspace.yaml` remains the canonical location for pnpm overrides.
   - Dependency versions and lockfile resolutions are not changed for this CI repair.
-  - Local verification records that `pnpm@11.9.0` could not be downloaded in this environment if registry access remains blocked.
+  - Local verification records any inability to provision `pnpm@11.20.0` in this environment if registry access remains blocked.
 
 ### PP-021 Harden dependency lock drift and supply-chain policy automation
 
@@ -313,12 +305,12 @@ Draft | Ready | In Progress | Verifying | Done | Blocked | Discarded
 - Status: Done
 - Type: Chore / Docs
 - Links: `package.json`, `.github/workflows/ci.yml`, `docs/ai/testing.md`
-- Evidence: The repository and CI now use the package-manager version declared by `package.json`; the pnpm 10/9 mismatch described by the original task is stale.
+- Evidence: The repository and CI use `pnpm@11.20.0`, the package-manager version declared by `package.json`; the pnpm 10/9 mismatch described by the original task is stale.
 - Acceptance criteria:
   - Decision is made to align CI or explicitly document why mismatch is intentional.
   - Relevant install/CI docs are updated.
   - CI dependency installation remains reproducible.
-- Evidence: CI installs pnpm from the root `packageManager` declaration; PP-019 and PP-021 recorded the aligned/tooling-hardened implementation.
+- Evidence: CI installs `pnpm@11.20.0`, matching the root `packageManager` declaration; PP-019 and PP-021 record the aligned/tooling-hardened implementation.
 
 ### PP-011 Repair Python lock check and cleanup run pruning
 

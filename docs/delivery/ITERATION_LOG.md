@@ -19,46 +19,36 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
-### 2026-08-18 - PP-042 Repair overlapping worker source mount
+### 2026-08-17 - Align CI pnpm setup with package metadata
 
 - Role: Builder
 - Status: Done
-- Goal: Ensure Compose Watch can observe worker source changes and restart the worker.
-- Acceptance criteria checked:
-  - Removed the worker bind mount whose `/app/app` target overlapped the `sync+restart` watch target.
-  - Retained the worker watch rule as the single owner of development source synchronization.
-- Commands run:
-  - `node --test tests/deployment-boundary/deployment-boundary.test.mjs` passed with 19 tests.
-  - `node scripts/check-docs.js` and `git diff --check` passed.
-  - `pnpm check:docs` could not run under the default Node.js 20 runtime because pnpm requires Node.js 22.13 or newer. Retrying under Node.js 24 triggered pnpm's dependency status repair, which could not download packages from the npm registry in this environment and was stopped after repeated retries.
-  - `pnpm exec prettier --check docker-compose.dev.yml docs/delivery/TASK_BACKLOG.md docs/delivery/ITERATION_LOG.md` could not run because the same dependency status repair blocked pnpm before command execution.
-- Manual verification: Docker is not installed in this environment, so live Compose Watch behavior could not be exercised.
-- Artifacts/screenshots: Not applicable; development configuration only.
-- Backlog updates: Added the review follow-up evidence to PP-042.
+- Goal: Keep frozen CI installs on the exact pnpm version declared in the root package metadata.
+- Acceptance criteria checked: Both CI setup steps provision `pnpm@11.20.0`; no dependency or lockfile resolutions changed; PP-009 and PP-019 delivery records state the same declared version.
+- Commands run: `pnpm check:docs` and `git diff --check` passed.
+- Manual verification: Reviewed the root `packageManager` SHA-pinned declaration and both `.github/workflows/ci.yml` setup steps.
+- Artifacts/screenshots: Review finding supplied in the task.
+- Backlog updates: Corrected PP-009 and PP-019 version evidence; preserved PP-018's historical pnpm version.
 - Follow-up tasks created: None.
-- Residual risk: A Docker-capable host must confirm that editing `apps/worker/app` restarts only the worker.
+- Residual risk: GitHub Actions will provide final confirmation that the updated CI setup completes frozen installs.
+### 2026-08-17 - PP-042 Repair local development service startup
 
-### 2026-08-17 - PP-042 Repair local Compose startup warnings and worker reload
-
-- Role: Builder
+- Role: Builder / Verifier
 - Status: Done
-- Goal: Remove avoidable local startup warnings while retaining live worker development feedback and dropping root worker execution.
+- Goal: Repair the failing local Compose web and worker startup paths.
 - Acceptance criteria checked:
-  - Removed the unsupported Celery `--autoreload` argument and added Compose `sync+restart` watch behavior for worker source changes.
-  - Set `NODE_ENV=development` for the local web `next dev` command.
-  - Rebuilt the worker image with the `photoprune` user and confirmed `uid=10001(photoprune)`.
+  - The web service launches through `pnpm --filter web exec next`, which resolves Next from the workspace store when its mounted package-local executable link is stale.
+  - The worker no longer runs the unsupported Celery `--autoreload` option.
+  - The effective development Compose configuration validates and the local web endpoint responds.
 - Commands run:
-  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml config --quiet` passed.
-  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml build worker` passed.
-  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm --no-deps worker id` reported `uid=10001(photoprune)`.
-  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm --no-deps worker uv run celery --version` reported `5.6.3 (recovery)`.
-  - `make lint`, `make format-check`, `make typecheck`, `make test`, `node scripts/check-coverage.mjs`, and `make build` passed. The test suite passed 108 web tests, 157 API tests, 2 worker tests, 26 deployment-boundary/agent-system tests, and 6 dependency-preflight tests; coverage was web 84.83%, API 92.37%, worker 100%.
-  - `pnpm check:docs`, touched-document Prettier validation, and `git diff --check` passed.
-- Manual verification: A fresh `docker compose ... up --build --detach` run showed the worker ready as UID 10001 with no root warning or unsupported-option error, and Next.js started without the non-standard `NODE_ENV` warning. The expected first-run Corepack pnpm download notice and Next telemetry notice remained. The temporary verification stack was stopped with `docker compose ... down`, preserving the database volume.
-- Artifacts/screenshots: Not applicable.
-- Backlog updates: Added PP-042 as In Progress.
+  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml -p photoprune config --quiet` passed.
+  - Recreated `web` and `worker` services; the worker reached its Celery ready state and the web service reported `Ready`.
+  - `curl.exe --fail --silent --show-error http://127.0.0.1:3000` passed.
+- Manual verification: Confirmed the running development stack exposes the web app only at `127.0.0.1:3000`.
+- Artifacts/screenshots: None.
+- Backlog updates: Added PP-042 as Done.
 - Follow-up tasks created: None.
-- Residual risk: Compose watch behavior depends on Docker Desktop's host file-event forwarding; its valid `sync+restart` configuration is covered by merged Compose validation.
+- Residual risk: Next.js still reports the pre-existing non-standard `NODE_ENV` warning; it does not prevent startup.
 
 ### 2026-07-28 - PP-038 Reposition Baton as optional advanced orchestration
 
