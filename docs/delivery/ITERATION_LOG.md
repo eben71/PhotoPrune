@@ -19,6 +19,25 @@ Record every implementation or verification iteration here. The log is repo trut
 
 ## Entries
 
+### 2026-08-18 - PP-042 Repair overlapping worker source mount
+
+- Role: Builder
+- Status: Done
+- Goal: Ensure Compose Watch can observe worker source changes and restart the worker.
+- Acceptance criteria checked:
+  - Removed the worker bind mount whose `/app/app` target overlapped the `sync+restart` watch target.
+  - Retained the worker watch rule as the single owner of development source synchronization.
+- Commands run:
+  - `node --test tests/deployment-boundary/deployment-boundary.test.mjs` passed with 19 tests.
+  - `node scripts/check-docs.js` and `git diff --check` passed.
+  - `pnpm check:docs` could not run under the default Node.js 20 runtime because pnpm requires Node.js 22.13 or newer. Retrying under Node.js 24 triggered pnpm's dependency status repair, which could not download packages from the npm registry in this environment and was stopped after repeated retries.
+  - `pnpm exec prettier --check docker-compose.dev.yml docs/delivery/TASK_BACKLOG.md docs/delivery/ITERATION_LOG.md` could not run because the same dependency status repair blocked pnpm before command execution.
+- Manual verification: Docker is not installed in this environment, so live Compose Watch behavior could not be exercised.
+- Artifacts/screenshots: Not applicable; development configuration only.
+- Backlog updates: Added the review follow-up evidence to PP-042.
+- Follow-up tasks created: None.
+- Residual risk: A Docker-capable host must confirm that editing `apps/worker/app` restarts only the worker.
+
 ### 2026-08-17 - PP-042 Repair local Compose startup warnings and worker reload
 
 - Role: Builder

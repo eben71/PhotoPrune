@@ -31,8 +31,6 @@ services:
         "--pool=solo",
         "--concurrency=1"
       ]
-    volumes:
-      - ./apps/worker/app:/app/app
     develop:
       watch:
         - action: sync+restart
