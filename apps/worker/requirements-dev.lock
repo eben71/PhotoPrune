@@ -14,7 +14,7 @@ celery==5.6.3
     # via photoprune-worker (pyproject.toml)
 certifi==2026.7.22
     # via requests
-charset-normalizer==3.4.9
+charset-normalizer==3.5.1
     # via requests
 click==8.4.2
     # via
@@ -31,11 +31,11 @@ click-repl==0.3.0
     # via celery
 coverage==7.15.4
     # via pytest-cov
-cyclonedx-python-lib==11.11.1
+cyclonedx-python-lib==11.12.0
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
-filelock==3.32.2
+filelock==3.32.3
     # via cachecontrol
 idna==3.18
     # via requests
@@ -82,7 +82,7 @@ pip-audit==2.10.1
     # via photoprune-worker (pyproject.toml:dev)
 pip-requirements-parser==32.0.1
     # via pip-audit
-platformdirs==4.11.2
+platformdirs==4.11.3
     # via
     #   black
     #   pip-audit
@@ -92,7 +92,7 @@ prompt-toolkit==3.0.53
     # via click-repl
 py-serializable==2.1.0
     # via cyclonedx-python-lib
-pygments==2.20.0
+pygments==2.21.0
     # via
     #   pytest
     #   rich
@@ -106,7 +106,7 @@ pytest-cov==5.0.0
     # via photoprune-worker (pyproject.toml:dev)
 python-dateutil==2.9.0.post0
     # via celery
-python-dotenv==1.2.2
+python-dotenv==1.2.3
     # via photoprune-worker (pyproject.toml)
 pytokens==0.4.1
     # via black
