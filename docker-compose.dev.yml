@@ -31,12 +31,16 @@ services:
         "--pool=solo",
         "--concurrency=1"
       ]
-    volumes:
-      - ./apps/worker/app:/app/app
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./apps/worker/app
+          target: /app/app
 
   web:
     environment:
       CHOKIDAR_USEPOLLING: "1"
+      NODE_ENV: development
       WATCHPACK_POLLING: "1"
     command:
       [
