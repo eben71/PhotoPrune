@@ -8,7 +8,7 @@ anyio==4.14.2
     # via
     #   httpx
     #   starlette
-black==26.5.1
+black==26.10.1
     # via photoprune-api (pyproject.toml:dev)
 boolean-py==5.0
     # via license-expression
@@ -130,7 +130,7 @@ requests==2.34.2
     #   pip-audit
 rich==15.0.0
     # via pip-audit
-ruff==0.16.2
+ruff==0.17.0
     # via photoprune-api (pyproject.toml:dev)
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib
